@@ -1,0 +1,32 @@
+# Ignore Python virtual environment
+venv/
+__pycache__/
+
+# Ignore environment variables
+.env
+.env.local
+
+# Ignore build artifacts
+build/
+.cache/
+out/
+
+# Ignore TypeScript build files
+*.tsbuildinfo
+
+# Ignore test coverage reports
+coverage/
+.nyc_output/
+
+# Ignore dependency-related files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Ignore temporary files
+tmp/
+*.tmp
+
+# Ignore system files
+Thumbs.db
+.DS_Store
