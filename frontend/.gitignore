@@ -18,6 +18,9 @@ out/
 coverage/
 .nyc_output/
 
+# Ignore node modules
+node_modules/
+
 # Ignore dependency-related files
 package-lock.json
 yarn.lock
