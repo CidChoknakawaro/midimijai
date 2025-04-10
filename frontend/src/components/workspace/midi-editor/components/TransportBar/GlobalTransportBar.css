@@ -1,0 +1,27 @@
+.transport-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    padding: 8px 16px;
+    border: 2px solid black;
+    border-radius: 12px;
+    gap: 10px;
+  }
+  
+  .transport-bar button {
+    font-size: 18px;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .transport-bar button:hover {
+    transform: scale(1.1);
+  }
+  
+  .transport-bar input[type="range"] {
+    width: 100px;
+  }
+  
+  

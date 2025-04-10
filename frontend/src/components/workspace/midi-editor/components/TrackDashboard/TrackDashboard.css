@@ -1,0 +1,90 @@
+.dashboard-container {
+  max-height: 600px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 10px;
+  background: white;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.dashboard-timeline-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dashboard-track-row {
+  border: 1px solid #ccc;
+  padding: 10px;
+  background: #fdfdfd;
+}
+
+.track-row-flex {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.track-controls {
+  width: 200px;
+}
+
+.track-meta {
+  margin-top: 5px;
+}
+
+.track-sliders {
+  margin-top: 10px;
+}
+
+.track-timeline {
+  position: relative;
+  width: 640px;
+  height: 200px;
+  overflow: hidden;
+  background: white;
+  border: 1px solid #eee;
+}
+
+.timeline-cell {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  border-left: 1px solid #eee;
+}
+
+.timeline-cell.bar {
+  border-left: 1px solid #999;
+}
+
+.mini-note {
+  position: absolute;
+  height: 5px;
+  background: #4c79ff;
+  border-radius: 2px;
+}
+
+.mini-playhead {
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  background: red;
+  z-index: 999;
+}
+
+.add-track-row {
+  text-align: center;
+  padding: 20px;
+  font-size: 32px;
+  cursor: pointer;
+  color: #888;
+  border: 2px dashed #ccc;
+  margin-top: 10px;
+}

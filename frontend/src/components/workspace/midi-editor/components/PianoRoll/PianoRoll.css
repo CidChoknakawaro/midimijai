@@ -1,0 +1,113 @@
+.piano-roll-viewport {
+  display: flex;
+  flex-direction: column;
+  max-height: 500px;
+  overflow: hidden;
+  border: 1px solid #ccc;
+}
+
+.top-ruler {
+  display: flex;
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 10;
+  border-bottom: 1px solid #ccc;
+}
+
+.ruler-corner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  background: #f7f7f7;
+  border-right: 1px solid #ccc;
+}
+
+.ruler-beat {
+  height: 20px;
+  border-right: 1px solid #ccc;
+  text-align: center;
+  font-size: 11px;
+  line-height: 20px;
+  flex: 0 0 auto;
+}
+
+.piano-roll-scroll-container {
+  overflow-y: scroll;
+  overflow-x: auto;
+  height: 400px;
+  position: relative;
+}
+
+.piano-roll-inner {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+}
+
+.piano-roll-rows {
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background: #f7f7f7;
+}
+
+.roll-row {
+  height: 20px;
+  display: flex;
+  border-bottom: none;
+}
+
+.roll-label {
+  width: 40px;
+  height: 20px;               /* ✅ Explicitly set to match grid */
+  line-height: 20px;          /* ✅ Vertically centered text */
+  font-size: 11px;
+  text-align: center;
+  background: #f7f7f7;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;     /* ✅ Prevent padding from breaking height */
+}
+
+.piano-roll-content {
+  position: relative;
+  flex: 1;
+}
+
+.grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.grid-line.vertical {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #ccc;
+}
+
+.grid-line.vertical.bar-line {
+  background: #444;
+  width: 2px;
+}
+
+
+.grid-line.horizontal {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 20px;
+  border-top: 1px solid #ddd;  /* ✅ This replaces row border */
+  box-sizing: border-box;
+}
