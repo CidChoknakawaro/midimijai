@@ -1,0 +1,3179 @@
+Folder Structure
+--------------------------------------------------
+src/
+    App.tsx
+    main.tsx
+    components/
+        auth/
+            AuthInputField.tsx
+            AuthToggle.tsx
+            GoogleAuthButton.tsx
+            GuestLogin.tsx
+            LoginForm.tsx
+            PasswordToggle.tsx
+            SignUpForm.tsx
+            SubmitButton.tsx
+        dashboard/
+            FolderStructure.tsx
+            NewFolderButton.tsx
+            NewProjectButton.tsx
+            ProjectActions.tsx
+            ProjectCard.tsx
+            ProjectList.tsx
+            SearchBar.tsx
+            SortDropdown.tsx
+            UserDropdown.tsx
+        home/
+            FeatureCard.tsx
+            FeatureList.tsx
+            Footer.tsx
+            HeroSection.tsx
+            NavBar.tsx
+            StepGuide.tsx
+            UserTypes.tsx
+        shared/
+            Button.tsx
+            Dropdown.tsx
+            InputField.tsx
+            LoadingSpinner.tsx
+            Modal.tsx
+            ToggleSwitch.tsx
+            Tooltip.tsx
+        workspace/
+            AIGenerate.tsx
+            AIModify.tsx
+            AIStyleTransfer.tsx
+            EditMenu.tsx
+            FileMenu.tsx
+            MIDIToolsMenu.tsx
+            SettingsMenu.tsx
+            SoundLibraryModal.tsx
+            WorkspaceNavBar.tsx
+            midi-editor/
+                components/
+                    PianoRoll/
+                        PianoRoll.css
+                        PianoRoll.tsx
+                    TrackDashboard/
+                        TrackDashboard.css
+                        TrackDashboard.tsx
+                    TrackEditor/
+                        TrackEditor.tsx
+                    TransportBar/
+                        GlobalTransportBar.css
+                        GlobalTransportBar.tsx
+                core/
+                    exportMidi.ts
+                    importMidi.ts
+                    MidiEditorCore.tsx
+                    midiUtils.ts
+                    TransportContext.tsx
+    config/
+        apiConfig.ts
+        appConfig.ts
+    context/
+        authStore.ts
+        midiStore.ts
+    hooks/
+        useAuth.ts
+        useMIDI.ts
+        useProjectManager.ts
+    pages/
+        AuthPage.tsx
+        DashboardPage.tsx
+        HomePage.tsx
+        WorkspacePage.tsx
+    services/
+        authService.ts
+        midiService.ts
+        projectService.ts
+        userService.ts
+    styles/
+        auth.module.css
+        dashboard.module.css
+        globals.css
+        LoadingSpinner.css
+        ToggleSwitch.css
+        workspace.module.css
+    types/
+        projectTypes.ts
+    utils/
+        constants.ts
+        formatDate.ts
+        generateMIDI.ts
+        instruments.ts
+        validateForm.ts
+
+
+File Contents
+--------------------------------------------------
+
+
+frontend\src\App.tsx
+File type: .tsx
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import AuthPage from "./pages/AuthPage";
+import HomePage from "./pages/HomePage";
+import DashboardPage from "./pages/DashboardPage";
+import WorkspacePage from "./pages/WorkspacePage";
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/workspace" element={<WorkspacePage />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\main.tsx
+File type: .tsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\auth\AuthInputField.tsx
+File type: .tsx
+import React from "react";
+
+interface AuthInputFieldProps {
+  type: string;
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+}
+
+const AuthInputField: React.FC<AuthInputFieldProps> = ({ type, placeholder, value, onChange }) => {
+  return (
+    <input
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full p-2 border border-gray-300 rounded mb-2"
+    />
+  );
+};
+
+export default AuthInputField;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\auth\AuthToggle.tsx
+File type: .tsx
+import React from "react";
+
+interface AuthToggleProps {
+  isLogin: boolean;
+  setIsLogin: (value: boolean) => void;
+}
+
+const AuthToggle: React.FC<AuthToggleProps> = ({ isLogin, setIsLogin }) => {
+  return (
+    <div className="flex mb-4">
+      <button
+        className={`w-1/2 py-2 ${isLogin ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+        onClick={() => setIsLogin(true)}
+      >
+        Log in
+      </button>
+      <button
+        className={`w-1/2 py-2 ${!isLogin ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+        onClick={() => setIsLogin(false)}
+      >
+        Sign up
+      </button>
+    </div>
+  );
+};
+
+export default AuthToggle;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\auth\GoogleAuthButton.tsx
+File type: .tsx
+import React from "react";
+
+const GoogleAuthButton: React.FC = () => {
+  return (
+    <button className="w-full p-2 mt-2 bg-red-500 text-white rounded">
+      Continue with Google
+    </button>
+  );
+};
+
+export default GoogleAuthButton;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\auth\GuestLogin.tsx
+File type: .tsx
+import React from "react";
+
+const GuestLogin: React.FC = () => {
+  return (
+    <button className="w-full p-2 mt-2 bg-gray-400 text-white rounded">
+      Continue as Guest
+    </button>
+  );
+};
+
+export default GuestLogin;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\auth\LoginForm.tsx
+File type: .tsx
+import React, { useState } from "react";
+import AuthInputField from "./AuthInputField";
+import PasswordToggle from "./PasswordToggle";
+import GoogleAuthButton from "./GoogleAuthButton";
+import SubmitButton from "./SubmitButton";
+import GuestLogin from "./GuestLogin";
+
+const LoginForm = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  return (
+    <div>
+      <AuthInputField type="text" placeholder="Username" value={username} onChange={setUsername} />
+      <PasswordToggle value={password} onChange={setPassword} />
+      <SubmitButton text="Log in" onClick={() => alert("Logging in...")} />
+      <GoogleAuthButton />
+      <GuestLogin />
+    </div>
+  );
+};
+
+export default LoginForm;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\auth\SignUpForm.tsx
+File type: .tsx
+import React, { useState } from "react";
+import AuthInputField from "./AuthInputField";
+import PasswordToggle from "./PasswordToggle";
+import GoogleAuthButton from "./GoogleAuthButton";
+import SubmitButton from "./SubmitButton";
+
+const SignUpForm = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  return (
+    <div>
+      <AuthInputField type="text" placeholder="Username" value={username} onChange={setUsername} />
+      <PasswordToggle value={password} onChange={setPassword} />
+      <PasswordToggle value={confirmPassword} onChange={setConfirmPassword} />
+      <SubmitButton text="Sign up" onClick={() => alert("Signing up...")} />
+      <GoogleAuthButton />
+    </div>
+  );
+};
+
+export default SignUpForm;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\auth\SubmitButton.tsx
+File type: .tsx
+import React from "react";
+
+interface SubmitButtonProps {
+  text: string;
+  onClick: () => void;
+}
+
+const SubmitButton: React.FC<SubmitButtonProps> = ({ text, onClick }) => {
+  return (
+    <button className="w-full p-2 mt-2 bg-blue-500 text-white rounded" onClick={onClick}>
+      {text}
+    </button>
+  );
+};
+
+export default SubmitButton;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\dashboard\FolderStructure.tsx
+File type: .tsx
+import React, { useState } from "react";
+import ProjectCard from "./ProjectCard";
+
+interface Project {
+  id: string;
+  name: string;
+  createdAt: string;
+  duration: string;
+  folderId?: string | null;
+}
+
+interface Folder {
+  id: string;
+  name: string;
+}
+
+interface FolderStructureProps {
+  projects: Project[];
+  folders: Folder[];
+}
+
+const FolderStructure: React.FC<FolderStructureProps> = ({ projects, folders }) => {
+  const [openFolders, setOpenFolders] = useState<string[]>([]);
+
+  const toggleFolder = (folderId: string) => {
+    setOpenFolders(prev =>
+      prev.includes(folderId) ? prev.filter(id => id !== folderId) : [...prev, folderId]
+    );
+  };
+
+  const renderProjectList = (filteredProjects: Project[]) =>
+    filteredProjects.map(project => (
+      <ProjectCard key={project.id} project={project} />
+    ));
+
+  const uncategorizedProjects = projects.filter(p => !p.folderId);
+
+  return (
+    <div className="space-y-4">
+      {/* Unfoldered projects */}
+      {uncategorizedProjects.length > 0 && (
+        <div className="space-y-2">{renderProjectList(uncategorizedProjects)}</div>
+      )}
+
+      {/* Foldered projects */}
+      {folders.map(folder => {
+        const folderProjects = projects.filter(p => p.folderId === folder.id);
+        const isOpen = openFolders.includes(folder.id);
+
+        return (
+          <div key={folder.id} className="border rounded p-2">
+            <button
+              className="font-semibold mb-2"
+              onClick={() => toggleFolder(folder.id)}
+            >
+              {folder.name} {isOpen ? "▲" : "▼"}
+            </button>
+
+            {isOpen && (
+              <div className="ml-4 space-y-2">
+                {folderProjects.length > 0
+                  ? renderProjectList(folderProjects)
+                  : <p className="text-sm text-gray-500">No projects in this folder</p>}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+export default FolderStructure;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\dashboard\NewFolderButton.tsx
+File type: .tsx
+import React from "react";
+import Button from "../shared/Button";
+
+const NewFolderButton: React.FC = () => {
+  return (
+    <Button text="+ Create new folder" onClick={() => alert("New folder placeholder")} />
+  );
+};
+
+export default NewFolderButton;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\dashboard\NewProjectButton.tsx
+File type: .tsx
+import React from "react";
+import Button from "../shared/Button";
+
+const NewProjectButton: React.FC = () => {
+  return (
+    <Button text="+ Create new project" onClick={() => alert("New project placeholder")} />
+  );
+};
+
+export default NewProjectButton;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\dashboard\ProjectActions.tsx
+File type: .tsx
+import React from "react";
+
+const ProjectActions: React.FC = () => {
+  return (
+    <div className="flex space-x-2">
+      <button title="Rename" className="rounded border px-2 py-1">R</button>
+      <button title="Duplicate" className="rounded border px-2 py-1">d</button>
+      <button title="Edit" className="rounded border px-2 py-1">E</button>
+    </div>
+  );
+};
+
+export default ProjectActions;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\dashboard\ProjectCard.tsx
+File type: .tsx
+import React from "react";
+import ProjectActions from "./ProjectActions";
+
+interface Project {
+  id: string;
+  name: string;
+  createdAt: string;
+  duration: string;
+}
+
+const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
+  return (
+    <div className="border rounded p-3 flex justify-between items-center mb-2">
+      <div className="flex items-center gap-2">
+        <div className="rounded-full border px-2 py-1">D</div>
+        <div>
+          <p className="font-medium">{project.name}</p>
+          <p className="text-xs">{project.duration}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        <p>{project.createdAt}</p>
+        <p>{project.duration}</p>
+        <ProjectActions />
+      </div>
+    </div>
+  );
+};
+
+export default ProjectCard;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\dashboard\ProjectList.tsx
+File type: .tsx
+import React from "react";
+import FolderStructure from "./FolderStructure";
+
+const mockProjects = [
+  { id: "1", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: null },
+  { id: "2", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: "f1" },
+];
+
+const mockFolders = [
+  { id: "f1", name: "Folder A" },
+  { id: "f2", name: "Folder B" },
+];
+
+const ProjectList: React.FC = () => {
+  return <FolderStructure projects={mockProjects} folders={mockFolders} />;
+};
+
+export default ProjectList;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\dashboard\SearchBar.tsx
+File type: .tsx
+import React from "react";
+
+const SearchBar: React.FC = () => {
+  return (
+    <input
+      type="text"
+      placeholder="Search"
+      className="border rounded px-4 py-2 w-full"
+    />
+  );
+};
+
+export default SearchBar;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\dashboard\SortDropdown.tsx
+File type: .tsx
+import React from "react";
+
+const SortDropdown: React.FC = () => {
+  return (
+    <select className="border rounded px-2 py-1">
+      <option value="created">Created</option>
+      <option value="name">Name</option>
+      <option value="modified">Modified</option>
+    </select>
+  );
+};
+
+export default SortDropdown;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\dashboard\UserDropdown.tsx
+File type: .tsx
+import React, { useState } from "react";
+
+const UserDropdown: React.FC = () => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative inline-block text-left">
+      <button
+        onClick={() => setOpen(!open)}
+        className="border rounded-full px-3 py-2 bg-cyan-300"
+      >
+        Username ▼
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg">
+          <button className="block px-4 py-2 w-full text-left hover:bg-gray-100">
+            Switch Account
+          </button>
+          <button className="block px-4 py-2 w-full text-left hover:bg-gray-100">
+            Sign Out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default UserDropdown;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\home\FeatureCard.tsx
+File type: .tsx
+import React from "react";
+
+interface FeatureCardProps {
+  title: string;
+  description: string;
+}
+
+const FeatureCard: React.FC<FeatureCardProps> = ({ title, description }) => {
+  return (
+    <div className="p-4 border rounded shadow">
+      <h3 className="text-xl font-bold">{title}</h3>
+      <p className="text-sm">{description}</p>
+    </div>
+  );
+};
+
+export default FeatureCard;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\home\FeatureList.tsx
+File type: .tsx
+import React, { useState } from "react";
+
+const features = [
+  {
+    title: "AI-powered MIDI generation",
+    description:
+      "Generate unique melodies, chord progressions, and rhythms instantly with AI. Just type a prompt or select a style, and let MIDIMIJAI do the rest.",
+  },
+  {
+    title: "Deep MIDI editing",
+    description:
+      "Manually fine-tune every MIDI note with powerful editing tools. Change timing, note length, velocity, or add advanced musical techniques.",
+  },
+  {
+    title: "Import and edit multiple MIDI files",
+    description:
+      "Load multiple MIDI files into the workspace, edit them side by side, and create a seamless composition.",
+  },
+  {
+    title: "Assign custom sound libraries",
+    description:
+      "Use your own samples and virtual instruments. Assign custom sounds to tracks for more control over your MIDI compositions.",
+  },
+];
+
+const FeatureList: React.FC = () => {
+  const [selectedFeatureIndex, setSelectedFeatureIndex] = useState<number | null>(0);
+
+  return (
+    <section className="py-10 px-4 max-w-6xl mx-auto">
+      <h2 className="text-3xl font-bold mb-6 text-center">What can you do with MIDIMIJAI?</h2>
+
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* LEFT: Dropdown Accordion List */}
+        <ul className="flex-1">
+          {features.map((feature, index) => (
+            <li
+              key={index}
+              className="border-b py-4 cursor-pointer"
+              onClick={() =>
+                setSelectedFeatureIndex(index === selectedFeatureIndex ? null : index)
+              }
+            >
+              <div className="flex justify-between items-center font-semibold text-lg">
+                <span>{feature.title}</span>
+                <span>{selectedFeatureIndex === index ? "▲" : "▼"}</span>
+              </div>
+              {selectedFeatureIndex === index && (
+                <p className="mt-2 text-gray-600">{feature.description}</p>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        {/* RIGHT: Video Placeholder */}
+        <div className="flex-1 flex items-start justify-center">
+          <div className="w-full h-64 bg-gray-300 flex items-center justify-center text-gray-600 text-sm rounded border">
+            {selectedFeatureIndex !== null
+              ? `[Video for: ${features[selectedFeatureIndex].title}]`
+              : `[No feature selected]`}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default FeatureList;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\home\Footer.tsx
+File type: .tsx
+import React from "react";
+
+const Footer: React.FC = () => {
+  return (
+    <footer className="py-6 bg-gray-900 text-white text-center text-sm px-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
+        <div><h4 className="font-bold">Company</h4><p>About Us</p><p>Contact</p></div>
+        <div><h4 className="font-bold">Platform</h4><p>Pricing</p><p>FAQs</p></div>
+        <div><h4 className="font-bold">Support</h4><p>Terms of Service</p></div>
+        <div><h4 className="font-bold">Legal</h4><p>Privacy Policy</p><p>Cookie Policy</p></div>
+      </div>
+      <p className="mt-6">&copy; 2025 MIDIMIJAI. All rights reserved.</p>
+    </footer>
+  );
+};
+
+export default Footer;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\home\HeroSection.tsx
+File type: .tsx
+import React from "react";
+
+const HeroSection: React.FC = () => {
+  return (
+    <section className="flex flex-col items-center justify-center text-center py-20 bg-gray-100 px-4">
+      <h1 className="text-6xl font-extrabold">MIDIMIJAI</h1>
+      <p className="text-lg text-gray-600 max-w-xl mt-3">
+        Create, edit, and transform MIDI like never before with AI. Deeply customizable and easy to use for producers, musicians, and beginners.
+      </p>
+      <button className="mt-6 px-8 py-3 bg-[#17B9C6] text-white rounded text-lg font-bold">
+        Start Now
+      </button>
+    </section>
+  );
+};
+
+export default HeroSection;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\home\NavBar.tsx
+File type: .tsx
+import React from "react";
+
+const Navbar: React.FC = () => {
+  return (
+    <nav className="w-full p-4 bg-gray-900 text-white flex justify-between items-center px-8">
+      {/* Left Side: Language Switch */}
+      <button className="border px-3 py-1 rounded">EN | TH</button>
+
+      {/* Right Side: Login Button */}
+      <button className="p-2 border border-white rounded">Login</button>
+    </nav>
+  );
+};
+
+export default Navbar;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\home\StepGuide.tsx
+File type: .tsx
+import React, { useState } from "react";
+
+const steps = [
+  {
+    title: "Step 1: Type a prompt",
+    description:
+      "Use natural language to generate MIDI patterns. You can describe a mood, style, or musical idea, and the AI will generate a matching MIDI sequence.",
+  },
+  {
+    title: "Step 2: Modify in the MIDI Editor",
+    description:
+      "Once the AI generates your MIDI, you can tweak it using the editor. Adjust note timing, velocity, or structure to better fit your style.",
+  },
+  {
+    title: "Step 3: Import custom sound libraries",
+    description:
+      "Instead of using default MIDI instrument sounds, you can import and assign custom sound samples or virtual instruments.",
+  },
+  {
+    title: "Step 4: Export and use in any DAW",
+    description:
+      "Once your MIDI is ready, export it and use it in any Digital Audio Workstation (DAW) like FL Studio, Ableton, or Logic Pro.",
+  },
+];
+
+const StepGuide: React.FC = () => {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(0);
+
+  return (
+    <section className="py-10 px-4 max-w-6xl mx-auto">
+      <h2 className="text-3xl font-bold mb-6 text-center">Step-by-Step Guide</h2>
+
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* LEFT: Step List */}
+        <ul className="flex-1">
+          {steps.map((step, index) => (
+            <li
+              key={index}
+              className="border-b py-4 cursor-pointer"
+              onClick={() =>
+                setSelectedIndex(selectedIndex === index ? null : index)
+              }
+            >
+              <div className="flex justify-between items-center font-semibold text-lg">
+                <span>{step.title}</span>
+                <span>{selectedIndex === index ? "▲" : "▼"}</span>
+              </div>
+              {selectedIndex === index && (
+                <p className="mt-2 text-gray-700">{step.description}</p>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        {/* RIGHT: Video Placeholder */}
+        <div className="flex-1 flex items-start justify-center">
+          <div className="w-full h-64 bg-gray-300 flex items-center justify-center text-gray-600 text-sm rounded border">
+            {selectedIndex !== null
+              ? `[Video for: ${steps[selectedIndex].title}]`
+              : `[No step selected]`}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default StepGuide;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\home\UserTypes.tsx
+File type: .tsx
+import React from "react";
+
+const userTypes = [
+  {
+    title: "For Producers",
+    description: "Quickly generate MIDI ideas.",
+    colorTop: "#3BD6D6",
+    colorBottom: "white",
+  },
+  {
+    title: "For Musicians",
+    description: "Use AI to build melodies & chords.",
+    colorTop: "#3BD6D6",
+    colorBottom: "#3BD6D6",
+  },
+  {
+    title: "For Beginners",
+    description: "Learn MIDI editing in an easy way.",
+    colorTop: "white",
+    colorBottom: "#3BD6D6",
+  },
+];
+
+const UserTypes: React.FC = () => {
+  return (
+    <section className="py-10 px-4">
+      <h2 className="text-3xl font-bold mb-6 text-center">Who is this for?</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        {userTypes.map((user, index) => (
+          <div
+            key={index}
+            className="p-6 border rounded-lg shadow-md flex flex-col items-center text-center"
+          >
+            {/* SVG Placeholder */}
+            <svg width="50" height="100" className="mb-4" viewBox="0 0 50 100">
+              <circle cx="25" cy="20" r="15" stroke="black" strokeWidth="2" fill={user.colorTop} />
+              <ellipse
+                cx="25"
+                cy="70"
+                rx="18"
+                ry="28"
+                stroke="black"
+                strokeWidth="2"
+                fill={user.colorBottom}
+              />
+            </svg>
+
+            <h3 className="text-xl font-bold">{user.title}</h3>
+            <p className="text-sm mt-2">{user.description}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export default UserTypes;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\shared\Button.tsx
+File type: .tsx
+import React from "react";
+
+interface ButtonProps {
+  text: string;
+  onClick: () => void;
+  disabled?: boolean;
+  className?: string;
+}
+
+const Button: React.FC<ButtonProps> = ({ text, onClick, disabled, className }) => {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`px-4 py-2 rounded ${className}`}
+    >
+      {text}
+    </button>
+  );
+};
+
+export default Button;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\shared\Dropdown.tsx
+File type: .tsx
+import React, { useState, useEffect, useRef } from 'react';
+
+interface DropdownProps {
+  label: string;
+  options: string[];
+}
+
+const Dropdown: React.FC<DropdownProps> = ({ label, options }) => {
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={dropdownRef} style={{ position: 'relative', display: 'inline-block' }}>
+      <button onClick={() => setOpen((prev) => !prev)}>{label}</button>
+      {open && (
+        <div
+          style={{
+            position: 'absolute',
+            background: 'white',
+            border: '1px solid #ccc',
+            marginTop: '0.5rem',
+            zIndex: 10,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {options.map((opt, i) => (
+            <div
+              key={i}
+              style={{
+                padding: '0.5rem 1rem',
+                cursor: 'pointer',
+                userSelect: 'none',
+              }}
+              onClick={() => {
+                console.log(`Selected: ${opt}`);
+                setOpen(false);
+              }}
+            >
+              {opt}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Dropdown;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\shared\InputField.tsx
+File type: .tsx
+import React from "react";
+
+interface InputFieldProps {
+  type: string;
+  placeholder: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  className?: string;
+}
+
+const InputField: React.FC<InputFieldProps> = ({ type, placeholder, value, onChange, className }) => {
+  return (
+    <input
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      className={`px-4 py-2 border rounded ${className}`}
+    />
+  );
+};
+
+export default InputField;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\shared\LoadingSpinner.tsx
+File type: .tsx
+import React from 'react';
+import '../../styles/LoadingSpinner.css';
+
+const LoadingSpinner = () => {
+  return <div className="loading-spinner"></div>;
+};
+
+export default LoadingSpinner;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\shared\Modal.tsx
+File type: .tsx
+import React from 'react';
+
+interface ModalProps {
+  onClose: () => void;
+  children: React.ReactNode;
+}
+
+const Modal: React.FC<ModalProps> = ({ onClose, children }) => {
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.4)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: 'white',
+          padding: '2rem',
+          borderRadius: '8px',
+          minWidth: '300px',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button onClick={onClose} style={{ float: 'right' }}>X</button>
+        {children}
+      </div>
+    </div>
+  );
+};
+
+export default Modal;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\shared\ToggleSwitch.tsx
+File type: .tsx
+import React from "react";
+
+interface ToggleSwitchProps {
+  isOn: boolean;
+  handleToggle: () => void;
+}
+
+const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ isOn, handleToggle }) => {
+  return (
+    <label className="cursor-pointer flex items-center space-x-2">
+      <input 
+        type="checkbox" 
+        checked={isOn} 
+        onChange={handleToggle} 
+        className="hidden"
+      />
+      <span 
+        className="w-6 h-6 border border-black flex items-center justify-center text-lg"
+      >
+        {isOn ? "On" : "Off"}
+      </span>
+    </label>
+  );
+};
+
+export default ToggleSwitch;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\shared\Tooltip.tsx
+File type: .tsx
+import React from "react";
+import { Tooltip as ReactTooltip } from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
+
+interface TooltipProps {
+  text: string;
+  children: React.ReactNode;
+}
+
+const Tooltip: React.FC<TooltipProps> = ({ text, children }) => {
+  return (
+    <>
+      <span data-tooltip-id="tooltip" data-tooltip-content={text}>
+        {children}
+      </span>
+      <ReactTooltip id="tooltip" />
+    </>
+  );
+};
+
+export default Tooltip;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\AIGenerate.tsx
+File type: .tsx
+import React from 'react';
+
+const AIGenerate: React.FC = () => {
+  return (
+    <div className="ai-generate">
+      <h3>AI Generate</h3>
+      <input type="text" placeholder="Generate Chord Progression..." />
+      <div>
+        <button>Suggestions</button>
+        <button>Generate</button>
+      </div>
+    </div>
+  );
+};
+
+export default AIGenerate;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\AIModify.tsx
+File type: .tsx
+import React from 'react';
+
+const AIModify: React.FC = () => {
+  return (
+    <div className="ai-modify">
+      <h3>AI Modify</h3>
+      <input type="text" placeholder="Make this jazzier..." />
+      <div>
+        <button>Suggestions</button>
+        <button>Modify</button>
+      </div>
+    </div>
+  );
+};
+
+export default AIModify;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\AIStyleTransfer.tsx
+File type: .tsx
+import React from 'react';
+
+const AIStyleTransfer: React.FC = () => {
+  return (
+    <div className="ai-style">
+      <h3>AI Style</h3>
+      <input type="text" placeholder="Change the style to Lo-Fi..." />
+      <div>
+        <button>Suggestions</button>
+        <button>Style</button>
+      </div>
+    </div>
+  );
+};
+
+export default AIStyleTransfer;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\EditMenu.tsx
+File type: .tsx
+import React from 'react';
+import Dropdown from '../shared/Dropdown';
+
+const EditMenu: React.FC = () => {
+  const options = [
+    'Cut',
+    'Copy',
+    'Paste',
+    'Delete',
+    'Select All',
+    'Quantize',
+    'Find & Replace Notes',
+  ];
+
+  return <Dropdown label="Edit" options={options} />;
+};
+
+export default EditMenu;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\MIDIToolsMenu.tsx
+File type: .tsx
+import React from 'react';
+import Dropdown from '../shared/Dropdown';
+
+const MIDIToolsMenu: React.FC = () => {
+  const options = [
+    'Transpose',
+    'Velocity Control',
+    'Note Length Adjust',
+    'Humanization',
+    'Arpeggiator',
+    'Strumming Effect',
+    'Legato/Portamento',
+  ];
+
+  return <Dropdown label="MIDI Tools" options={options} />;
+};
+
+export default MIDIToolsMenu;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\SettingsMenu.tsx
+File type: .tsx
+import React from 'react';
+import Dropdown from '../shared/Dropdown';
+
+const SettingsMenu: React.FC = () => {
+  const options = [
+    'Key/Scale Lock',
+    'Audio Engine Settings',
+    'MIDI Input Settings',
+    'Keyboard Shortcuts',
+    'Grid Settings',
+    'MIDI Latency Compensation',
+  ];
+
+  return <Dropdown label="Settings" options={options} />;
+};
+
+export default SettingsMenu;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\SoundLibraryModal.tsx
+File type: .tsx
+import React, { useState } from 'react';
+import Modal from '../shared/Modal';
+
+interface SoundLibraryModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onTrackSelect?: (trackName: string) => void; // Optional callback
+}
+
+const categories = ['Keyboard/Synth', 'Drums', 'Guitar', 'Bass', 'Other', 'Imported'];
+
+const SoundLibraryModal: React.FC<SoundLibraryModalProps> = ({ isOpen, onClose, onTrackSelect }) => {
+  const [mode, setMode] = useState<'category' | 'tracks'>('category');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
+  const [uploadedTracks, setUploadedTracks] = useState<string[]>([]);
+
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategory(category);
+    setMode('tracks');
+    setSelectedTrack(null);
+  };
+
+  const handleBackToCategories = () => {
+    setSearchQuery('');
+    setSelectedCategory(null);
+    setSelectedTrack(null);
+    setMode('category');
+  };
+
+  const handleUpload = () => {
+    const name = prompt('Upload a track (enter track name):');
+    if (name) {
+      setUploadedTracks((prev) => [...prev, name]);
+      setSelectedCategory('Imported');
+      setMode('tracks');
+    }
+  };
+
+  const handleSelectTrack = () => {
+    if (selectedTrack) {
+      console.log('Selected:', selectedTrack);
+      if (onTrackSelect) onTrackSelect(selectedTrack);
+      onClose();
+    } else {
+      alert('Please select a track first.');
+    }
+  };
+
+  const getTracksForCategory = (category: string): string[] => {
+    if (category === 'Imported') return uploadedTracks;
+    return Array.from({ length: 12 }, (_, i) => `${category} Track ${i + 1}`);
+  };
+
+  if (!isOpen) return null;
+
+  const filteredTracks = getTracksForCategory(selectedCategory || '').filter((track) =>
+    track.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <Modal onClose={onClose}>
+      <div>
+        <input
+          type="text"
+          placeholder="Search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ width: '100%', marginBottom: '1rem' }}
+        />
+
+        {mode === 'category' ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => handleCategoryClick(cat)}
+                style={{ padding: '2rem', fontWeight: 'bold' }}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div>
+            <button onClick={handleBackToCategories}>&larr; Back</button>
+            <h3>{selectedCategory}</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+              {Array.from({ length: 6 }).map((_, colIdx) => (
+                <div
+                  key={colIdx}
+                  style={{
+                    border: '1px solid #ccc',
+                    padding: '0.5rem',
+                    overflowY: 'auto',
+                    maxHeight: '250px',
+                  }}
+                >
+                  {filteredTracks.slice(colIdx * 6, colIdx * 6 + 6).map((trackName, i) => (
+                    <div
+                      key={`${colIdx}-${i}`}
+                      onClick={() => setSelectedTrack(trackName)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        marginBottom: '0.25rem',
+                        cursor: 'pointer',
+                        background:
+                          selectedTrack === trackName ? 'lightblue' : 'transparent',
+                      }}
+                    >
+                      <span>{trackName}</span>
+                      <span>🌊</span>
+                      <button>▶</button>
+                      <button>☆</button>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem', gap: '0.5rem' }}>
+          <button style={{ background: '#1ccfcf' }} onClick={handleUpload}>
+            Upload Track
+          </button>
+          <button style={{ background: '#1ccfcf' }} onClick={handleSelectTrack}>
+            Select Track
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+export default SoundLibraryModal;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\WorkspaceNavBar.tsx
+File type: .tsx
+import React from 'react';
+import FileMenu from './FileMenu';
+import EditMenu from './EditMenu';
+import SettingsMenu from './SettingsMenu';
+import MIDIToolsMenu from './MIDIToolsMenu';
+import SoundLibraryModal from './SoundLibraryModal';
+import { Project, Track } from '../../types/projectTypes';
+
+type Props = {
+  viewMode: 'editor' | 'dashboard';
+  activeTrack?: Track | null;
+  updateTrack?: (updates: Partial<Track>) => void;
+  currentProject: Project | null;
+  bpm: number;
+};
+
+const WorkspaceNavbar: React.FC<Props> = ({
+  viewMode,
+  activeTrack,
+  updateTrack,
+  currentProject,
+  bpm,
+}) => {
+  const [isLibraryOpen, setIsLibraryOpen] = React.useState(false);
+
+  return (
+    <>
+      <nav className="workspace-navbar" style={{ display: 'flex', gap: '1rem' }}>
+        <FileMenu
+          viewMode={viewMode}
+          activeTrack={activeTrack}
+          updateTrack={updateTrack}
+          currentProject={currentProject}
+          bpm={bpm}
+        />
+        <EditMenu />
+        <SettingsMenu />
+        <MIDIToolsMenu />
+        <button onClick={() => setIsLibraryOpen(true)}>Sound Library</button>
+      </nav>
+      <SoundLibraryModal isOpen={isLibraryOpen} onClose={() => setIsLibraryOpen(false)} />
+    </>
+  );
+};
+
+export default WorkspaceNavbar;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\midi-editor\components\PianoRoll\PianoRoll.css
+File type: .css
+.piano-roll-viewport {
+  display: flex;
+  flex-direction: column;
+  max-height: 500px;
+  overflow: hidden;
+  border: 1px solid #ccc;
+}
+
+.top-ruler {
+  display: flex;
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 10;
+  border-bottom: 1px solid #ccc;
+}
+
+.ruler-corner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  background: #f7f7f7;
+  border-right: 1px solid #ccc;
+}
+
+.ruler-beat {
+  height: 20px;
+  border-right: 1px solid #ccc;
+  text-align: center;
+  font-size: 11px;
+  line-height: 20px;
+  flex: 0 0 auto;
+}
+
+.piano-roll-scroll-container {
+  overflow-y: scroll;
+  overflow-x: auto;
+  height: 400px;
+  position: relative;
+}
+
+.piano-roll-inner {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+}
+
+.piano-roll-rows {
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background: #f7f7f7;
+}
+
+.roll-row {
+  height: 20px;
+  display: flex;
+  border-bottom: none;
+}
+
+.roll-label {
+  width: 40px;
+  height: 20px;               /* ✅ Explicitly set to match grid */
+  line-height: 20px;          /* ✅ Vertically centered text */
+  font-size: 11px;
+  text-align: center;
+  background: #f7f7f7;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;     /* ✅ Prevent padding from breaking height */
+}
+
+.piano-roll-content {
+  position: relative;
+  flex: 1;
+}
+
+.grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.grid-line.vertical {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #ccc;
+}
+
+.grid-line.vertical.bar-line {
+  background: #444;
+  width: 2px;
+}
+
+
+.grid-line.horizontal {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 20px;
+  border-top: 1px solid #ddd;  /* ✅ This replaces row border */
+  box-sizing: border-box;
+}
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\midi-editor\components\TrackDashboard\TrackDashboard.css
+File type: .css
+.dashboard-container {
+  max-height: 600px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 10px;
+  background: white;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.dashboard-timeline-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dashboard-track-row {
+  border: 1px solid #ccc;
+  padding: 10px;
+  background: #fdfdfd;
+}
+
+.track-row-flex {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.track-controls {
+  width: 200px;
+}
+
+.track-meta {
+  margin-top: 5px;
+}
+
+.track-sliders {
+  margin-top: 10px;
+}
+
+.track-timeline {
+  position: relative;
+  width: 640px;
+  height: 200px;
+  overflow: hidden;
+  background: white;
+  border: 1px solid #eee;
+}
+
+.timeline-cell {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  border-left: 1px solid #eee;
+}
+
+.timeline-cell.bar {
+  border-left: 1px solid #999;
+}
+
+.mini-note {
+  position: absolute;
+  height: 5px;
+  background: #4c79ff;
+  border-radius: 2px;
+}
+
+.mini-playhead {
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  background: red;
+  z-index: 999;
+}
+
+.add-track-row {
+  text-align: center;
+  padding: 20px;
+  font-size: 32px;
+  cursor: pointer;
+  color: #888;
+  border: 2px dashed #ccc;
+  margin-top: 10px;
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\midi-editor\components\TrackDashboard\TrackDashboard.tsx
+File type: .tsx
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import * as Tone from 'tone';
+import { getActiveNotesAtBeat } from '../../core/midiUtils';
+import { TransportContext } from '../../core/TransportContext';
+import './TrackDashboard.css'
+
+type Track = {
+  id: string;
+  name: string;
+  notes: any[];
+  instrument: string;
+  customSoundUrl?: string;
+};
+
+type Props = {
+  tracks: Track[];
+  onEditTrack: (id: string) => void;
+  onAddTrack: () => void;
+  updateTrack: (id: string, updates: Partial<Track>) => void;
+};
+
+const MAX_BEAT = 63;
+const NOTE_HEIGHT = 4;
+const PITCH_RANGE = [36, 84];
+
+const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack }) => {
+  const {
+    bpm,
+    isPlaying,
+    playheadBeat,
+    setPlayheadBeat,
+  } = useContext(TransportContext);
+
+  const [muteMap, setMuteMap] = useState<{ [trackId: string]: boolean }>({});
+  const [soloMap, setSoloMap] = useState<{ [trackId: string]: boolean }>({});
+  const [volumeMap, setVolumeMap] = useState<{ [trackId: string]: number }>({});
+  const [panMap, setPanMap] = useState<{ [trackId: string]: number }>({});
+  const [redLineLeft, setRedLineLeft] = useState(0);
+
+  const redLineBeatRef = useRef(playheadBeat);
+  const animationRef = useRef<number>();
+  const instrumentMap = useRef<Map<string, any>>(new Map());
+  const activeNotesMap = useRef<Map<string, Set<string>>>(new Map());
+
+  useEffect(() => {
+    instrumentMap.current.forEach(i => i?.dispose?.());
+    instrumentMap.current.clear();
+
+    tracks.forEach(track => {
+      const volume = new Tone.Volume((volumeMap[track.id] ?? 100) - 100).toDestination();
+      const pan = new Tone.Panner(panMap[track.id] ?? 0).connect(volume);
+
+      if (track.instrument.startsWith('Imported:')) {
+        instrumentMap.current.set(track.id, { synth: null, pan, volume });
+      } else {
+        let synth: any;
+        switch (track.instrument) {
+          case 'Piano': synth = new Tone.PolySynth().connect(pan); break;
+          case 'Synth': synth = new Tone.Synth().connect(pan); break;
+          case 'AMSynth': synth = new Tone.AMSynth().connect(pan); break;
+          case 'MembraneSynth': synth = new Tone.MembraneSynth().connect(pan); break;
+          default: synth = new Tone.PolySynth().connect(pan); break;
+        }
+        instrumentMap.current.set(track.id, { synth, pan, volume });
+      }
+
+      activeNotesMap.current.set(track.id, new Set());
+    });
+
+    return () => {
+      instrumentMap.current.forEach(i => {
+        i?.synth?.dispose?.();
+        i?.pan?.dispose?.();
+        i?.volume?.dispose?.();
+      });
+    };
+  }, [tracks, volumeMap, panMap]);
+
+  useEffect(() => {
+    let lastTime = performance.now();
+
+    const tick = (now: number) => {
+      const deltaRaw = now - lastTime;
+      const delta = Math.max(deltaRaw, 0) / 1000;
+      lastTime = now;
+
+      if (isPlaying) {
+        const beatsMoved = (bpm / 60) * delta;
+        redLineBeatRef.current += beatsMoved;
+        if (redLineBeatRef.current >= MAX_BEAT) {
+          redLineBeatRef.current = 0;
+        }
+        setPlayheadBeat(redLineBeatRef.current);
+      } else {
+        redLineBeatRef.current = playheadBeat;
+        stopAllNotes();
+      }
+
+      setRedLineLeft(redLineBeatRef.current * 10);
+
+      const soloedTracks = Object.entries(soloMap).filter(([_, s]) => s).map(([id]) => id);
+      tracks.forEach(track => {
+        const isMuted = muteMap[track.id];
+        const isSoloed = soloedTracks.length > 0 && !soloMap[track.id];
+        if (!isMuted && !isSoloed && isPlaying) {
+          triggerTrackNotes(track, redLineBeatRef.current);
+        }
+      });
+
+      animationRef.current = requestAnimationFrame(tick);
+    };
+
+    animationRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animationRef.current!);
+  }, [isPlaying, bpm, tracks, muteMap, soloMap, playheadBeat]);
+
+  const triggerTrackNotes = (track: Track, beat: number) => {
+    const instruments = instrumentMap.current.get(track.id);
+    const synth = instruments?.synth;
+    const nowActive = getActiveNotesAtBeat(track.notes, beat);
+    const activeIds = activeNotesMap.current.get(track.id)!;
+
+    nowActive.forEach(note => {
+      if (!activeIds.has(note.id)) {
+        const now = Tone.now();
+        if (track.instrument.startsWith('Imported:')) {
+          const url = track.customSoundUrl;
+          if (!url) return;
+          const durationSec = (note.duration / bpm) * 60;
+          const player = new Tone.Player({
+            url,
+            playbackRate: Math.pow(2, (note.pitch - 60) / 12),
+            autostart: true,
+            onstop: () => player.dispose()
+          }).connect(instruments.pan);
+          setTimeout(() => player.stop(), durationSec * 1000);
+        } else if (synth) {
+          const name = Tone.Frequency(note.pitch, 'midi').toNote();
+          synth.triggerAttack(name, now, note.velocity / 127);
+        }
+        activeIds.add(note.id);
+      }
+    });
+
+    activeIds.forEach(id => {
+      const stillActive = nowActive.find(n => n.id === id);
+      if (!stillActive) {
+        const note = track.notes.find(n => n.id === id);
+        if (note && synth && !track.instrument.startsWith('Imported:')) {
+          const name = Tone.Frequency(note.pitch, 'midi').toNote();
+          synth.triggerRelease(name, Tone.now());
+        }
+        activeIds.delete(id);
+      }
+    });
+  };
+
+  const stopAllNotes = () => {
+    tracks.forEach(track => {
+      const synth = instrumentMap.current.get(track.id)?.synth;
+      const activeIds = activeNotesMap.current.get(track.id)!;
+      activeIds.forEach(id => {
+        const note = track.notes.find(n => n.id === id);
+        if (note && synth && !track.instrument.startsWith('Imported:')) {
+          const name = Tone.Frequency(note.pitch, 'midi').toNote();
+          synth.triggerRelease(name, Tone.now());
+        }
+      });
+      activeIds.clear();
+    });
+  };
+
+  const toggleMute = (trackId: string) => {
+    setMuteMap(prev => ({ ...prev, [trackId]: !prev[trackId] }));
+  };
+
+  const toggleSolo = (trackId: string) => {
+    setSoloMap(prev => ({ ...prev, [trackId]: !prev[trackId] }));
+  };
+
+  const handleVolumeChange = (trackId: string, value: number) => {
+    setVolumeMap(prev => ({ ...prev, [trackId]: value }));
+  };
+
+  const handlePanChange = (trackId: string, value: number) => {
+    setPanMap(prev => ({ ...prev, [trackId]: value }));
+  };
+
+  const getTopFromPitch = (pitch: number) => {
+    const [min, max] = PITCH_RANGE;
+    return (max - pitch) * NOTE_HEIGHT;
+  };
+
+  return (
+    <div className="dashboard-container">
+      <div className="dashboard-timeline-wrapper">
+        {tracks.map((track) => (
+          <div className="dashboard-track-row" key={track.id}>
+            <div className="track-row-flex">
+              <div className="track-controls">
+                <div className="track-name">{track.name}</div>
+                <div className="track-meta">
+                  <span>{track.instrument}</span>
+                  <button onClick={() => toggleMute(track.id)}>
+                    {muteMap[track.id] ? '🔇' : '🔊'}
+                  </button>
+                  <button onClick={() => toggleSolo(track.id)}>
+                    {soloMap[track.id] ? '🎧 Soloed' : '🎧'}
+                  </button>
+                  <button onClick={() => onEditTrack(track.id)}>🎹</button>
+                </div>
+                <div className="track-sliders">
+                  <label>
+                    Volume
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={volumeMap[track.id] ?? 100}
+                      onChange={(e) => handleVolumeChange(track.id, parseInt(e.target.value))}
+                    />
+                  </label>
+                  <label>
+                    Pan
+                    <input
+                      type="range"
+                      min={-1}
+                      max={1}
+                      step={0.01}
+                      value={panMap[track.id] ?? 0}
+                      onChange={(e) => handlePanChange(track.id, parseFloat(e.target.value))}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="track-timeline">
+                <div className="mini-playhead" style={{ left: `${redLineLeft}px` }} />
+                {[...Array(64)].map((_, i) => (
+                  <div className={`timeline-cell ${i % 4 === 0 ? 'bar' : ''}`} key={i} />
+                ))}
+                {track.notes.map(note => (
+                  <div
+                    key={note.id}
+                    className="mini-note"
+                    style={{
+                      left: `${note.time * 10}px`,
+                      width: `${note.duration * 10}px`,
+                      top: `${getTopFromPitch(note.pitch)}px`,
+                      height: `${NOTE_HEIGHT}px`,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+        <div className="add-track-row" onClick={onAddTrack}>＋</div>
+      </div>
+    </div>
+  );
+};
+
+export default TrackDashboard;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\midi-editor\components\TrackEditor\TrackEditor.tsx
+File type: .tsx
+import React, { useContext, useEffect, useRef, useState } from "react";
+import PianoRoll from "../PianoRoll/PianoRoll";
+import * as Tone from "tone";
+import { exportMidi } from "../../core/exportMidi";
+import { importMidiFile } from "../../core/importMidi";
+import { getActiveNotesAtBeat } from "../../core/midiUtils";
+import { TransportContext } from "../../core/TransportContext";
+
+const MAX_BEAT = 63;
+const BUILT_IN_INSTRUMENTS = ["Piano", "Synth", "AMSynth", "MembraneSynth"];
+
+type Track = {
+  id: string;
+  name: string;
+  notes: any[];
+  instrument: string;
+  customSoundUrl?: string;
+};
+
+type Props = {
+  track: Track;
+  updateTrack: (updates: Partial<Track>) => void;
+  goBack: () => void;
+};
+
+const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
+  const { bpm, isPlaying, playheadBeat, setPlayheadBeat } =
+    useContext(TransportContext);
+
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [snapToGrid, setSnapToGrid] = useState(true);
+  const playheadRef = useRef<HTMLDivElement>(null);
+  const synthRef = useRef<any>(null);
+  const redLineRef = useRef(playheadBeat);
+  const animationRef = useRef<number>();
+  const activeNotes = useRef<Set<string>>(new Set());
+  const gridWidth = 40 * zoomLevel;
+
+  // Audio-timing reference
+  const audioStartTimeRef = useRef<number | null>(null);
+  const beatAtStartRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (synthRef.current) synthRef.current.dispose?.();
+    if (track.instrument.startsWith("Imported:")) {
+      synthRef.current = null;
+    } else {
+      switch (track.instrument) {
+        case "Piano":
+          synthRef.current = new Tone.PolySynth().toDestination();
+          break;
+        case "Synth":
+          synthRef.current = new Tone.Synth().toDestination();
+          break;
+        case "AMSynth":
+          synthRef.current = new Tone.AMSynth().toDestination();
+          break;
+        case "MembraneSynth":
+          synthRef.current = new Tone.MembraneSynth().toDestination();
+          break;
+        default:
+          synthRef.current = new Tone.PolySynth().toDestination();
+      }
+    }
+  }, [track.instrument]);
+
+  useEffect(() => {
+    let lastTime = performance.now();
+
+    const tick = (now: number) => {
+      const delta = Math.max(now - lastTime, 0) / 1000;
+      lastTime = now;
+
+      if (isPlaying) {
+        if (audioStartTimeRef.current === null) {
+          audioStartTimeRef.current = Tone.now();
+          beatAtStartRef.current = redLineRef.current;
+        }
+        const currentAudioTime = Tone.now();
+        const elapsed = currentAudioTime - audioStartTimeRef.current;
+        const beat = beatAtStartRef.current + (bpm / 60) * elapsed;
+
+        redLineRef.current = beat;
+        if (redLineRef.current >= MAX_BEAT) {
+          redLineRef.current = 0;
+          audioStartTimeRef.current = Tone.now();
+          beatAtStartRef.current = 0;
+          activeNotes.current.clear();
+        }
+
+        setPlayheadBeat(redLineRef.current);
+        updatePlayhead(redLineRef.current);
+        triggerNotesAt(redLineRef.current);
+      } else {
+        redLineRef.current = playheadBeat;
+        updatePlayhead(playheadBeat);
+        stopAllNotes();
+        audioStartTimeRef.current = null;
+      }
+
+      animationRef.current = requestAnimationFrame(tick);
+    };
+
+    animationRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animationRef.current!);
+  }, [isPlaying, bpm, playheadBeat]);
+
+  const triggerNotesAt = (beat: number) => {
+    const nowActive = getActiveNotesAtBeat(track.notes, beat);
+
+    nowActive.forEach((note) => {
+      if (!activeNotes.current.has(note.id)) {
+        const now = Tone.now();
+        if (track.instrument.startsWith("Imported:") && track.customSoundUrl) {
+          const durationSec = (note.duration / bpm) * 60;
+          const player = new Tone.Player({
+            url: track.customSoundUrl,
+            playbackRate: Math.pow(2, (note.pitch - 60) / 12),
+            autostart: true,
+            onstop: () => player.dispose(),
+          }).toDestination();
+          setTimeout(() => player.stop(), durationSec * 1000);
+        } else {
+          const name = Tone.Frequency(note.pitch, "midi").toNote();
+          synthRef.current?.triggerAttack(name, now, note.velocity / 127);
+        }
+
+        activeNotes.current.add(note.id);
+      }
+    });
+
+    activeNotes.current.forEach((id) => {
+      const stillActive = nowActive.find((n) => n.id === id);
+      if (!stillActive) {
+        const note = track.notes.find((n) => n.id === id);
+        if (note && !track.instrument.startsWith("Imported:")) {
+          const name = Tone.Frequency(note.pitch, "midi").toNote();
+          synthRef.current?.triggerRelease(name, Tone.now());
+        }
+        activeNotes.current.delete(id);
+      }
+    });
+  };
+
+  const stopAllNotes = () => {
+    activeNotes.current.forEach((id) => {
+      const note = track.notes.find((n) => n.id === id);
+      if (note && !track.instrument.startsWith("Imported:")) {
+        const name = Tone.Frequency(note.pitch, "midi").toNote();
+        synthRef.current?.triggerRelease(name, Tone.now());
+      }
+    });
+    activeNotes.current.clear();
+  };
+
+  const updatePlayhead = (beat: number) => {
+    const left = beat * gridWidth;
+    if (playheadRef.current) {
+      playheadRef.current.style.left = `${left}px`;
+    }
+  };
+
+  const scrubToBeat = (beat: number) => {
+    redLineRef.current = beat;
+    setPlayheadBeat(beat);
+    updatePlayhead(beat);
+  };
+
+  const handleUploadSound = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      const name = `Imported: ${file.name}`;
+      updateTrack({ instrument: name, customSoundUrl: url });
+    }
+  };
+
+  const testImportedSound = async () => {
+    if (!track.instrument.startsWith("Imported:") || !track.customSoundUrl)
+      return;
+    const player = new Tone.Player(track.customSoundUrl).toDestination();
+    await Tone.start();
+    player.autostart = true;
+  };
+
+  return (
+    <div style={{ padding: 10, overflowY: "auto" }}>
+      <button onClick={goBack}>🔙 Back to Tracks</button>
+      <h2>{track.name}</h2>
+
+      <div
+        style={{ display: "flex", gap: 20, marginBottom: 10, flexWrap: "wrap" }}
+      >
+        <div>
+          <label>
+            <strong>Zoom:</strong>
+          </label>{" "}
+          <select
+            value={zoomLevel}
+            onChange={(e) => setZoomLevel(Number(e.target.value))}
+          >
+            <option value={1}>1/4</option>
+            <option value={2}>1/8</option>
+            <option value={4}>1/16</option>
+          </select>
+        </div>
+
+        <label>
+          <input
+            type="checkbox"
+            checked={snapToGrid}
+            onChange={(e) => setSnapToGrid(e.target.checked)}
+          />{" "}
+          Snap to Grid
+        </label>
+
+        <div>
+          <label>
+            <strong>Instrument:</strong>
+          </label>{" "}
+          <select
+            value={track.instrument}
+            onChange={(e) => updateTrack({ instrument: e.target.value })}
+          >
+            {BUILT_IN_INSTRUMENTS.map((inst) => (
+              <option key={inst} value={inst}>
+                {inst}
+              </option>
+            ))}
+            {track.customSoundUrl && (
+              <option value={track.instrument}>{track.instrument}</option>
+            )}
+          </select>
+          <input
+            type="file"
+            accept=".mp3,.wav"
+            onChange={handleUploadSound}
+            style={{ marginLeft: 10 }}
+          />
+          {track.instrument.startsWith("Imported:") && track.customSoundUrl && (
+            <button onClick={testImportedSound} style={{ marginLeft: 10 }}>
+              🔊 Test Sound
+            </button>
+          )}
+        </div>
+
+        <div>
+          <button onClick={() => exportMidi(track.notes, bpm)}>
+            Export MIDI
+          </button>{" "}
+          <input
+            type="file"
+            accept=".mid"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                const result = await importMidiFile(file);
+                updateTrack({ notes: result.notes });
+              }
+            }}
+          />
+        </div>
+      </div>
+
+      <PianoRoll
+        notes={track.notes}
+        setNotes={(updated) => updateTrack({ notes: updated })}
+        playheadRef={playheadRef}
+        gridWidth={gridWidth}
+        snapToGrid={snapToGrid}
+        isPlaying={isPlaying}
+        onPlayheadScrub={scrubToBeat}
+      />
+    </div>
+  );
+};
+
+export default TrackEditor;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\midi-editor\components\TransportBar\GlobalTransportBar.css
+File type: .css
+.transport-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    padding: 8px 16px;
+    border: 2px solid black;
+    border-radius: 12px;
+    gap: 10px;
+  }
+  
+  .transport-bar button {
+    font-size: 18px;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .transport-bar button:hover {
+    transform: scale(1.1);
+  }
+  
+  .transport-bar input[type="range"] {
+    width: 100px;
+  }
+  
+  
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\midi-editor\core\exportMidi.ts
+File type: .ts
+import { Midi } from '@tonejs/midi';
+
+export function exportMidi(notes: any[], bpm: number) {
+  const midi = new Midi();
+
+  // ✅ Set BPM in MIDI header (critical for timing)
+  midi.header.setTempo(bpm);
+
+  // ✅ Add a track
+  const track = midi.addTrack();
+  track.name = 'Exported from Real-Time MIDI Editor';
+  track.channel = 0;
+  track.instrument.name = 'Piano';
+
+  // ✅ Add all notes
+  notes.forEach(note => {
+    track.addNote({
+      midi: note.pitch,
+      time: note.time, // in beats
+      duration: note.duration, // in beats
+      velocity: note.velocity / 127, // normalized
+    });
+  });
+
+  // ✅ Generate and download MIDI file
+  const bytes = midi.toArray();
+  const blob = new Blob([bytes], { type: 'audio/midi' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'track.mid';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\midi-editor\core\importMidi.ts
+File type: .ts
+import { Midi } from '@tonejs/midi';
+
+export async function importMidiFile(file: File) {
+  const arrayBuffer = await file.arrayBuffer();
+  const midi = new Midi(arrayBuffer);
+
+  const notes: any[] = [];
+
+  midi.tracks.forEach(track => {
+    track.notes.forEach(note => {
+      notes.push({
+        id: `${note.midi}-${note.time}`, // unique-ish ID
+        pitch: note.midi,
+        time: note.time,
+        duration: note.duration,
+        velocity: Math.round(note.velocity * 127)
+      });
+    });
+  });
+
+  return {
+    bpm: midi.header.tempos?.[0]?.bpm || 120,
+    notes
+  };
+}
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\midi-editor\core\MidiEditorCore.tsx
+File type: .tsx
+import React, { useState } from "react";
+import TrackDashboard from "../components/TrackDashboard/TrackDashboard";
+import TrackEditor from "../components/TrackEditor/TrackEditor";
+import GlobalTransportBar from "../components/TransportBar/GlobalTransportBar";
+import { TransportProvider } from "../core/TransportContext";
+
+type Track = {
+  id: string;
+  name: string;
+  notes: any[];
+  instrument: string;
+  customSoundUrl?: string;
+};
+
+const MidiEditorCore: React.FC = () => {
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
+
+  const addNewTrack = () => {
+    const id = Date.now().toString();
+    setTracks((prev) => [
+      ...prev,
+      {
+        id,
+        name: `Track ${prev.length + 1}`,
+        notes: [],
+        instrument: "Piano",
+      },
+    ]);
+  };
+
+  const updateTrack = (id: string, updates: Partial<Track>) => {
+    setTracks((prev) =>
+      prev.map((track) => (track.id === id ? { ...track, ...updates } : track))
+    );
+  };
+
+  const activeTrack = tracks.find((t) => t.id === activeTrackId);
+
+  return (
+    <TransportProvider>
+      <div
+        className="w-full"
+        style={{
+          height: "660px", // increased to show ~3 tracks
+          display: "flex",
+          flexDirection: "column",
+          borderRadius: "8px",
+          overflow: "hidden",
+          border: "1px solid #ccc",
+        }}
+      >
+        {/* MIDI Editor Box */}
+        <div
+          style={{
+            height: "600px", // expanded
+            overflowY: "auto", // scrollable if too many tracks
+          }}
+        >
+          {activeTrack ? (
+            <TrackEditor
+              track={activeTrack}
+              updateTrack={(updates) => updateTrack(activeTrack.id, updates)}
+              goBack={() => setActiveTrackId(null)}
+            />
+          ) : (
+            <TrackDashboard
+              tracks={tracks}
+              onEditTrack={(id) => setActiveTrackId(id)}
+              onAddTrack={addNewTrack}
+              updateTrack={updateTrack}
+            />
+          )}
+        </div>
+
+        {/* Global Transport Bar */}
+        <div
+          style={{
+            height: "60px",
+            borderTop: "1px solid #ccc",
+            padding: "8px 16px",
+            background: "#f8f8f8",
+          }}
+        >
+          <GlobalTransportBar />
+        </div>
+      </div>
+    </TransportProvider>
+  );
+};
+
+export default MidiEditorCore;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\midi-editor\core\midiUtils.ts
+File type: .ts
+export const getActiveNotesAtBeat = (notes: any[], beat: number): any[] => {
+  return notes.filter(note =>
+    beat >= note.time && beat < note.time + note.duration
+  );
+};
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\components\workspace\midi-editor\core\TransportContext.tsx
+File type: .tsx
+import React, { createContext, useEffect, useState } from 'react';
+import * as Tone from 'tone';
+
+export const TransportContext = createContext<any>(null);
+
+export const TransportProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [bpm, setBpm] = useState(120);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playheadBeat, setPlayheadBeat] = useState(0);
+  const [metronome, setMetronome] = useState(false);
+  const [loop, setLoop] = useState(false);
+  const [zoom, setZoom] = useState(1);
+
+  const handlePlay = async () => {
+    await Tone.start();
+    setIsPlaying(true);
+  };
+
+  const handlePause = () => {
+    setIsPlaying(false);
+  };
+
+  const returnToStart = () => {
+    setPlayheadBeat(0);
+  };
+
+  const toggleMetronome = () => {
+    setMetronome((prev) => !prev);
+  };
+
+  useEffect(() => {
+    let metronomeSynth: Tone.Synth | null = null;
+    let intervalId: number | string | undefined;
+
+    if (metronome && isPlaying) {
+      metronomeSynth = new Tone.Synth({
+        oscillator: { type: 'square' },
+        envelope: { attack: 0.001, decay: 0.01, sustain: 0.1, release: 0.1 }
+      }).toDestination();
+
+      intervalId = Tone.Transport.scheduleRepeat((time) => {
+        metronomeSynth?.triggerAttackRelease("C5", "8n", time);
+      }, "4n");
+
+      Tone.Transport.start();
+    }
+
+    return () => {
+      if (intervalId !== undefined) {
+        Tone.Transport.clear(intervalId);
+      }
+      metronomeSynth?.dispose();
+    };
+  }, [metronome, isPlaying]);
+
+  return (
+    <TransportContext.Provider
+      value={{
+        bpm,
+        setBpm,
+        isPlaying,
+        handlePlay,
+        handlePause,
+        returnToStart,
+        playheadBeat,
+        setPlayheadBeat,
+        metronome,
+        toggleMetronome,
+        loop,
+        toggleLoop: () => setLoop((prev) => !prev),
+        zoom,
+        handleZoomIn: () => setZoom((z) => Math.min(z + 1, 4)),
+        handleZoomOut: () => setZoom((z) => Math.max(z - 1, 1)),
+      }}
+    >
+      {children}
+    </TransportContext.Provider>
+  );
+};
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\config\apiConfig.ts
+File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\config\appConfig.ts
+File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\context\authStore.ts
+File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\context\midiStore.ts
+File type: .ts
+import { create } from 'zustand';
+
+export type MIDINote = {
+  track: number;
+  time: number;
+  pitch: string;
+  duration: number;
+};
+
+type MIDIState = {
+  notes: MIDINote[];
+  addNote: (note: MIDINote) => void;
+  removeNote: (track: number, time: number) => void;
+  clearNotes: () => void;
+};
+
+export const useMIDIStore = create<MIDIState>((set) => ({
+  notes: [],
+  addNote: (note) =>
+    set((state) => ({
+      notes: [...state.notes, note],
+    })),
+  removeNote: (track, time) =>
+    set((state) => ({
+      notes: state.notes.filter((n) => !(n.track === track && n.time === time)),
+    })),
+  clearNotes: () => set({ notes: [] }),
+}));
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\hooks\useAuth.ts
+File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\hooks\useMIDI.ts
+File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\pages\AuthPage.tsx
+File type: .tsx
+import React, { useState } from "react";
+import LoginForm from "../components/auth/LoginForm";
+import SignUpForm from "../components/auth/SignUpForm";
+import AuthToggle from "../components/auth/AuthToggle";
+
+const AuthPage = () => {
+  const [isLogin, setIsLogin] = useState(true);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-6 rounded shadow-md w-96">
+        <AuthToggle isLogin={isLogin} setIsLogin={setIsLogin} />
+        {isLogin ? <LoginForm /> : <SignUpForm />}
+      </div>
+    </div>
+  );
+};
+
+export default AuthPage;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\pages\DashboardPage.tsx
+File type: .tsx
+import React from "react";
+import FolderStructure from "../components/dashboard/FolderStructure";
+import NewProjectButton from "../components/dashboard/NewProjectButton";
+import NewFolderButton from "../components/dashboard/NewFolderButton";
+import SearchBar from "../components/dashboard/SearchBar";
+import SortDropdown from "../components/dashboard/SortDropdown";
+import UserDropdown from "../components/dashboard/UserDropdown";
+
+const DashboardPage: React.FC = () => {
+  const mockProjects = [
+    { id: "p1", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: null },
+    { id: "p2", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: "f1" },
+    { id: "p3", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: "f1" },
+    { id: "p4", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: "f2" },
+  ];
+
+  const mockFolders = [
+    { id: "f1", name: "Folder A" },
+    { id: "f2", name: "Folder B" },
+  ];
+
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex gap-4">
+          <SearchBar />
+          <SortDropdown />
+        </div>
+        <UserDropdown />
+      </div>
+
+      <FolderStructure projects={mockProjects} folders={mockFolders} />
+
+      <div className="flex justify-center gap-6 mt-8">
+        <NewProjectButton />
+        <NewFolderButton />
+      </div>
+    </div>
+  );
+};
+
+export default DashboardPage;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\pages\HomePage.tsx
+File type: .tsx
+import React from "react";
+import Navbar from "../components/home/NavBar";
+import HeroSection from "../components/home/HeroSection";
+import FeatureList from "../components/home/FeatureList";
+import StepGuide from "../components/home/StepGuide";
+import UserTypes from "../components/home/UserTypes";
+import Footer from "../components/home/Footer";
+
+const HomePage: React.FC = () => {
+  return (
+    <div>
+      <Navbar />
+      <HeroSection />
+      <FeatureList />
+      <StepGuide />
+      <UserTypes />
+      <Footer />
+    </div>
+  );
+};
+
+export default HomePage;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\pages\WorkspacePage.tsx
+File type: .tsx
+import React, { useState, useRef } from "react";
+import WorkspaceNavbar from "../components/workspace/WorkspaceNavBar";
+import AIGenerate from "../components/workspace/AIGenerate";
+import AIModify from "../components/workspace/AIModify";
+import AIStyleTransfer from "../components/workspace/AIStyleTransfer";
+import TrackDashboard from "../components/workspace/midi-editor/components/TrackDashboard/TrackDashboard";
+import TrackEditor from "../components/workspace/midi-editor/components/TrackEditor/TrackEditor";
+import GlobalTransportBar from "../components/workspace/midi-editor/components/TransportBar/GlobalTransportBar";
+import { TransportProvider } from "../components/workspace/midi-editor/core/TransportContext";
+import { Track } from "../types/projectTypes";
+
+const WorkspacePage: React.FC = () => {
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
+  const [bpm] = useState<number>(120); // Default for now
+
+  const activeTrack = tracks.find((t) => t.id === activeTrackId);
+
+  const addNewTrack = () => {
+    const id = Date.now().toString();
+    const newTrack: Track = {
+      id,
+      name: `Track ${tracks.length + 1}`,
+      notes: [],
+      instrument: "Piano",
+    };
+    setTracks((prev) => [...prev, newTrack]);
+  };
+
+  const updateTrack = (id: string, updates: Partial<Track>) => {
+    setTracks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
+    );
+  };
+
+  const updateActiveTrack = (updates: Partial<Track>) => {
+    if (activeTrack) updateTrack(activeTrack.id, updates);
+  };
+
+  return (
+    <TransportProvider>
+      <div
+        className="workspace-page"
+        style={{ display: "flex", flexDirection: "column", height: "100vh" }}
+      >
+        {/* Top Menu Bar */}
+        <WorkspaceNavbar
+          viewMode={activeTrack ? "editor" : "dashboard"}
+          activeTrack={activeTrack}
+          updateTrack={updateActiveTrack}
+          currentProject={{ id: "local", name: "Untitled Project", tracks }}
+          bpm={bpm}
+        />
+
+        {/* Main Content */}
+        <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+          {/* Left Sidebar: AI Tools */}
+          <div
+            style={{
+              width: "300px",
+              padding: "1rem",
+              borderRight: "1px solid #ccc",
+              overflowY: "auto",
+            }}
+          >
+            <AIGenerate />
+            <AIModify />
+            <AIStyleTransfer />
+          </div>
+
+          {/* Right Side: Full MIDI Editor */}
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              borderLeft: "1px solid #ccc",
+            }}
+          >
+            <div
+              style={{
+                height: "660px",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <div style={{ height: "600px", overflowY: "auto" }}>
+                {activeTrack ? (
+                  <TrackEditor
+                    track={activeTrack}
+                    updateTrack={updateActiveTrack}
+                    goBack={() => setActiveTrackId(null)}
+                  />
+                ) : (
+                  <TrackDashboard
+                    tracks={tracks}
+                    onEditTrack={setActiveTrackId}
+                    onAddTrack={addNewTrack}
+                    updateTrack={updateTrack}
+                  />
+                )}
+              </div>
+
+              <div
+                style={{
+                  height: "60px",
+                  borderTop: "1px solid #ccc",
+                  padding: "8px 16px",
+                  background: "#f8f8f8",
+                }}
+              >
+                <GlobalTransportBar />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </TransportProvider>
+  );
+};
+
+export default WorkspacePage;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\services\authService.ts
+File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\services\midiService.ts
+File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\services\projectService.ts
+File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\services\userService.ts
+File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\styles\auth.module.css
+File type: .css
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\styles\dashboard.module.css
+File type: .css
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\styles\globals.css
+File type: .css
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\styles\LoadingSpinner.css
+File type: .css
+.loading-spinner {
+    border: 16px solid #f3f3f3;
+    border-top: 16px solid #3498db;
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\styles\ToggleSwitch.css
+File type: .css
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\styles\workspace.module.css
+File type: .css
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\types\projectTypes.ts
+File type: .ts
+export type Note = {
+    id: string;
+    pitch: number;
+    time: number;
+    duration: number;
+    velocity: number;
+  };
+  
+  export type Track = {
+    id: string;
+    name: string;
+    notes: Note[];
+    instrument: string;
+    customSoundUrl?: string;
+  };
+  
+  export type Project = {
+    id: string;
+    name: string;
+    tracks: Track[];
+    createdAt: string;
+    updatedAt: string;
+  };
+  
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\utils\constants.ts
+File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\utils\formatDate.ts
+File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\utils\generateMIDI.ts
+File type: .ts
+import { Midi } from '@tonejs/midi';
+import * as Tone from 'tone';
+import { MIDINote } from '../context/midiStore';
+
+export const generateMIDI = (notes: MIDINote[]) => {
+  const midi = new Midi();
+  const track = midi.addTrack();
+
+  notes.forEach((note) => {
+    track.addNote({
+      midi: Tone.Frequency(note.pitch).toMidi(),
+      time: note.time * Tone.Time('16n').toSeconds(),
+      duration: Tone.Time('16n').toSeconds(),
+    });
+  });
+
+  const blob = new Blob([midi.toArray()], { type: 'audio/midi' });
+  const url = URL.createObjectURL(blob);
+  return url;
+};
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\utils\instruments.ts
+File type: .ts
+import * as Tone from 'tone';
+
+export const getInstrument = (type: string) => {
+  switch (type) {
+    case 'keyboard':
+      return new Tone.Synth().toDestination();
+    case 'drums':
+      return new Tone.MembraneSynth().toDestination();
+    case 'bass':
+      return new Tone.MonoSynth().toDestination();
+    default:
+      return new Tone.Synth().toDestination();
+  }
+};
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend\src\utils\validateForm.ts
+File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
