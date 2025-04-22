@@ -1,35 +1,44 @@
-# Ignore Python virtual environment
+# ------------------------
+# BACKEND (FastAPI)
+# ------------------------
 venv/
 __pycache__/
+*.py[cod]
+*.sqlite3
+*.db
 
-# Ignore environment variables
+# Local environment variables
 .env
-.env.local
+.env.*
 
-# Ignore build artifacts
+# Alembic migration artifacts (optional)
+alembic/versions/
+
+# ------------------------
+# FRONTEND (Vite/React)
+# ------------------------
+node_modules/
+dist/
 build/
 .cache/
-out/
-
-# Ignore TypeScript build files
+coverage/
 *.tsbuildinfo
 
-# Ignore test coverage reports
-coverage/
-.nyc_output/
+# Output files
+code_output.txt
+test.py
 
-# Ignore node modules
-node_modules/
-
-# Ignore dependency-related files
+# Dependency locks (keep only 1 depending on what you use)
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
-# Ignore temporary files
-tmp/
-*.tmp
-
-# Ignore system files
-Thumbs.db
+# ------------------------
+# SYSTEM FILES (Mac/Win)
+# ------------------------
 .DS_Store
+Thumbs.db
+
+# IDE/Editor configs (optional)
+.vscode/
+.idea/
