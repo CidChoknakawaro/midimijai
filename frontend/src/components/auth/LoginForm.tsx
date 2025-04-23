@@ -6,20 +6,25 @@ import SubmitButton from "./SubmitButton";
 import GuestLogin from "./GuestLogin";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-
+import toast from "react-hot-toast";
 
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
+    const loadingToast = toast.loading("Logging in...");
     try {
       await login(username, password);
-      alert("Logged in successfully!");
-      // TODO: redirect to dashboard or workspace
+      toast.success("Logged in successfully!", { id: loadingToast });
+      navigate("/dashboard");
     } catch (error: any) {
-      alert("Login failed: " + (error.response?.data?.detail || error.message));
+      toast.error("Login failed: " + (error.response?.data?.detail || error.message), {
+        id: loadingToast,
+      });
     }
   };
 

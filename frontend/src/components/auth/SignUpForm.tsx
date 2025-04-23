@@ -4,25 +4,32 @@ import PasswordToggle from "./PasswordToggle";
 import GoogleAuthButton from "./GoogleAuthButton";
 import SubmitButton from "./SubmitButton";
 import { useAuth } from "../../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const SignUpForm: React.FC = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
+
   const { register } = useAuth();
+  const navigate = useNavigate();
 
   const handleRegister = async () => {
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      toast.error("Passwords do not match!");
       return;
     }
 
+    const loadingToast = toast.loading("Creating account...");
     try {
       await register(username, password);
-      alert("Account created and logged in!");
-      // TODO: redirect to dashboard or workspace
+      toast.success("Account created and logged in!", { id: loadingToast });
+      navigate("/dashboard");
     } catch (error: any) {
-      alert("Signup failed: " + (error.response?.data?.detail || error.message));
+      toast.error("Signup failed: " + (error.response?.data?.detail || error.message), {
+        id: loadingToast,
+      });
     }
   };
 
