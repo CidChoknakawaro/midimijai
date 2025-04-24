@@ -10,4 +10,4 @@ class MIDIProject(Base):
     data = Column(JSON)
     user_id = Column(Integer, ForeignKey("users.id"))
 
-    owner = relationship("User", back_populates="projects")
+    owner = relationship("User", back_populates="midi_projects")

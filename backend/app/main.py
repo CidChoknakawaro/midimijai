@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, users, midi
 from app.database import create_db_and_tables
+from app.routers import project
 
 app = FastAPI()
 
@@ -23,6 +24,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(midi.router, prefix="/midi", tags=["midi"])
+app.include_router(project.router, prefix="/projects", tags=["projects"])
 
 # Initialize tables on startup
 @app.on_event("startup")

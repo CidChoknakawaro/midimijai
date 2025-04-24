@@ -9,4 +9,6 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
 
-    projects = relationship("MIDIProject", back_populates="owner")
+    midi_projects = relationship("MIDIProject", back_populates="owner", cascade="all, delete")
+
+    projects = relationship("Project", back_populates="user", cascade="all, delete")
