@@ -5,19 +5,13 @@ import NewFolderButton from "../components/dashboard/NewFolderButton";
 import SearchBar from "../components/dashboard/SearchBar";
 import SortDropdown from "../components/dashboard/SortDropdown";
 import UserDropdown from "../components/dashboard/UserDropdown";
+import { useProjects } from "../hooks/useProjects";
 
 const DashboardPage: React.FC = () => {
-  const mockProjects = [
-    { id: "p1", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: null },
-    { id: "p2", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: "f1" },
-    { id: "p3", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: "f1" },
-    { id: "p4", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: "f2" },
-  ];
+  const { projects, loading, error } = useProjects();
 
-  const mockFolders = [
-    { id: "f1", name: "Folder A" },
-    { id: "f2", name: "Folder B" },
-  ];
+  // Folders will be manually handled later — for now we assume flat layout
+  const folders = []; // Placeholder if you're not using folder grouping yet
 
   return (
     <div className="p-6">
@@ -29,7 +23,12 @@ const DashboardPage: React.FC = () => {
         <UserDropdown />
       </div>
 
-      <FolderStructure projects={mockProjects} folders={mockFolders} />
+      {/* Show loading/error states */}
+      {loading && <p className="text-gray-600">Loading projects...</p>}
+      {error && <p className="text-red-500">{error}</p>}
+
+      {/* Inject live projects */}
+      <FolderStructure projects={projects} folders={folders} />
 
       <div className="flex justify-center gap-6 mt-8">
         <NewProjectButton />
