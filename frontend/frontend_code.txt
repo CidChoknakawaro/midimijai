@@ -22,6 +22,7 @@ src/
             ProjectList.tsx
             SearchBar.tsx
             SortDropdown.tsx
+            SortTabs.tsx
             UserDropdown.tsx
         home/
             FeatureCard.tsx
@@ -37,6 +38,7 @@ src/
             InputField.tsx
             LoadingSpinner.tsx
             Modal.tsx
+            ProtectedRoute.tsx
             ToggleSwitch.tsx
             Tooltip.tsx
         workspace/
@@ -77,7 +79,7 @@ src/
     hooks/
         useAuth.ts
         useMIDI.ts
-        useProjectManager.ts
+        useProjects.ts
     pages/
         AuthPage.tsx
         DashboardPage.tsx
@@ -99,6 +101,7 @@ src/
         projectTypes.ts
     utils/
         constants.ts
+        exportProject.ts
         formatDate.ts
         generateMIDI.ts
         instruments.ts
@@ -109,13 +112,14 @@ File Contents
 --------------------------------------------------
 
 
-frontend\src\App.tsx
+frontend/src\App.tsx
 File type: .tsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AuthPage from "./pages/AuthPage";
 import HomePage from "./pages/HomePage";
 import DashboardPage from "./pages/DashboardPage";
 import WorkspacePage from "./pages/WorkspacePage";
+import ProtectedRoute from "./components/shared/ProtectedRoute"; // make sure path is correct
 
 function App() {
   return (
@@ -123,8 +127,22 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/auth" element={<AuthPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/workspace" element={<WorkspacePage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/workspace"
+          element={
+            <ProtectedRoute>
+              <WorkspacePage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Router>
   );
@@ -138,16 +156,19 @@ File End
 --------------------------------------------------
 
 
-frontend\src\main.tsx
+frontend/src\main.tsx
 File type: .tsx
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import { Toaster } from 'react-hot-toast';
+import "./styles/globals.css";
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>
+    <Toaster position="top-center" reverseOrder={false} />
+  </React.StrictMode>,
 );
 
 
@@ -156,7 +177,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\auth\AuthInputField.tsx
+frontend/src\components\auth\AuthInputField.tsx
 File type: .tsx
 import React from "react";
 
@@ -186,7 +207,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\auth\AuthToggle.tsx
+frontend/src\components\auth\AuthToggle.tsx
 File type: .tsx
 import React from "react";
 
@@ -221,7 +242,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\auth\GoogleAuthButton.tsx
+frontend/src\components\auth\GoogleAuthButton.tsx
 File type: .tsx
 import React from "react";
 
@@ -240,7 +261,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\auth\GuestLogin.tsx
+frontend/src\components\auth\GuestLogin.tsx
 File type: .tsx
 import React from "react";
 
@@ -259,7 +280,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\auth\LoginForm.tsx
+frontend/src\components\auth\LoginForm.tsx
 File type: .tsx
 import React, { useState } from "react";
 import AuthInputField from "./AuthInputField";
@@ -267,16 +288,35 @@ import PasswordToggle from "./PasswordToggle";
 import GoogleAuthButton from "./GoogleAuthButton";
 import SubmitButton from "./SubmitButton";
 import GuestLogin from "./GuestLogin";
+import { useAuth } from "../../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
-const LoginForm = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+const LoginForm: React.FC = () => {
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogin = async () => {
+    const loadingToast = toast.loading("Logging in...");
+    try {
+      await login(username, password);
+      toast.success("Logged in successfully!", { id: loadingToast });
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast.error("Login failed: " + (error.response?.data?.detail || error.message), {
+        id: loadingToast,
+      });
+    }
+  };
 
   return (
     <div>
       <AuthInputField type="text" placeholder="Username" value={username} onChange={setUsername} />
       <PasswordToggle value={password} onChange={setPassword} />
-      <SubmitButton text="Log in" onClick={() => alert("Logging in...")} />
+      <SubmitButton text="Log in" onClick={handleLogin} />
       <GoogleAuthButton />
       <GuestLogin />
     </div>
@@ -285,30 +325,55 @@ const LoginForm = () => {
 
 export default LoginForm;
 
+
 --------------------------------------------------
 File End
 --------------------------------------------------
 
 
-frontend\src\components\auth\SignUpForm.tsx
+frontend/src\components\auth\SignUpForm.tsx
 File type: .tsx
 import React, { useState } from "react";
 import AuthInputField from "./AuthInputField";
 import PasswordToggle from "./PasswordToggle";
 import GoogleAuthButton from "./GoogleAuthButton";
 import SubmitButton from "./SubmitButton";
+import { useAuth } from "../../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
-const SignUpForm = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+const SignUpForm: React.FC = () => {
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const handleRegister = async () => {
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match!");
+      return;
+    }
+
+    const loadingToast = toast.loading("Creating account...");
+    try {
+      await register(username, password);
+      toast.success("Account created and logged in!", { id: loadingToast });
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast.error("Signup failed: " + (error.response?.data?.detail || error.message), {
+        id: loadingToast,
+      });
+    }
+  };
 
   return (
     <div>
       <AuthInputField type="text" placeholder="Username" value={username} onChange={setUsername} />
       <PasswordToggle value={password} onChange={setPassword} />
       <PasswordToggle value={confirmPassword} onChange={setConfirmPassword} />
-      <SubmitButton text="Sign up" onClick={() => alert("Signing up...")} />
+      <SubmitButton text="Sign up" onClick={handleRegister} />
       <GoogleAuthButton />
     </div>
   );
@@ -316,12 +381,13 @@ const SignUpForm = () => {
 
 export default SignUpForm;
 
+
 --------------------------------------------------
 File End
 --------------------------------------------------
 
 
-frontend\src\components\auth\SubmitButton.tsx
+frontend/src\components\auth\SubmitButton.tsx
 File type: .tsx
 import React from "react";
 
@@ -345,183 +411,317 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\dashboard\FolderStructure.tsx
-File type: .tsx
-import React, { useState } from "react";
-import ProjectCard from "./ProjectCard";
-
-interface Project {
-  id: string;
-  name: string;
-  createdAt: string;
-  duration: string;
-  folderId?: string | null;
-}
-
-interface Folder {
-  id: string;
-  name: string;
-}
-
-interface FolderStructureProps {
-  projects: Project[];
-  folders: Folder[];
-}
-
-const FolderStructure: React.FC<FolderStructureProps> = ({ projects, folders }) => {
-  const [openFolders, setOpenFolders] = useState<string[]>([]);
-
-  const toggleFolder = (folderId: string) => {
-    setOpenFolders(prev =>
-      prev.includes(folderId) ? prev.filter(id => id !== folderId) : [...prev, folderId]
-    );
-  };
-
-  const renderProjectList = (filteredProjects: Project[]) =>
-    filteredProjects.map(project => (
-      <ProjectCard key={project.id} project={project} />
-    ));
-
-  const uncategorizedProjects = projects.filter(p => !p.folderId);
-
-  return (
-    <div className="space-y-4">
-      {/* Unfoldered projects */}
-      {uncategorizedProjects.length > 0 && (
-        <div className="space-y-2">{renderProjectList(uncategorizedProjects)}</div>
-      )}
-
-      {/* Foldered projects */}
-      {folders.map(folder => {
-        const folderProjects = projects.filter(p => p.folderId === folder.id);
-        const isOpen = openFolders.includes(folder.id);
-
-        return (
-          <div key={folder.id} className="border rounded p-2">
-            <button
-              className="font-semibold mb-2"
-              onClick={() => toggleFolder(folder.id)}
-            >
-              {folder.name} {isOpen ? "▲" : "▼"}
-            </button>
-
-            {isOpen && (
-              <div className="ml-4 space-y-2">
-                {folderProjects.length > 0
-                  ? renderProjectList(folderProjects)
-                  : <p className="text-sm text-gray-500">No projects in this folder</p>}
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-export default FolderStructure;
-
---------------------------------------------------
-File End
---------------------------------------------------
-
-
-frontend\src\components\dashboard\NewFolderButton.tsx
+frontend/src\components\dashboard\NewFolderButton.tsx
 File type: .tsx
 import React from "react";
-import Button from "../shared/Button";
+import { Plus } from "lucide-react";
 
-const NewFolderButton: React.FC = () => {
-  return (
-    <Button text="+ Create new folder" onClick={() => alert("New folder placeholder")} />
-  );
-};
+const NewFolderButton: React.FC = () => (
+  <button
+    onClick={() => alert("Create folder…")}
+    className="
+      flex items-center space-x-2
+      px-6 py-3
+      bg-teal-400 hover:bg-teal-500
+      text-black font-semibold
+      rounded-full shadow
+      text-sm
+    "
+  >
+    <div className="bg-white rounded-full p-1">
+      <Plus className="w-4 h-4" />
+    </div>
+    <span>Create new folder</span>
+  </button>
+);
 
 export default NewFolderButton;
 
+
 --------------------------------------------------
 File End
 --------------------------------------------------
 
 
-frontend\src\components\dashboard\NewProjectButton.tsx
+frontend/src\components\dashboard\NewProjectButton.tsx
 File type: .tsx
 import React from "react";
-import Button from "../shared/Button";
+import { Plus } from "lucide-react";
+import { useProjects } from "../../hooks/useProjects";
 
 const NewProjectButton: React.FC = () => {
+  const { addProject } = useProjects();
+
+  const handleClick = async () => {
+    const name = "Untitled Project";
+    const data = JSON.stringify({ notes: [], bpm: 120 });
+    await addProject(name, data);
+    window.location.reload();
+  };
+
   return (
-    <Button text="+ Create new project" onClick={() => alert("New project placeholder")} />
+    <button
+      onClick={handleClick}
+      className="
+        flex items-center space-x-2
+        px-6 py-3
+        bg-teal-400 hover:bg-teal-500
+        text-black font-semibold
+        rounded-full shadow
+        text-sm
+      "
+    >
+      <div className="bg-white rounded-full p-1">
+        <Plus className="w-4 h-4" />
+      </div>
+      <span>Create new project</span>
+    </button>
   );
 };
 
 export default NewProjectButton;
 
+
 --------------------------------------------------
 File End
 --------------------------------------------------
 
 
-frontend\src\components\dashboard\ProjectActions.tsx
+frontend/src\components\dashboard\ProjectActions.tsx
 File type: .tsx
-import React from "react";
+import React, { useState } from "react";
+import { useProjects } from "../../hooks/useProjects";
+import { useNavigate } from "react-router-dom";
+import { exportProject } from "../../utils/exportProject";
+import Modal from "../shared/Modal";
 
-const ProjectActions: React.FC = () => {
+interface ProjectActionsProps {
+  projectId: number;
+  name: string;
+  data: string;
+}
+
+const ProjectActions: React.FC<ProjectActionsProps> = ({
+  projectId,
+  name,
+  data,
+}) => {
+  const { addProject, renameProject } = useProjects();
+  const navigate = useNavigate();
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [newName, setNewName] = useState(name);
+
+  // R → open rename
+  const onRenameClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowRenameModal(true);
+  };
+
+  // confirm rename
+  const onConfirmRename = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await renameProject(projectId, newName, data);
+    setShowRenameModal(false);
+    window.location.reload();
+  };
+
+  // d → duplicate
+  const onDuplicateClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await addProject(`${name} (Copy)`, data);
+    window.location.reload();
+  };
+
+  // E → edit (also navigates)
+  // **E → Export**  
+  const onExportClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    exportProject(data, name);
+  };
+
   return (
-    <div className="flex space-x-2">
-      <button title="Rename" className="rounded border px-2 py-1">R</button>
-      <button title="Duplicate" className="rounded border px-2 py-1">d</button>
-      <button title="Edit" className="rounded border px-2 py-1">E</button>
-    </div>
+    <>
+      <div className="flex space-x-2">
+        <button
+          title="Rename"
+          onClick={onRenameClick}
+          className="rounded-full border px-2 py-1"
+        >
+          R
+        </button>
+        <button
+          title="Duplicate"
+          onClick={onDuplicateClick}
+          className="rounded-full border px-2 py-1"
+        >
+          d
+        </button>
+        <button
+          title="Export"
+          onClick={onExportClick}
+          className="rounded-full border px-2 py-1"
+        >
+          E
+        </button>
+      </div>
+
+      {/* Rename Modal */}
+      {showRenameModal && (
+        <Modal onClose={() => setShowRenameModal(false)}>
+          <h3>Rename Project</h3>
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            className="w-full mt-4 mb-4 p-2 border rounded"
+          />
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowRenameModal(false);
+              }}
+            >
+              Cancel
+            </button>
+            <button onClick={onConfirmRename}>Rename</button>
+          </div>
+        </Modal>
+      )}
+    </>
   );
 };
 
 export default ProjectActions;
 
+
 --------------------------------------------------
 File End
 --------------------------------------------------
 
 
-frontend\src\components\dashboard\ProjectCard.tsx
+frontend/src\components\dashboard\ProjectCard.tsx
 File type: .tsx
-import React from "react";
+import React, { useState } from "react";
 import ProjectActions from "./ProjectActions";
+import { useProjects } from "../../hooks/useProjects";
+import { useNavigate } from "react-router-dom";
+import Modal from "../shared/Modal";
 
 interface Project {
-  id: string;
+  id: number;
   name: string;
-  createdAt: string;
+  created_at: string;
   duration: string;
+  data: string;
 }
 
 const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
+  const { removeProject } = useProjects();
+  const navigate = useNavigate();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // 1) Clicking the row → go to workspace
+  const handleRowClick = () => {
+    localStorage.setItem("activeProjectId", project.id.toString());
+    navigate("/workspace");
+  };
+
+  // 2) Open the delete-confirm modal
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeleteModal(true);
+  };
+
+  // 3) Confirm deletion
+  const handleConfirmDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await removeProject(project.id);
+    setShowDeleteModal(false);
+    window.location.reload();
+  };
+
   return (
-    <div className="border rounded p-3 flex justify-between items-center mb-2">
-      <div className="flex items-center gap-2">
-        <div className="rounded-full border px-2 py-1">D</div>
-        <div>
-          <p className="font-medium">{project.name}</p>
-          <p className="text-xs">{project.duration}</p>
+    <>
+      <div
+        onClick={handleRowClick}
+        className="
+          flex items-center justify-between
+          gap-4
+          border 
+          rounded-full 
+          px-4 py-2 mb-2
+          whitespace-nowrap overflow-x-auto
+          text-sm
+          cursor-pointer
+          hover:bg-gray-50
+        "
+      >
+        {/* Delete button */}
+        <button
+          title="Delete"
+          onClick={handleDeleteClick}
+          className="rounded-full border px-2 py-1 font-bold"
+        >
+          D
+        </button>
+
+        {/* Name + Date */}
+        <div className="flex-1 flex items-center gap-2">
+          <span className="font-semibold">{project.name}</span>
+          <span className="text-gray-700">
+            {project.created_at.split("T")[0]}
+          </span>
         </div>
+
+        {/* R / d / E buttons */}
+        <ProjectActions
+          projectId={project.id}
+          name={project.name}
+          data={project.data}
+        />
       </div>
-      <div className="flex items-center gap-4">
-        <p>{project.createdAt}</p>
-        <p>{project.duration}</p>
-        <ProjectActions />
-      </div>
-    </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <Modal onClose={() => setShowDeleteModal(false)}>
+          <h3>Delete Project?</h3>
+          <p>
+            Are you sure you want to delete <strong>{project.name}</strong>?
+          </p>
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDeleteModal(false);
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmDelete}
+              style={{ color: "red" }}
+            >
+              Delete
+            </button>
+          </div>
+        </Modal>
+      )}
+    </>
   );
 };
 
 export default ProjectCard;
 
+
 --------------------------------------------------
 File End
 --------------------------------------------------
 
 
-frontend\src\components\dashboard\ProjectList.tsx
+frontend/src\components\dashboard\ProjectList.tsx
 File type: .tsx
 import React from "react";
 import FolderStructure from "./FolderStructure";
@@ -547,28 +747,42 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\dashboard\SearchBar.tsx
+frontend/src\components\dashboard\SearchBar.tsx
 File type: .tsx
 import React from "react";
 
-const SearchBar: React.FC = () => {
-  return (
-    <input
-      type="text"
-      placeholder="Search"
-      className="border rounded px-4 py-2 w-full"
-    />
-  );
-};
+interface SearchBarProps {
+  value: string;
+  onChange: (v: string) => void;
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => (
+  <input
+    type="text"
+    placeholder="Search projects…"
+    value={value}
+    onChange={e => onChange(e.target.value)}
+    className="
+      w-full
+      px-4 py-2
+      rounded-full
+      border border-gray-300
+      bg-gray-100
+      focus:outline-none focus:ring-2 focus:ring-teal-400
+      text-sm
+    "
+  />
+);
 
 export default SearchBar;
+
 
 --------------------------------------------------
 File End
 --------------------------------------------------
 
 
-frontend\src\components\dashboard\SortDropdown.tsx
+frontend/src\components\dashboard\SortDropdown.tsx
 File type: .tsx
 import React from "react";
 
@@ -589,7 +803,45 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\dashboard\UserDropdown.tsx
+frontend/src\components\dashboard\SortTabs.tsx
+File type: .tsx
+import React from "react";
+
+export type SortKey = "created" | "custom" | "modified";
+
+interface SortTabsProps {
+  selected: SortKey;
+  onSelect: (key: SortKey) => void;
+}
+
+const SortTabs: React.FC<SortTabsProps> = ({ selected, onSelect }) => (
+  <div className="flex space-x-2">
+    {(["created", "custom", "modified"] as SortKey[]).map((key) => (
+      <button
+        key={key}
+        onClick={() => onSelect(key)}
+        className={
+          "px-3 py-1 rounded-full text-sm " +
+          (selected === key
+            ? "bg-gray-200 font-semibold"
+            : "hover:bg-gray-100")
+        }
+      >
+        {key.charAt(0).toUpperCase() + key.slice(1)}
+      </button>
+    ))}
+  </div>
+);
+
+export default SortTabs;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend/src\components\dashboard\UserDropdown.tsx
 File type: .tsx
 import React, { useState } from "react";
 
@@ -626,7 +878,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\home\FeatureCard.tsx
+frontend/src\components\home\FeatureCard.tsx
 File type: .tsx
 import React from "react";
 
@@ -652,7 +904,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\home\FeatureList.tsx
+frontend/src\components\home\FeatureList.tsx
 File type: .tsx
 import React, { useState } from "react";
 
@@ -728,7 +980,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\home\Footer.tsx
+frontend/src\components\home\Footer.tsx
 File type: .tsx
 import React from "react";
 
@@ -753,18 +1005,34 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\home\HeroSection.tsx
+frontend/src\components\home\HeroSection.tsx
 File type: .tsx
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 
 const HeroSection: React.FC = () => {
+  const navigate = useNavigate();
+  const { token } = useAuth(); // ✅ grab token from useAuth
+
+  const handleStartNow = () => {
+    if (token) {
+      navigate("/dashboard");
+    } else {
+      navigate("/auth");
+    }
+  };
+
   return (
     <section className="flex flex-col items-center justify-center text-center py-20 bg-gray-100 px-4">
       <h1 className="text-6xl font-extrabold">MIDIMIJAI</h1>
       <p className="text-lg text-gray-600 max-w-xl mt-3">
         Create, edit, and transform MIDI like never before with AI. Deeply customizable and easy to use for producers, musicians, and beginners.
       </p>
-      <button className="mt-6 px-8 py-3 bg-[#17B9C6] text-white rounded text-lg font-bold">
+      <button
+        onClick={handleStartNow}
+        className="mt-6 px-8 py-3 bg-[#17B9C6] text-white rounded text-lg font-bold"
+      >
         Start Now
       </button>
     </section>
@@ -773,35 +1041,43 @@ const HeroSection: React.FC = () => {
 
 export default HeroSection;
 
+
 --------------------------------------------------
 File End
 --------------------------------------------------
 
 
-frontend\src\components\home\NavBar.tsx
+frontend/src\components\home\NavBar.tsx
 File type: .tsx
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Navbar: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleLoginClick = () => {
+    navigate("/auth");
+  };
+
   return (
     <nav className="w-full p-4 bg-gray-900 text-white flex justify-between items-center px-8">
-      {/* Left Side: Language Switch */}
       <button className="border px-3 py-1 rounded">EN | TH</button>
-
-      {/* Right Side: Login Button */}
-      <button className="p-2 border border-white rounded">Login</button>
+      <button onClick={handleLoginClick} className="p-2 border border-white rounded">
+        Login
+      </button>
     </nav>
   );
 };
 
 export default Navbar;
 
+
 --------------------------------------------------
 File End
 --------------------------------------------------
 
 
-frontend\src\components\home\StepGuide.tsx
+frontend/src\components\home\StepGuide.tsx
 File type: .tsx
 import React, { useState } from "react";
 
@@ -877,7 +1153,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\home\UserTypes.tsx
+frontend/src\components\home\UserTypes.tsx
 File type: .tsx
 import React from "react";
 
@@ -942,7 +1218,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\shared\Button.tsx
+frontend/src\components\shared\Button.tsx
 File type: .tsx
 import React from "react";
 
@@ -972,7 +1248,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\shared\Dropdown.tsx
+frontend/src\components\shared\Dropdown.tsx
 File type: .tsx
 import React, { useState, useEffect, useRef } from 'react';
 
@@ -1043,7 +1319,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\shared\InputField.tsx
+frontend/src\components\shared\InputField.tsx
 File type: .tsx
 import React from "react";
 
@@ -1074,7 +1350,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\shared\LoadingSpinner.tsx
+frontend/src\components\shared\LoadingSpinner.tsx
 File type: .tsx
 import React from 'react';
 import '../../styles/LoadingSpinner.css';
@@ -1090,7 +1366,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\shared\Modal.tsx
+frontend/src\components\shared\Modal.tsx
 File type: .tsx
 import React from 'react';
 
@@ -1136,7 +1412,35 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\shared\ToggleSwitch.tsx
+frontend/src\components\shared\ProtectedRoute.tsx
+File type: .tsx
+import React, { ReactElement } from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+
+interface ProtectedRouteProps {
+  children: ReactElement;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const { isLoggedIn } = useAuth();
+
+  if (!isLoggedIn) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return children;
+};
+
+export default ProtectedRoute;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend/src\components\shared\ToggleSwitch.tsx
 File type: .tsx
 import React from "react";
 
@@ -1170,7 +1474,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\shared\Tooltip.tsx
+frontend/src\components\shared\Tooltip.tsx
 File type: .tsx
 import React from "react";
 import { Tooltip as ReactTooltip } from "react-tooltip";
@@ -1200,7 +1504,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\AIGenerate.tsx
+frontend/src\components\workspace\AIGenerate.tsx
 File type: .tsx
 import React from 'react';
 
@@ -1224,7 +1528,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\AIModify.tsx
+frontend/src\components\workspace\AIModify.tsx
 File type: .tsx
 import React from 'react';
 
@@ -1248,7 +1552,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\AIStyleTransfer.tsx
+frontend/src\components\workspace\AIStyleTransfer.tsx
 File type: .tsx
 import React from 'react';
 
@@ -1272,7 +1576,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\EditMenu.tsx
+frontend/src\components\workspace\EditMenu.tsx
 File type: .tsx
 import React from 'react';
 import Dropdown from '../shared/Dropdown';
@@ -1298,7 +1602,34 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\MIDIToolsMenu.tsx
+frontend/src\components\workspace\FileMenu.tsx
+File type: .tsx
+import React from 'react';
+import Dropdown from '../shared/Dropdown';
+
+const FileMenu: React.FC = () => {
+  const options = [
+    'New Project',
+    'Open Project',
+    'Save',
+    'Save As',
+    'Import MIDI',
+    'Export MIDI',
+    'Export Stems',
+    'Close Project',
+  ];
+
+  return <Dropdown label="File" options={options} />;
+};
+
+export default FileMenu;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend/src\components\workspace\MIDIToolsMenu.tsx
 File type: .tsx
 import React from 'react';
 import Dropdown from '../shared/Dropdown';
@@ -1324,7 +1655,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\SettingsMenu.tsx
+frontend/src\components\workspace\SettingsMenu.tsx
 File type: .tsx
 import React from 'react';
 import Dropdown from '../shared/Dropdown';
@@ -1349,7 +1680,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\SoundLibraryModal.tsx
+frontend/src\components\workspace\SoundLibraryModal.tsx
 File type: .tsx
 import React, { useState } from 'react';
 import Modal from '../shared/Modal';
@@ -1497,62 +1828,40 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\WorkspaceNavBar.tsx
+frontend/src\components\workspace\WorkspaceNavBar.tsx
 File type: .tsx
-import React from 'react';
+import React, { useState } from 'react';
 import FileMenu from './FileMenu';
 import EditMenu from './EditMenu';
 import SettingsMenu from './SettingsMenu';
 import MIDIToolsMenu from './MIDIToolsMenu';
 import SoundLibraryModal from './SoundLibraryModal';
-import { Project, Track } from '../../types/projectTypes';
 
-type Props = {
-  viewMode: 'editor' | 'dashboard';
-  activeTrack?: Track | null;
-  updateTrack?: (updates: Partial<Track>) => void;
-  currentProject: Project | null;
-  bpm: number;
-};
-
-const WorkspaceNavbar: React.FC<Props> = ({
-  viewMode,
-  activeTrack,
-  updateTrack,
-  currentProject,
-  bpm,
-}) => {
-  const [isLibraryOpen, setIsLibraryOpen] = React.useState(false);
+const WorkspaceNavBar: React.FC = () => {
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   return (
     <>
       <nav className="workspace-navbar" style={{ display: 'flex', gap: '1rem' }}>
-        <FileMenu
-          viewMode={viewMode}
-          activeTrack={activeTrack}
-          updateTrack={updateTrack}
-          currentProject={currentProject}
-          bpm={bpm}
-        />
+        <FileMenu />
         <EditMenu />
+        <button onClick={() => setIsLibraryOpen(true)}>Sound Library</button>
         <SettingsMenu />
         <MIDIToolsMenu />
-        <button onClick={() => setIsLibraryOpen(true)}>Sound Library</button>
       </nav>
       <SoundLibraryModal isOpen={isLibraryOpen} onClose={() => setIsLibraryOpen(false)} />
     </>
   );
 };
 
-export default WorkspaceNavbar;
-
+export default WorkspaceNavBar;
 
 --------------------------------------------------
 File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\midi-editor\components\PianoRoll\PianoRoll.css
+frontend/src\components\workspace\midi-editor\components\PianoRoll\PianoRoll.css
 File type: .css
 .piano-roll-viewport {
   display: flex;
@@ -1673,7 +1982,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\midi-editor\components\TrackDashboard\TrackDashboard.css
+frontend/src\components\workspace\midi-editor\components\TrackDashboard\TrackDashboard.css
 File type: .css
 .dashboard-container {
   max-height: 600px;
@@ -1772,7 +2081,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\midi-editor\components\TrackDashboard\TrackDashboard.tsx
+frontend/src\components\workspace\midi-editor\components\TrackDashboard\TrackDashboard.tsx
 File type: .tsx
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import * as Tone from 'tone';
@@ -2045,7 +2354,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\midi-editor\components\TrackEditor\TrackEditor.tsx
+frontend/src\components\workspace\midi-editor\components\TrackEditor\TrackEditor.tsx
 File type: .tsx
 import React, { useContext, useEffect, useRef, useState } from "react";
 import PianoRoll from "../PianoRoll/PianoRoll";
@@ -2332,7 +2641,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\midi-editor\components\TransportBar\GlobalTransportBar.css
+frontend/src\components\workspace\midi-editor\components\TransportBar\GlobalTransportBar.css
 File type: .css
 .transport-bar {
     display: flex;
@@ -2367,7 +2676,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\midi-editor\core\exportMidi.ts
+frontend/src\components\workspace\midi-editor\core\exportMidi.ts
 File type: .ts
 import { Midi } from '@tonejs/midi';
 
@@ -2411,7 +2720,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\midi-editor\core\importMidi.ts
+frontend/src\components\workspace\midi-editor\core\importMidi.ts
 File type: .ts
 import { Midi } from '@tonejs/midi';
 
@@ -2444,7 +2753,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\midi-editor\core\MidiEditorCore.tsx
+frontend/src\components\workspace\midi-editor\core\MidiEditorCore.tsx
 File type: .tsx
 import React, { useState } from "react";
 import TrackDashboard from "../components/TrackDashboard/TrackDashboard";
@@ -2545,7 +2854,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\midi-editor\core\midiUtils.ts
+frontend/src\components\workspace\midi-editor\core\midiUtils.ts
 File type: .ts
 export const getActiveNotesAtBeat = (notes: any[], beat: number): any[] => {
   return notes.filter(note =>
@@ -2559,7 +2868,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\components\workspace\midi-editor\core\TransportContext.tsx
+frontend/src\components\workspace\midi-editor\core\TransportContext.tsx
 File type: .tsx
 import React, { createContext, useEffect, useState } from 'react';
 import * as Tone from 'tone';
@@ -2647,7 +2956,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\config\apiConfig.ts
+frontend/src\config\apiConfig.ts
 File type: .ts
 
 
@@ -2656,7 +2965,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\config\appConfig.ts
+frontend/src\config\appConfig.ts
 File type: .ts
 
 
@@ -2665,7 +2974,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\context\authStore.ts
+frontend/src\context\authStore.ts
 File type: .ts
 
 
@@ -2674,7 +2983,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\context\midiStore.ts
+frontend/src\context\midiStore.ts
 File type: .ts
 import { create } from 'zustand';
 
@@ -2710,7 +3019,61 @@ File End
 --------------------------------------------------
 
 
-frontend\src\hooks\useAuth.ts
+frontend/src\hooks\useAuth.ts
+File type: .ts
+import { useState, useEffect } from 'react';
+import * as authService from '../services/authService';
+
+interface TokenResponse {
+  access_token: string;
+  token_type: string;
+}
+
+export const useAuth = () => {
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const [user, setUser] = useState<any>(null); // later replace with User type if needed
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    if (storedToken && !token) {
+      setToken(storedToken);
+      // optionally: fetch user info here
+    }
+  }, []);
+
+  const saveToken = (token: string) => {
+    localStorage.setItem('token', token);
+    setToken(token);
+  };
+
+  const register = async (username: string, password: string): Promise<void> => {
+    const data: TokenResponse = await authService.register(username, password);
+    saveToken(data.access_token);
+  };
+
+  const login = async (username: string, password: string): Promise<void> => {
+    const data: TokenResponse = await authService.login(username, password);
+    saveToken(data.access_token);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setToken(null);
+    setUser(null);
+  };
+
+  const isLoggedIn = !!token;
+
+  return { token, user, isLoggedIn, login, register, logout };
+};
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend/src\hooks\useMIDI.ts
 File type: .ts
 
 
@@ -2719,16 +3082,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\hooks\useMIDI.ts
-File type: .ts
-
-
---------------------------------------------------
-File End
---------------------------------------------------
-
-
-frontend\src\pages\AuthPage.tsx
+frontend/src\pages\AuthPage.tsx
 File type: .tsx
 import React, { useState } from "react";
 import LoginForm from "../components/auth/LoginForm";
@@ -2755,42 +3109,91 @@ File End
 --------------------------------------------------
 
 
-frontend\src\pages\DashboardPage.tsx
+frontend/src\pages\DashboardPage.tsx
 File type: .tsx
-import React from "react";
+import React, { useState, useMemo } from "react";
+import SortTabs, { SortKey } from "../components/dashboard/SortTabs";
+import SearchBar from "../components/dashboard/SearchBar";
+import UserDropdown from "../components/dashboard/UserDropdown";
 import FolderStructure from "../components/dashboard/FolderStructure";
 import NewProjectButton from "../components/dashboard/NewProjectButton";
 import NewFolderButton from "../components/dashboard/NewFolderButton";
-import SearchBar from "../components/dashboard/SearchBar";
-import SortDropdown from "../components/dashboard/SortDropdown";
-import UserDropdown from "../components/dashboard/UserDropdown";
+import { useProjects } from "../hooks/useProjects";
 
 const DashboardPage: React.FC = () => {
-  const mockProjects = [
-    { id: "p1", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: null },
-    { id: "p2", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: "f1" },
-    { id: "p3", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: "f1" },
-    { id: "p4", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: "f2" },
-  ];
+  const { projects = [], folders = [], loading, error } = useProjects();
 
-  const mockFolders = [
-    { id: "f1", name: "Folder A" },
-    { id: "f2", name: "Folder B" },
-  ];
+  const [sortOption, setSortOption] = useState<SortKey>("custom");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const sortedProjects = useMemo(() => {
+    const copy = projects.slice();
+
+    // filter
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      copy = copy.filter((p) => p.name.toLowerCase().includes(q));
+    }
+
+    // sort
+    switch (sortOption) {
+      case "created":
+        return copy.sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      case "custom":
+        return copy.sort((a, b) => a.name.localeCompare(b.name));
+      case "modified":
+        return copy.sort(
+          (a, b) =>
+            new Date(b.modified_at!).getTime() - new Date(a.modified_at!).getTime()
+        );
+      default:
+        return copy;
+    }
+  }, [projects, sortOption, searchTerm]);
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex gap-4">
-          <SearchBar />
-          <SortDropdown />
+    <div className="flex flex-col h-screen bg-gray-50">
+      {/* Top Bar */}
+      <div className="flex items-center justify-between px-8 py-4 bg-white shadow">
+        <div className="flex items-center space-x-6">
+          <SortTabs selected={sortOption} onSelect={setSortOption} />
+          <button className="p-2 rounded-full hover:bg-gray-100">
+            {/* Hamburger icon */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-6 h-6 text-gray-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
         </div>
+
+        <div className="flex-1 px-8">
+          <SearchBar value={searchTerm} onChange={setSearchTerm} />
+        </div>
+
+
         <UserDropdown />
       </div>
 
-      <FolderStructure projects={mockProjects} folders={mockFolders} />
+      {/* Main Panel */}
+      <div className="flex-1 px-8 py-6 overflow-y-auto">
+        <div className="p-6 bg-white rounded-2xl shadow-lg">
+          {loading && <p className="text-gray-500 text-center">Loading projects…</p>}
+          {error && <p className="text-red-500 text-center">{error}</p>}
 
-      <div className="flex justify-center gap-6 mt-8">
+          <FolderStructure projects={sortedProjects} folders={folders} />
+        </div>
+      </div>
+
+      {/* Bottom CTAs */}
+      <div className="flex justify-center items-center px-8 py-6 bg-white shadow">
         <NewProjectButton />
         <NewFolderButton />
       </div>
@@ -2800,12 +3203,13 @@ const DashboardPage: React.FC = () => {
 
 export default DashboardPage;
 
+
 --------------------------------------------------
 File End
 --------------------------------------------------
 
 
-frontend\src\pages\HomePage.tsx
+frontend/src\pages\HomePage.tsx
 File type: .tsx
 import React from "react";
 import Navbar from "../components/home/NavBar";
@@ -2835,127 +3239,53 @@ File End
 --------------------------------------------------
 
 
-frontend\src\pages\WorkspacePage.tsx
+frontend/src\pages\WorkspacePage.tsx
 File type: .tsx
-import React, { useState, useRef } from "react";
+import React from "react";
 import WorkspaceNavbar from "../components/workspace/WorkspaceNavBar";
 import AIGenerate from "../components/workspace/AIGenerate";
 import AIModify from "../components/workspace/AIModify";
 import AIStyleTransfer from "../components/workspace/AIStyleTransfer";
-import TrackDashboard from "../components/workspace/midi-editor/components/TrackDashboard/TrackDashboard";
-import TrackEditor from "../components/workspace/midi-editor/components/TrackEditor/TrackEditor";
-import GlobalTransportBar from "../components/workspace/midi-editor/components/TransportBar/GlobalTransportBar";
-import { TransportProvider } from "../components/workspace/midi-editor/core/TransportContext";
-import { Track } from "../types/projectTypes";
+import MidiEditorCore from "../components/workspace/midi-editor/core/MidiEditorCore"; // your full MIDI editor
 
 const WorkspacePage: React.FC = () => {
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
-  const [bpm] = useState<number>(120); // Default for now
-
-  const activeTrack = tracks.find((t) => t.id === activeTrackId);
-
-  const addNewTrack = () => {
-    const id = Date.now().toString();
-    const newTrack: Track = {
-      id,
-      name: `Track ${tracks.length + 1}`,
-      notes: [],
-      instrument: "Piano",
-    };
-    setTracks((prev) => [...prev, newTrack]);
-  };
-
-  const updateTrack = (id: string, updates: Partial<Track>) => {
-    setTracks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
-    );
-  };
-
-  const updateActiveTrack = (updates: Partial<Track>) => {
-    if (activeTrack) updateTrack(activeTrack.id, updates);
-  };
-
   return (
-    <TransportProvider>
-      <div
-        className="workspace-page"
-        style={{ display: "flex", flexDirection: "column", height: "100vh" }}
-      >
-        {/* Top Menu Bar */}
-        <WorkspaceNavbar
-          viewMode={activeTrack ? "editor" : "dashboard"}
-          activeTrack={activeTrack}
-          updateTrack={updateActiveTrack}
-          currentProject={{ id: "local", name: "Untitled Project", tracks }}
-          bpm={bpm}
-        />
+    <div
+      className="workspace-page"
+      style={{ display: "flex", flexDirection: "column", height: "100vh" }}
+    >
+      {/* Top Menu Bar */}
+      <WorkspaceNavbar />
 
-        {/* Main Content */}
-        <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-          {/* Left Sidebar: AI Tools */}
-          <div
-            style={{
-              width: "300px",
-              padding: "1rem",
-              borderRight: "1px solid #ccc",
-              overflowY: "auto",
-            }}
-          >
-            <AIGenerate />
-            <AIModify />
-            <AIStyleTransfer />
-          </div>
+      {/* Main Content */}
+      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+        {/* Left Sidebar: AI Tools */}
+        <div
+          style={{
+            width: "300px",
+            padding: "1rem",
+            borderRight: "1px solid #ccc",
+            overflowY: "auto",
+          }}
+        >
+          <AIGenerate />
+          <AIModify />
+          <AIStyleTransfer />
+        </div>
 
-          {/* Right Side: Full MIDI Editor */}
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-              borderLeft: "1px solid #ccc",
-            }}
-          >
-            <div
-              style={{
-                height: "660px",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <div style={{ height: "600px", overflowY: "auto" }}>
-                {activeTrack ? (
-                  <TrackEditor
-                    track={activeTrack}
-                    updateTrack={updateActiveTrack}
-                    goBack={() => setActiveTrackId(null)}
-                  />
-                ) : (
-                  <TrackDashboard
-                    tracks={tracks}
-                    onEditTrack={setActiveTrackId}
-                    onAddTrack={addNewTrack}
-                    updateTrack={updateTrack}
-                  />
-                )}
-              </div>
-
-              <div
-                style={{
-                  height: "60px",
-                  borderTop: "1px solid #ccc",
-                  padding: "8px 16px",
-                  background: "#f8f8f8",
-                }}
-              >
-                <GlobalTransportBar />
-              </div>
-            </div>
-          </div>
+        {/* Right Side: Full MIDI Editor */}
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
+        >
+          <MidiEditorCore />
         </div>
       </div>
-    </TransportProvider>
+    </div>
   );
 };
 
@@ -2967,7 +3297,34 @@ File End
 --------------------------------------------------
 
 
-frontend\src\services\authService.ts
+frontend/src\services\authService.ts
+File type: .ts
+import axios from 'axios';
+
+const API_URL = 'http://localhost:8000/auth';
+
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+}
+
+export const register = async (username: string, password: string): Promise<TokenResponse> => {
+  const res = await axios.post<TokenResponse>(`${API_URL}/register`, { username, password });
+  return res.data;
+};
+
+export const login = async (username: string, password: string): Promise<TokenResponse> => {
+  const res = await axios.post<TokenResponse>(`${API_URL}/login`, { username, password });
+  return res.data;
+};
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend/src\services\midiService.ts
 File type: .ts
 
 
@@ -2976,7 +3333,62 @@ File End
 --------------------------------------------------
 
 
-frontend\src\services\midiService.ts
+frontend/src\services\projectService.ts
+File type: .ts
+// frontend/src/services/projectService.ts
+import axios from "axios";
+
+const API_URL = "http://localhost:8000/projects";
+
+const getAuthHeader = () => {
+  const token = localStorage.getItem("token");
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+};
+
+export const getAllProjects = async () => {
+  const res = await axios.get(API_URL + "/", getAuthHeader());
+  return res.data; // array of projects
+};
+
+export const getProjectById = async (id: number) => {
+  const res = await axios.get(`${API_URL}/${id}`, getAuthHeader());
+  return res.data;
+};
+
+export const createProject = async (name: string, data: string) => {
+  const res = await axios.post(
+    API_URL + "/",
+    { name, data },
+    getAuthHeader()
+  );
+  return res.data;
+};
+
+export const updateProject = async (id: number, name: string, data: string) => {
+  const res = await axios.put(
+    `${API_URL}/${id}`,
+    { name, data },
+    getAuthHeader()
+  );
+  return res.data;
+};
+
+export const deleteProject = async (id: number) => {
+  const res = await axios.delete(`${API_URL}/${id}`, getAuthHeader());
+  return res.data;
+};
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend/src\services\userService.ts
 File type: .ts
 
 
@@ -2985,25 +3397,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\services\projectService.ts
-File type: .ts
-
-
---------------------------------------------------
-File End
---------------------------------------------------
-
-
-frontend\src\services\userService.ts
-File type: .ts
-
-
---------------------------------------------------
-File End
---------------------------------------------------
-
-
-frontend\src\styles\auth.module.css
+frontend/src\styles\auth.module.css
 File type: .css
 
 
@@ -3012,7 +3406,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\styles\dashboard.module.css
+frontend/src\styles\dashboard.module.css
 File type: .css
 
 
@@ -3021,16 +3415,16 @@ File End
 --------------------------------------------------
 
 
-frontend\src\styles\globals.css
+frontend/src\styles\globals.css
 File type: .css
-
+@import "tailwindcss";
 
 --------------------------------------------------
 File End
 --------------------------------------------------
 
 
-frontend\src\styles\LoadingSpinner.css
+frontend/src\styles\LoadingSpinner.css
 File type: .css
 .loading-spinner {
     border: 16px solid #f3f3f3;
@@ -3052,7 +3446,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\styles\ToggleSwitch.css
+frontend/src\styles\ToggleSwitch.css
 File type: .css
 
 
@@ -3061,7 +3455,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\styles\workspace.module.css
+frontend/src\styles\workspace.module.css
 File type: .css
 
 
@@ -3070,7 +3464,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\types\projectTypes.ts
+frontend/src\types\projectTypes.ts
 File type: .ts
 export type Note = {
     id: string;
@@ -3102,7 +3496,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\utils\constants.ts
+frontend/src\utils\constants.ts
 File type: .ts
 
 
@@ -3111,7 +3505,62 @@ File End
 --------------------------------------------------
 
 
-frontend\src\utils\formatDate.ts
+frontend/src\utils\exportProject.ts
+File type: .ts
+import { Midi } from "@tonejs/midi";
+
+/**
+ * @param jsonData  A JSON string like `{"notes":[…],"bpm":120}`
+ * @param filename  The base name (no extension) for the download
+ */
+export function exportProject(jsonData: string, filename: string) {
+  // parse your stored data
+  const { notes, bpm } = JSON.parse(jsonData) as {
+    notes: Array<{
+      midi: number;
+      time: number;
+      duration: number;
+      velocity: number;
+    }>;
+    bpm: number;
+  };
+
+  // build a ToneJS Midi object
+  const midi = new Midi();
+  midi.header.ppq = 480;
+  midi.header.setTempo(bpm);
+
+  const track = midi.addTrack();
+  notes.forEach((note) =>
+    track.addNote({
+      midi: note.midi,
+      time: note.time,
+      duration: note.duration,
+      velocity: note.velocity,
+    })
+  );
+
+  // serialize to ArrayBuffer and download
+  const bytes = midi.toArray();
+  const blob = new Blob([bytes], { type: "audio/midi" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${filename}.mid`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+frontend/src\utils\formatDate.ts
 File type: .ts
 
 
@@ -3120,7 +3569,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\utils\generateMIDI.ts
+frontend/src\utils\generateMIDI.ts
 File type: .ts
 import { Midi } from '@tonejs/midi';
 import * as Tone from 'tone';
@@ -3148,7 +3597,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\utils\instruments.ts
+frontend/src\utils\instruments.ts
 File type: .ts
 import * as Tone from 'tone';
 
@@ -3170,7 +3619,7 @@ File End
 --------------------------------------------------
 
 
-frontend\src\utils\validateForm.ts
+frontend/src\utils\validateForm.ts
 File type: .ts
 
 
