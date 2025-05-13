@@ -1,4 +1,5 @@
 import React from "react";
+import { Plus } from "lucide-react";
 import { useProjects } from "../../hooks/useProjects";
 
 const NewProjectButton: React.FC = () => {
@@ -8,15 +9,25 @@ const NewProjectButton: React.FC = () => {
     const name = "Untitled Project";
     const data = JSON.stringify({ notes: [], bpm: 120 });
     await addProject(name, data);
-    window.location.reload(); 
+    window.location.reload();
   };
 
   return (
     <button
       onClick={handleClick}
-      className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded"
+      className="
+        flex items-center space-x-2
+        px-6 py-3
+        bg-teal-400 hover:bg-teal-500
+        text-black font-semibold
+        rounded-full shadow
+        text-sm
+      "
     >
-      + New Project
+      <div className="bg-white rounded-full p-1">
+        <Plus className="w-4 h-4" />
+      </div>
+      <span>Create new project</span>
     </button>
   );
 };

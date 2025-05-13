@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useProjects } from "../../hooks/useProjects";
 import { useNavigate } from "react-router-dom";
+import { exportProject } from "../../utils/exportProject";
 import Modal from "../shared/Modal";
 
 interface ProjectActionsProps {
@@ -9,42 +10,70 @@ interface ProjectActionsProps {
   data: string;
 }
 
-const ProjectActions: React.FC<ProjectActionsProps> = ({ projectId, name, data }) => {
-  const { addProject, removeProject, renameProject } = useProjects();
+const ProjectActions: React.FC<ProjectActionsProps> = ({
+  projectId,
+  name,
+  data,
+}) => {
+  const { addProject, renameProject } = useProjects();
   const navigate = useNavigate();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [newName, setNewName] = useState(name);
 
-  const handleEdit = () => {
-    localStorage.setItem("activeProjectId", projectId.toString());
-    navigate("/workspace");
+  // R → open rename
+  const onRenameClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowRenameModal(true);
   };
 
-  const handleRename = async () => {
+  // confirm rename
+  const onConfirmRename = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     await renameProject(projectId, newName, data);
     setShowRenameModal(false);
     window.location.reload();
   };
 
-  const handleDelete = async () => {
-    await removeProject(projectId);
-    setShowDeleteModal(false);
+  // d → duplicate
+  const onDuplicateClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await addProject(`${name} (Copy)`, data);
     window.location.reload();
   };
 
-  const handleDuplicate = async () => {
-    await addProject(`${name} (Copy)`, data);
-    window.location.reload();
+  // E → edit (also navigates)
+  // **E → Export**  
+  const onExportClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    exportProject(data, name);
   };
 
   return (
     <>
       <div className="flex space-x-2">
-        <button title="Rename" onClick={() => setShowRenameModal(true)} className="rounded border px-2 py-1">R</button>
-        <button title="Duplicate" onClick={handleDuplicate} className="rounded border px-2 py-1">d</button>
-        <button title="Edit" onClick={handleEdit} className="rounded border px-2 py-1">E</button>
+        <button
+          title="Rename"
+          onClick={onRenameClick}
+          className="rounded-full border px-2 py-1"
+        >
+          R
+        </button>
+        <button
+          title="Duplicate"
+          onClick={onDuplicateClick}
+          className="rounded-full border px-2 py-1"
+        >
+          d
+        </button>
+        <button
+          title="Export"
+          onClick={onExportClick}
+          className="rounded-full border px-2 py-1"
+        >
+          E
+        </button>
       </div>
 
       {/* Rename Modal */}
@@ -55,23 +84,18 @@ const ProjectActions: React.FC<ProjectActionsProps> = ({ projectId, name, data }
             type="text"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            style={{ width: "100%", marginTop: "1rem", marginBottom: "1rem", padding: "0.5rem" }}
+            className="w-full mt-4 mb-4 p-2 border rounded"
           />
           <div className="flex justify-end gap-2">
-            <button onClick={() => setShowRenameModal(false)}>Cancel</button>
-            <button onClick={handleRename}>Rename</button>
-          </div>
-        </Modal>
-      )}
-
-      {/* Delete Modal */}
-      {showDeleteModal && (
-        <Modal onClose={() => setShowDeleteModal(false)}>
-          <h3>Delete Project?</h3>
-          <p>Are you sure you want to delete <strong>{name}</strong>?</p>
-          <div className="flex justify-end gap-2 mt-4">
-            <button onClick={() => setShowDeleteModal(false)}>Cancel</button>
-            <button onClick={handleDelete} style={{ color: "red" }}>Delete</button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowRenameModal(false);
+              }}
+            >
+              Cancel
+            </button>
+            <button onClick={onConfirmRename}>Rename</button>
           </div>
         </Modal>
       )}
