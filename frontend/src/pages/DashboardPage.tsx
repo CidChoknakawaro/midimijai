@@ -14,7 +14,7 @@ const DashboardPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const sortedProjects = useMemo(() => {
-    const copy = projects.slice();
+    let copy = projects.slice();
 
     // filter
     if (searchTerm) {
