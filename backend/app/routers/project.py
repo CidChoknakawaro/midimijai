@@ -1,49 +1,99 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+
 from app.database import get_db
-from app.models.project import Project
-from app.models.user import User
-from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectOut
+from app.models.project import Project as ProjectModel
+from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectInDB
 from app.core.security import get_current_user
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/projects",
+    tags=["projects"],
+)
 
-@router.post("/", response_model=ProjectOut)
-def create_project(project: ProjectCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    new_project = Project(**project.dict(), user_id=current_user.id)
-    db.add(new_project)
+
+@router.get("/", response_model=List[ProjectInDB])
+def list_projects(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    return (
+        db.query(ProjectModel)
+        .filter(ProjectModel.owner_id == current_user.id)
+        .all()
+    )
+
+
+@router.post("/", response_model=ProjectInDB)
+def create_project(
+    payload: ProjectCreate,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    proj = ProjectModel(owner_id=current_user.id, **payload.dict())
+    db.add(proj)
     db.commit()
-    db.refresh(new_project)
-    return new_project
+    db.refresh(proj)
+    return proj
 
-@router.get("/", response_model=List[ProjectOut])
-def list_projects(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.query(Project).filter(Project.user_id == current_user.id).all()
 
-@router.get("/{project_id}", response_model=ProjectOut)
-def get_project(project_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    project = db.query(Project).filter(Project.id == project_id, Project.user_id == current_user.id).first()
-    if not project:
+@router.get("/{project_id}", response_model=ProjectInDB)
+def get_project(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    proj = (
+        db.query(ProjectModel)
+        .filter(
+            ProjectModel.id == project_id,
+            ProjectModel.owner_id == current_user.id,
+        )
+        .first()
+    )
+    if not proj:
         raise HTTPException(status_code=404, detail="Project not found")
-    return project
+    return proj
 
-@router.put("/{project_id}", response_model=ProjectOut)
-def update_project(project_id: int, update: ProjectUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    project = db.query(Project).filter(Project.id == project_id, Project.user_id == current_user.id).first()
-    if not project:
+
+@router.put("/{project_id}", response_model=ProjectInDB)
+def update_project(
+    project_id: int,
+    payload: ProjectUpdate,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    q = (
+        db.query(ProjectModel)
+        .filter(
+            ProjectModel.id == project_id,
+            ProjectModel.owner_id == current_user.id,
+        )
+    )
+    if not q.first():
         raise HTTPException(status_code=404, detail="Project not found")
-    for key, value in update.dict().items():
-        setattr(project, key, value)
+    q.update(payload.dict(exclude_none=True))
     db.commit()
-    db.refresh(project)
-    return project
+    return q.first()
+
 
 @router.delete("/{project_id}")
-def delete_project(project_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    project = db.query(Project).filter(Project.id == project_id, Project.user_id == current_user.id).first()
-    if not project:
+def delete_project(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    q = (
+        db.query(ProjectModel)
+        .filter(
+            ProjectModel.id == project_id,
+            ProjectModel.owner_id == current_user.id,
+        )
+    )
+    if not q.first():
         raise HTTPException(status_code=404, detail="Project not found")
-    db.delete(project)
+    q.delete()
     db.commit()
-    return {"message": "Project deleted"}
+    return {"ok": True}

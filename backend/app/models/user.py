@@ -11,4 +11,4 @@ class User(Base):
 
     midi_projects = relationship("MIDIProject", back_populates="owner", cascade="all, delete")
 
-    projects = relationship("Project", back_populates="user", cascade="all, delete")
+    projects = relationship("Project", back_populates="owner", cascade="all, delete")

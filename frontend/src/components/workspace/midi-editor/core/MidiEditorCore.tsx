@@ -20,47 +20,24 @@ const MidiEditorCore: React.FC = () => {
     const id = Date.now().toString();
     setTracks((prev) => [
       ...prev,
-      {
-        id,
-        name: `Track ${prev.length + 1}`,
-        notes: [],
-        instrument: "Piano",
-      },
+      { id, name: `Track ${prev.length + 1}`, notes: [], instrument: "Piano" },
     ]);
   };
-
-  const updateTrack = (id: string, updates: Partial<Track>) => {
+  const updateTrack = (id: string, updates: Partial<Track>) =>
     setTracks((prev) =>
-      prev.map((track) => (track.id === id ? { ...track, ...updates } : track))
+      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
     );
-  };
 
   const activeTrack = tracks.find((t) => t.id === activeTrackId);
 
   return (
     <TransportProvider>
-      <div
-        className="w-full"
-        style={{
-          height: "660px", // increased to show ~3 tracks
-          display: "flex",
-          flexDirection: "column",
-          borderRadius: "8px",
-          overflow: "hidden",
-          border: "1px solid #ccc",
-        }}
-      >
-        {/* MIDI Editor Box */}
-        <div
-          style={{
-            height: "600px", // expanded
-            overflowY: "auto", // scrollable if too many tracks
-          }}
-        >
+      <div className="flex flex-col h-full bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
           {activeTrack ? (
             <TrackEditor
               track={activeTrack}
-              updateTrack={(updates) => updateTrack(activeTrack.id, updates)}
+              updateTrack={(u) => updateTrack(activeTrack.id, u)}
               goBack={() => setActiveTrackId(null)}
             />
           ) : (
@@ -72,16 +49,7 @@ const MidiEditorCore: React.FC = () => {
             />
           )}
         </div>
-
-        {/* Global Transport Bar */}
-        <div
-          style={{
-            height: "60px",
-            borderTop: "1px solid #ccc",
-            padding: "8px 16px",
-            background: "#f8f8f8",
-          }}
-        >
+        <div className="px-6 py-3 border-t bg-gray-50">
           <GlobalTransportBar />
         </div>
       </div>
