@@ -12,15 +12,18 @@ app/
         project.py
         user.py
     routers/
+        ai.py
         auth.py
         midi.py
         project.py
         users.py
     schemas/
+        ai.py
         midi.py
         project.py
         user.py
     services/
+        ai_service.py
 
 
 File Contents
@@ -63,18 +66,26 @@ File End
 
 main.py
 File type: .py
+# backend/app/main.py
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, users, midi
+
 from app.database import create_db_and_tables
-from app.routers import project
+
+# Explicit router imports:
+from app.routers.auth    import router as auth_router
+from app.routers.users   import router as users_router
+from app.routers.midi    import router as midi_router
+from app.routers.project import router as projects_router
+from app.routers.ai      import router as ai_router
 
 app = FastAPI()
 
 # Allow frontend access during dev
 origins = [
     "http://localhost:5173",
-    "http://127.0.0.1:5173"
+    "http://127.0.0.1:5173",
 ]
 
 app.add_middleware(
@@ -85,15 +96,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API routers
-app.include_router(auth.router, prefix="/auth", tags=["auth"])
-app.include_router(users.router, prefix="/users", tags=["users"])
-app.include_router(midi.router, prefix="/midi", tags=["midi"])
-app.include_router(project.router, prefix="/projects", tags=["projects"])
+# Mount all routers
+app.include_router(auth_router,     prefix="/auth",     tags=["auth"])
+app.include_router(users_router,    prefix="/users",    tags=["users"])
+app.include_router(midi_router,     prefix="/midi",     tags=["midi"])
+app.include_router(projects_router, prefix="/projects", tags=["projects"])
+app.include_router(ai_router,       prefix="/ai",       tags=["ai"])
 
-# Initialize tables on startup
+# Initialize tables on startup (or use Alembic migrations instead)
 @app.on_event("startup")
-def startup():
+def on_startup():
     create_db_and_tables()
 
 @app.get("/")
@@ -217,7 +229,8 @@ File End
 
 models\project.py
 File type: .py
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, func
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON
+from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -225,14 +238,18 @@ class Project(Base):
     __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), nullable=False)
-    data = Column(Text, nullable=False)  # Store JSON string of project
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now()
+    )
+    data = Column(JSON, nullable=False)  
+    # "data" will store { "bpm":120, "tracks":[ {id, name, instrument, notes: [...]}, ... ] }
 
-    user = relationship("User", back_populates="projects")
-
+    owner = relationship("User", back_populates="projects")
 
 --------------------------------------------------
 File End
@@ -254,7 +271,44 @@ class User(Base):
 
     midi_projects = relationship("MIDIProject", back_populates="owner", cascade="all, delete")
 
-    projects = relationship("Project", back_populates="user", cascade="all, delete")
+    projects = relationship("Project", back_populates="owner", cascade="all, delete")
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+routers\ai.py
+File type: .py
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from typing import Any
+
+from app.database import get_db
+from app.core.security import get_current_user
+from app.schemas.ai import AIGenerateRequest, AIGenerateResponse
+from app.services.ai_service import generate_midi_from_prompt
+
+router = APIRouter(tags=["ai"])
+
+@router.post(
+    "/generate",
+    response_model=AIGenerateResponse,
+    dependencies=[Depends(get_current_user)]
+)
+def ai_generate(
+    payload: AIGenerateRequest,
+    db: Session = Depends(get_db),
+) -> Any:
+    try:
+        data = generate_midi_from_prompt(
+            prompt=payload.prompt,
+            length_beats=payload.length_beats,
+            temperature=payload.temperature
+        )
+        return {"data": data}
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
 
 --------------------------------------------------
 File End
@@ -329,56 +383,104 @@ File End
 
 routers\project.py
 File type: .py
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+
 from app.database import get_db
-from app.models.project import Project
-from app.models.user import User
-from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectOut
+from app.models.project import Project as ProjectModel
+from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectInDB
 from app.core.security import get_current_user
 
-router = APIRouter()
+router = APIRouter(
+    tags=["projects"],
+)
 
-@router.post("/", response_model=ProjectOut)
-def create_project(project: ProjectCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    new_project = Project(**project.dict(), user_id=current_user.id)
-    db.add(new_project)
+
+@router.get("/", response_model=List[ProjectInDB])
+def list_projects(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    return (
+        db.query(ProjectModel)
+        .filter(ProjectModel.owner_id == current_user.id)
+        .all()
+    )
+
+
+@router.post("/", response_model=ProjectInDB)
+def create_project(
+    payload: ProjectCreate,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    proj = ProjectModel(owner_id=current_user.id, **payload.dict())
+    db.add(proj)
     db.commit()
-    db.refresh(new_project)
-    return new_project
+    db.refresh(proj)
+    return proj
 
-@router.get("/", response_model=List[ProjectOut])
-def list_projects(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.query(Project).filter(Project.user_id == current_user.id).all()
 
-@router.get("/{project_id}", response_model=ProjectOut)
-def get_project(project_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    project = db.query(Project).filter(Project.id == project_id, Project.user_id == current_user.id).first()
-    if not project:
+@router.get("/{project_id}", response_model=ProjectInDB)
+def get_project(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    proj = (
+        db.query(ProjectModel)
+        .filter(
+            ProjectModel.id == project_id,
+            ProjectModel.owner_id == current_user.id,
+        )
+        .first()
+    )
+    if not proj:
         raise HTTPException(status_code=404, detail="Project not found")
-    return project
+    return proj
 
-@router.put("/{project_id}", response_model=ProjectOut)
-def update_project(project_id: int, update: ProjectUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    project = db.query(Project).filter(Project.id == project_id, Project.user_id == current_user.id).first()
-    if not project:
+
+@router.put("/{project_id}", response_model=ProjectInDB)
+def update_project(
+    project_id: int,
+    payload: ProjectUpdate,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    q = (
+        db.query(ProjectModel)
+        .filter(
+            ProjectModel.id == project_id,
+            ProjectModel.owner_id == current_user.id,
+        )
+    )
+    if not q.first():
         raise HTTPException(status_code=404, detail="Project not found")
-    for key, value in update.dict().items():
-        setattr(project, key, value)
+    q.update(payload.dict(exclude_none=True))
     db.commit()
-    db.refresh(project)
-    return project
+    return q.first()
+
 
 @router.delete("/{project_id}")
-def delete_project(project_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    project = db.query(Project).filter(Project.id == project_id, Project.user_id == current_user.id).first()
-    if not project:
+def delete_project(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    q = (
+        db.query(ProjectModel)
+        .filter(
+            ProjectModel.id == project_id,
+            ProjectModel.owner_id == current_user.id,
+        )
+    )
+    if not q.first():
         raise HTTPException(status_code=404, detail="Project not found")
-    db.delete(project)
+    q.delete()
     db.commit()
-    return {"message": "Project deleted"}
-
+    return {"ok": True}
 
 --------------------------------------------------
 File End
@@ -408,6 +510,24 @@ File End
 --------------------------------------------------
 
 
+schemas\ai.py
+File type: .py
+from pydantic import BaseModel
+from typing import Optional, Dict, Any
+
+class AIGenerateRequest(BaseModel):
+    prompt: str
+    length_beats: Optional[int] = 64
+    temperature: Optional[float] = 1.0
+
+class AIGenerateResponse(BaseModel):
+    data: Dict[str, Any]
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 schemas\midi.py
 File type: .py
 from pydantic import BaseModel
@@ -431,28 +551,35 @@ File End
 
 schemas\project.py
 File type: .py
-from pydantic import BaseModel
-from typing import Optional
 from datetime import datetime
+from pydantic import BaseModel
+from typing import List, Any, Optional
+
+class TrackSchema(BaseModel):
+    id: str
+    name: str
+    instrument: str
+    notes: List[Any]  # you can make this more specific
 
 class ProjectBase(BaseModel):
     name: str
-    data: str  # serialized JSON
+    data: dict  # {"bpm": int, "tracks": List[TrackSchema]}
 
 class ProjectCreate(ProjectBase):
     pass
 
-class ProjectUpdate(ProjectBase):
-    pass
+class ProjectUpdate(BaseModel):
+    name: Optional[str]
+    data: Optional[dict]
 
-class ProjectOut(ProjectBase):
+class ProjectInDB(ProjectBase):
     id: int
-    user_id: int
-    created_at: Optional[datetime]
-    updated_at: Optional[datetime]
+    owner_id: int
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 --------------------------------------------------
@@ -479,6 +606,56 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+services\ai_service.py
+File type: .py
+from typing import Dict, Any
+
+def generate_midi_from_prompt(
+    prompt: str,
+    length_beats: int = 64,
+    temperature: float = 1.0
+) -> Dict[str, Any]:
+    """
+    Stub for AI-based MIDI generation.
+    - `prompt`: user text prompt
+    - `length_beats`: how many beats of output to generate
+    - `temperature`: randomness control
+
+    Returns a dict shape matching your Project.data JSON:
+    {
+      "bpm": 120,
+      "tracks": [
+        {
+          "id": "<track-id>",
+          "name": "AI Track",
+          "instrument": "Piano",
+          "notes": [
+            { "id": "<note-id>", "pitch": 60, "time": 0, "duration": 1, "velocity": 0.8 },
+            …
+          ]
+        }
+      ]
+    }
+    """
+    # TODO: wire up your model / OpenAI call here
+    # For now, return an empty single-track stub:
+    return {
+        "bpm": 120,
+        "tracks": [
+            {
+                "id": "ai1",
+                "name": "AI Track",
+                "instrument": "Piano",
+                "notes": []
+            }
+        ]
+    }
 
 --------------------------------------------------
 File End

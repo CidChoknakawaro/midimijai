@@ -38,7 +38,9 @@ src/
             InputField.tsx
             LoadingSpinner.tsx
             Modal.tsx
+            OpenProjectModal.tsx
             ProtectedRoute.tsx
+            SaveAsModal.tsx
             ToggleSwitch.tsx
             Tooltip.tsx
         workspace/
@@ -573,7 +575,7 @@ const NewProjectButton: React.FC = () => {
 
   const handleClick = async () => {
     const name = "Untitled Project";
-    const data = JSON.stringify({ notes: [], bpm: 120 });
+    const data = { notes: [], bpm: 120 };
     await addProject(name, data);
     window.location.reload();
   };
@@ -617,7 +619,7 @@ import Modal from "../shared/Modal";
 interface ProjectActionsProps {
   projectId: number;
   name: string;
-  data: string;
+  data: any;
 }
 
 const ProjectActions: React.FC<ProjectActionsProps> = ({
@@ -649,7 +651,7 @@ const ProjectActions: React.FC<ProjectActionsProps> = ({
   // d → duplicate
   const onDuplicateClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    await addProject(`${name} (Copy)`, data);
+    await addProject(`${name} (Copy)`, JSON.parse(data));
     window.location.reload();
   };
 
@@ -1531,6 +1533,72 @@ File End
 --------------------------------------------------
 
 
+components\shared\OpenProjectModal.tsx
+File type: .tsx
+import React, { useEffect, useState } from "react";
+import Modal from "./Modal";
+import { getAllProjects } from "../../services/projectService";
+
+interface OpenProjectModalProps {
+  isOpen: boolean;
+  onSelect: (projectId: number) => void;
+  onCancel: () => void;
+}
+
+export default function OpenProjectModal({
+  isOpen,
+  onSelect,
+  onCancel,
+}: OpenProjectModalProps) {
+  const [projects, setProjects] = useState<{ id: number; name: string }[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setLoading(true);
+    getAllProjects()
+      .then((list) =>
+        setProjects(list.map((p: any) => ({ id: p.id, name: p.name })))
+      )
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <Modal title="Open Project" onClose={onCancel}>
+      {loading ? (
+        <p>Loading…</p>
+      ) : (
+        <ul className="max-h-60 overflow-auto space-y-2">
+          {projects.map((proj) => (
+            <li key={proj.id}>
+              <button
+                onClick={() => onSelect(proj.id)}
+                className="w-full text-left px-3 py-2 rounded hover:bg-gray-100"
+              >
+                {proj.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="flex justify-end mt-4">
+        <button onClick={onCancel} className="px-4 py-2">
+          Cancel
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 components\shared\ProtectedRoute.tsx
 File type: .tsx
 import React, { ReactElement } from "react";
@@ -1552,6 +1620,63 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 };
 
 export default ProtectedRoute;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+components\shared\SaveAsModal.tsx
+File type: .tsx
+import React, { useEffect, useState } from "react";
+import Modal from "./Modal";
+
+interface SaveAsModalProps {
+  isOpen: boolean;
+  initialName: string;
+  onSave: (newName: string) => void;
+  onCancel: () => void;
+}
+
+export default function SaveAsModal({
+  isOpen,
+  initialName,
+  onSave,
+  onCancel,
+}: SaveAsModalProps) {
+  const [name, setName] = useState(initialName);
+
+  useEffect(() => {
+    if (isOpen) {
+      setName(initialName);
+    }
+  }, [isOpen, initialName]);
+
+  if (!isOpen) return null;
+
+  return (
+    <Modal title="Save Project As…" onClose={onCancel}>
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        className="w-full px-3 py-2 border rounded mb-4"
+      />
+      <div className="flex justify-end space-x-2">
+        <button onClick={onCancel} className="px-4 py-2">
+          Cancel
+        </button>
+        <button
+          onClick={() => onSave(name)}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Save
+        </button>
+      </div>
+    </Modal>
+  );
+}
 
 
 --------------------------------------------------
@@ -1763,22 +1888,103 @@ File type: .tsx
 import React from "react";
 
 interface FileMenuProps {
+  onSelect: () => void;                // closes the dropdown
+  onNew: () => void;
+  onOpen: () => void;
+  onSave: () => void;
+  onSaveAs: () => void;
+  onImportMidi: (file: File) => void;
+  onExportMidi: () => void;
+  onExportStems: () => void;
+  onClose: () => void;
+}
+
+export default function FileMenu({
+  onSelect,
+  onNew,
+  onOpen,
+  onSave,
+  onSaveAs,
+  onImportMidi,
+  onExportMidi,
+  onExportStems,
+  onClose,
+}: FileMenuProps) {
+  const items = [
+    { label: "New Project",    shortcut: "Ctrl+N",       action: onNew },
+    { label: "Open Project…",  shortcut: "Ctrl+O",       action: onOpen },
+    { separator: true },
+    { label: "Save",           shortcut: "Ctrl+S",       action: onSave },
+    { label: "Save As…",       shortcut: "Ctrl+Shift+S", action: onSaveAs },
+    { separator: true },
+    {
+      label: "Import MIDI",
+      action: () => {
+        const inp = document.createElement("input");
+        inp.type = "file";
+        inp.accept = ".mid";
+        inp.onchange = () => {
+          if (inp.files?.[0]) onImportMidi(inp.files[0]);
+        };
+        inp.click();
+      },
+    },
+    { label: "Export MIDI",    action: onExportMidi },
+    { label: "Export Stems",   action: onExportStems },
+    { separator: true },
+    { label: "Close Project",  action: onClose },
+  ] as const;
+
+  return (
+    <div className="absolute left-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+      {items.map((item, i) =>
+        "separator" in item ? (
+          <div key={i} className="border-t border-gray-200 my-1" />
+        ) : (
+          <button
+            key={item.label}
+            onClick={() => {
+              item.action();
+              onSelect();
+            }}
+            className="flex justify-between w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
+          >
+            <span>{item.label}</span>
+            {"shortcut" in item && item.shortcut && (
+              <span className="text-xs text-gray-400">{item.shortcut}</span>
+            )}
+          </button>
+        )
+      )}
+    </div>
+  );
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+components\workspace\MIDIToolsMenu.tsx
+File type: .tsx
+import React from "react";
+
+interface MIDIToolsMenuProps {
   onSelect: () => void;
 }
 
-export default function FileMenu({ onSelect }: FileMenuProps) {
+export default function MIDIToolsMenu({ onSelect }: MIDIToolsMenuProps) {
   const items = [
-    { label: "New Project", shortcut: "Ctrl+N", action: () => {/* TODO */} },
-    { label: "Open Project…", shortcut: "Ctrl+O", action: () => {/* TODO */} },
+    { label: "Transpose", action: () => {/* TODO */} },
+    { label: "Velocity Control",action: () => {/* TODO */} },
     { separator: true },
-    { label: "Save", shortcut: "Ctrl+S", action: () => {/* TODO */} },
-    { label: "Save As…", shortcut: "Ctrl+Shift+S", action: () => {/* TODO */} },
+    { label: "Note Length Adjust", action: () => {/* TODO */} },
+    { label: "Humanization", action: () => {/* TODO */} },
     { separator: true },
-    { label: "Import MIDI", action: () => {/* TODO */} },
-    { label: "Export MIDI", action: () => {/* TODO */} },
-    { label: "Export Stems", action: () => {/* TODO */} },
-    { separator: true },
-    { label: "Close Project", action: () => {/* TODO */} },
+    { label: "Arpeggiator", action: () => {/* TODO */} },
+    { label: "Strumming Effect", action: () => {/* TODO */} },
+    { label: "Legato/Portamento", action: () => {/* TODO */} },
   ] as const;
 
   return (
@@ -1823,51 +2029,62 @@ File End
 --------------------------------------------------
 
 
-components\workspace\MIDIToolsMenu.tsx
-File type: .tsx
-import React from 'react';
-import Dropdown from '../shared/Dropdown';
-
-const MIDIToolsMenu: React.FC = () => {
-  const options = [
-    'Transpose',
-    'Velocity Control',
-    'Note Length Adjust',
-    'Humanization',
-    'Arpeggiator',
-    'Strumming Effect',
-    'Legato/Portamento',
-  ];
-
-  return <Dropdown label="MIDI Tools" options={options} />;
-};
-
-export default MIDIToolsMenu;
-
---------------------------------------------------
-File End
---------------------------------------------------
-
-
 components\workspace\SettingsMenu.tsx
 File type: .tsx
-import React from 'react';
-import Dropdown from '../shared/Dropdown';
+import React from "react";
 
-const SettingsMenu: React.FC = () => {
-  const options = [
-    'Key/Scale Lock',
-    'Audio Engine Settings',
-    'MIDI Input Settings',
-    'Keyboard Shortcuts',
-    'Grid Settings',
-    'MIDI Latency Compensation',
-  ];
+interface SettingsMenuProps {
+  onSelect: () => void;
+}
 
-  return <Dropdown label="Settings" options={options} />;
-};
+export default function SettingsMenu({ onSelect }: SettingsMenuProps) {
+  const items = [
+    { label: "Key/Scale Lock", action: () => {/* TODO */} },
+    { label: "Audio Engine Settings",action: () => {/* TODO */} },
+    { separator: true },
+    { label: "MIDI Input Settings", action: () => {/* TODO */} },
+    { label: "Keyboard Shortcuts", action: () => {/* TODO */} },
+    { separator: true },
+    { label: "Grid Settings", action: () => {/* TODO */} },
+    { label: "MIDI Letency Compensation", action: () => {/* TODO */} },
+  ] as const;
 
-export default SettingsMenu;
+  return (
+    <div
+      className="
+        absolute left-0 top-full mt-1
+        w-56 bg-white
+        border border-gray-200
+        rounded-md shadow-lg z-50
+      "
+    >
+      {items.map((item, i) =>
+        "separator" in item ? (
+          <div key={i} className="border-t border-gray-200 my-1" />
+        ) : (
+          <button
+            key={item.label}
+            onClick={() => {
+              item.action();
+              onSelect();
+            }}
+            className="
+              flex justify-between w-full
+              px-4 py-2 text-sm text-gray-700
+              hover:bg-gray-100 focus:outline-none
+            "
+          >
+            <span>{item.label}</span>
+            {item.shortcut && (
+              <span className="text-xs text-gray-400">{item.shortcut}</span>
+            )}
+          </button>
+        )
+      )}
+    </div>
+  );
+}
+
 
 --------------------------------------------------
 File End
@@ -2036,12 +2253,32 @@ import MIDIToolsMenu from "./MIDIToolsMenu";
 const TABS = ["File", "Edit", "Sound Library", "Settings", "MIDI Tools"] as const;
 type Tab = typeof TABS[number];
 
-const WorkspaceNavBar: React.FC = () => {
+interface WorkspaceNavBarProps {
+  onNew: () => void;
+  onOpen: () => void;
+  onSave: () => void;
+  onSaveAs: () => void;
+  onImportMidi: (file: File) => void;
+  onExportMidi: () => void;
+  onExportStems: () => void;
+  onClose: () => void;
+}
+
+const WorkspaceNavBar: React.FC<WorkspaceNavBarProps> = ({
+  onNew,
+  onOpen,
+  onSave,
+  onSaveAs,
+  onImportMidi,
+  onExportMidi,
+  onExportStems,
+  onClose,
+}) => {
   const [openDropdown, setOpenDropdown] = useState<Tab | null>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // close any open dropdown if you click outside
+  // close dropdown on outside click
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -2062,13 +2299,12 @@ const WorkspaceNavBar: React.FC = () => {
 
   return (
     <div ref={ref} className="relative bg-white shadow-sm">
-      {/* Top row */}
       <div className="flex items-center justify-between px-6 py-2">
         <div className="flex items-center space-x-4">
-          <button className="p-1 hover:bg-gray-100 rounded" onClick={() => {/* back */}}>
+          <button className="p-1 hover:bg-gray-100 rounded" onClick={() => window.history.back()}>
             <ChevronLeft size={20} />
           </button>
-          <button className="p-1 hover:bg-gray-100 rounded" onClick={() => {/* forward */}}>
+          <button className="p-1 hover:bg-gray-100 rounded" onClick={() => window.history.forward()}>
             <ChevronRight size={20} />
           </button>
 
@@ -2086,9 +2322,18 @@ const WorkspaceNavBar: React.FC = () => {
                   {tab}
                 </button>
 
-                {/* mount only the list under each tab */}
                 {openDropdown === "File" && tab === "File" && (
-                  <FileMenu onSelect={() => setOpenDropdown(null)} />
+                  <FileMenu
+                    onSelect={() => setOpenDropdown(null)}
+                    onNew={onNew}
+                    onOpen={onOpen}
+                    onSave={onSave}
+                    onSaveAs={onSaveAs}
+                    onImportMidi={onImportMidi}
+                    onExportMidi={onExportMidi}
+                    onExportStems={onExportStems}
+                    onClose={onClose}
+                  />
                 )}
                 {openDropdown === "Edit" && tab === "Edit" && (
                   <EditMenu onSelect={() => setOpenDropdown(null)} />
@@ -2104,12 +2349,12 @@ const WorkspaceNavBar: React.FC = () => {
           </nav>
         </div>
 
-        <button className="p-2 hover:bg-gray-100 rounded-full">
+        <button className="p-2 hover:bg-gray-100 rounded-full" onClick={() => setLibraryOpen(true)}>
           <HelpCircle size={20} />
         </button>
       </div>
 
-      {/* Sound Library is a modal */}
+      {/* Sound Library Modal */}
       <SoundLibraryModal isOpen={libraryOpen} onClose={() => setLibraryOpen(false)} />
     </div>
   );
@@ -3351,40 +3596,83 @@ File End
 
 components\workspace\midi-editor\core\MidiEditorCore.tsx
 File type: .tsx
-import React, { useState } from "react";
+// frontend/src/components/workspace/midi-editor/core/MidiEditorCore.tsx
+
+import React, { useState, useEffect } from "react";
 import TrackDashboard from "../components/TrackDashboard/TrackDashboard";
-import TrackEditor from "../components/TrackEditor/TrackEditor";
+import TrackEditor    from "../components/TrackEditor/TrackEditor";
 import GlobalTransportBar from "../components/TransportBar/GlobalTransportBar";
 import { TransportProvider } from "../core/TransportContext";
 
-type Track = {
+export interface Track {
   id: string;
   name: string;
   notes: any[];
   instrument: string;
   customSoundUrl?: string;
-};
+}
 
-const MidiEditorCore: React.FC = () => {
-  const [tracks, setTracks] = useState<Track[]>([]);
+interface MidiEditorCoreProps {
+  projectId: number;
+  bpm: number;
+  initialTracks: Track[];
+  /** fire when user edits bpm or tracks */
+  onChange: (bpm: number, tracks: Track[]) => void;
+  onSave?: () => void;
+}
+
+const MidiEditorCore: React.FC<MidiEditorCoreProps> = ({
+  projectId,
+  bpm: initialBpm,
+  initialTracks = [],
+  onChange,
+  onSave,
+}) => {
+  // local state
+  const [bpm, setBpm]       = useState(initialBpm);
+  const [tracks, setTracks] = useState<Track[]>(initialTracks);
   const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
+
+  // 1) reset WHEN projectId truly changes:
+  useEffect(() => {
+    setBpm(initialBpm);
+    setTracks(initialTracks);
+    setActiveTrackId(null);
+  }, [projectId]);
+
+  // 2) handlers now manually call onChange:
 
   const addNewTrack = () => {
     const id = Date.now().toString();
-    setTracks((prev) => [
-      ...prev,
-      { id, name: `Track ${prev.length + 1}`, notes: [], instrument: "Piano" },
-    ]);
+    const newTrack: Track = {
+      id,
+      name: `Track ${tracks.length + 1}`,
+      notes: [],
+      instrument: "Piano",
+    };
+    const updated = [...tracks, newTrack];
+    setTracks(updated);
+    onChange(bpm, updated);
   };
-  const updateTrack = (id: string, updates: Partial<Track>) =>
-    setTracks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
-    );
 
-  const activeTrack = tracks.find((t) => t.id === activeTrackId);
+  const updateTrack = (id: string, updates: Partial<Track>) => {
+    const updated = tracks.map((t) =>
+      t.id === id ? { ...t, ...updates } : t
+    );
+    setTracks(updated);
+    onChange(bpm, updated);
+  };
+
+  const changeBpm = (newBpm: number) => {
+    setBpm(newBpm);
+    onChange(newBpm, tracks);
+  };
+
+  // locate which track is open
+  const activeTrack = tracks.find((t) => t.id === activeTrackId) || null;
 
   return (
-    <TransportProvider>
+    <TransportProvider bpm={bpm}>
       <div className="flex flex-col h-full bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="flex-1 overflow-y-auto">
           {activeTrack ? (
@@ -3402,8 +3690,13 @@ const MidiEditorCore: React.FC = () => {
             />
           )}
         </div>
+
         <div className="px-6 py-3 border-t bg-gray-50">
-          <GlobalTransportBar />
+          <GlobalTransportBar
+            bpm={bpm}
+            setBpm={changeBpm}
+            onSave={onSave}
+          />
         </div>
       </div>
     </TransportProvider>
@@ -3684,7 +3977,7 @@ export const useProjects = () => {
     }
   };
 
-  const addProject = async (name: string, data: string) => {
+  const addProject = async (name: string, data: any) => {
     const newProject = await createProject(name, data);
     setProjects((prev) => [...prev, newProject]);
   };
@@ -3694,7 +3987,7 @@ export const useProjects = () => {
     setProjects((prev) => prev.filter((p) => p.id !== id));
   };
 
-  const renameProject = async (id: number, name: string, data: string) => {
+  const renameProject = async (id: number, name: string, data: any) => {
     const updated = await updateProject(id, name, data);
     setProjects((prev) =>
       prev.map((p) => (p.id === id ? { ...p, name: updated.name } : p))
@@ -3881,49 +4174,260 @@ File End
 
 pages\WorkspacePage.tsx
 File type: .tsx
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+
+import {
+  getAllProjects,
+  getProjectById,
+  createProject,
+  updateProject,
+} from "../services/projectService";
+import { importMidiFile } from "../components/workspace/midi-editor/core/importMidi";
+import { exportMidi } from "../components/workspace/midi-editor/core/exportMidi";
+
 import WorkspaceNavBar from "../components/workspace/WorkspaceNavBar";
 import AIGenerate from "../components/workspace/AIGenerate";
 import AIModify from "../components/workspace/AIModify";
 import AIStyleTransfer from "../components/workspace/AIStyleTransfer";
 import MidiEditorCore from "../components/workspace/midi-editor/core/MidiEditorCore";
-import { useProjects } from "../hooks/useProjects";
+import LoadingSpinner from "../components/shared/LoadingSpinner";
+
+import OpenProjectModal from "../components/shared/OpenProjectModal";
+import SaveAsModal from "../components/shared/SaveAsModal";
+
+interface Track {
+  id: string;
+  name: string;
+  instrument: string;
+  notes: any[];
+}
+
+interface Project {
+  id: number;
+  name: string;
+  data: { bpm: number; tracks: Track[] };
+}
 
 const WorkspacePage: React.FC = () => {
-  const { projects } = useProjects();
-  const [projectName, setProjectName] = useState<string>("");
+  const navigate = useNavigate();
 
-  // read the activeProjectId set by the dashboard
+  // core state
+  const [project, setProject] = useState<Project | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // modal state
+  const [openOpenModal, setOpenOpenModal] = useState(false);
+  const [openSaveAsModal, setOpenSaveAsModal] = useState(false);
+
+  // 1) load project on mount
   useEffect(() => {
-    const activeId = localStorage.getItem("activeProjectId");
-    if (activeId) {
-      const proj = projects.find((p) => String(p.id) === activeId);
-      setProjectName(proj?.name || "");
+    const idStr = localStorage.getItem("activeProjectId");
+    if (!idStr) {
+      toast.error("No active project selected");
+      navigate("/dashboard");
+      return;
     }
-  }, [projects]);
+    const id = parseInt(idStr, 10);
+
+    getProjectById(id)
+      .then((data) => setProject(data))
+      .catch(() => {
+        toast.error("Failed to load project");
+        navigate("/dashboard");
+      })
+      .finally(() => setLoading(false));
+  }, [navigate]);
+
+  if (loading) return <LoadingSpinner />;
+  if (!project) return null;
+
+  // 2) File menu handlers:
+
+  // New: save current, create fresh, switch into it
+  const handleNew = async () => {
+    // save current, ignore errors
+    try {
+      await updateProject(
+        project.id,
+        project.name,
+        { bpm: project.data.bpm, tracks: project.data.tracks }
+      );
+    } catch {}
+    // create fresh
+    const fresh = await createProject("Untitled Project", { bpm: 120, tracks: [] });
+    localStorage.setItem("activeProjectId", fresh.id.toString());
+    setProject(fresh);
+    toast.success("New project created");
+  };
+
+  // Open: show modal
+  const handleOpen = () => setOpenOpenModal(true);
+
+  // When user picks in OpenProjectModal:
+  const handleOpenSelect = async (newId: number) => {
+    setOpenOpenModal(false);
+    // save current
+    try {
+      await updateProject(
+        project.id,
+        project.name,
+        { bpm: project.data.bpm, tracks: project.data.tracks }
+      );
+    } catch {}
+    // load selected
+    const newProj = await getProjectById(newId);
+    localStorage.setItem("activeProjectId", newProj.id.toString());
+    setProject(newProj);
+    toast.success(`Opened "${newProj.name}"`);
+  };
+
+  // Save
+  const handleSave = async () => {
+    try {
+      await updateProject(
+        project.id,
+        project.name,
+        { bpm: project.data.bpm, tracks: project.data.tracks }
+      );
+      toast.success("Project saved");
+    } catch {
+      toast.error("Save failed");
+    }
+  };
+
+  // Save As: show modal
+  const handleSaveAs = () => setOpenSaveAsModal(true);
+
+  // On SaveAsModal confirm:
+  const handleSaveAsConfirm = async (newName: string) => {
+    setOpenSaveAsModal(false);
+    try {
+      const copy = await createProject(newName, {
+        bpm: project.data.bpm,
+        tracks: project.data.tracks,
+      });
+      localStorage.setItem("activeProjectId", copy.id.toString());
+      setProject(copy);
+      toast.success("Project duplicated");
+    } catch {
+      toast.error("Duplicate failed");
+    }
+  };
+
+  // Import MIDI
+  const handleImportMidi = async (file: File) => {
+    const imported = await importMidiFile(file);
+    const newTrack: Track = {
+      id: `imp-${Date.now()}`,
+      name: file.name,
+      instrument: `Imported: ${file.name}`,
+      notes: imported.notes,
+    };
+    setProject({
+      ...project,
+      data: {
+        bpm: project.data.bpm,
+        tracks: [...project.data.tracks, newTrack],
+      },
+    });
+    toast.success(`Imported ${file.name}`);
+  };
+
+  // Export MIDI: merge all notes
+  const handleExportMidi = () => {
+    const merged = project.data.tracks.flatMap((t) => t.notes);
+    exportMidi(merged, project.data.bpm, `${project.name}.mid`);
+  };
+
+  // Export Stems: one file per track
+  const handleExportStems = () => {
+    project.data.tracks.forEach((t) => {
+      exportMidi(t.notes, project.data.bpm, `${project.name}-${t.name}.mid`);
+    });
+    toast.success("Stems exported");
+  };
+
+  // Close Project
+  const handleClose = () => {
+    localStorage.removeItem("activeProjectId");
+    navigate("/dashboard");
+  };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Project Header */}
-      <div className="px-6 py-4 bg-white border-b">
-        <h1 className="text-2xl font-semibold">{projectName}</h1>
-      </div>
+    <>
+      {/* Modals */}
+      <OpenProjectModal
+        isOpen={openOpenModal}
+        onSelect={handleOpenSelect}
+        onCancel={() => setOpenOpenModal(false)}
+      />
+      <SaveAsModal
+        isOpen={openSaveAsModal}
+        initialName={project.name}
+        onSave={handleSaveAsConfirm}
+        onCancel={() => setOpenSaveAsModal(false)}
+      />
 
-      {/* DAW-style Top Bar */}
-      <WorkspaceNavBar />
-
-      {/* Main Content: AI tools on left, editor on right */}
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-72 border-r bg-white p-4 overflow-y-auto">
-          <AIGenerate />
-          <AIModify />
-          <AIStyleTransfer />
+      {/* Workspace */}
+      <div className="flex h-screen">
+        <aside
+          className={`
+            relative flex-shrink-0 bg-gray-100 overflow-hidden
+            transition-all duration-300
+            ${sidebarOpen ? "w-64 p-4 space-y-4" : "w-8 p-1"}
+          `}
+        >
+          <button
+            onClick={() => setSidebarOpen((v) => !v)}
+            className="absolute top-4 right-0 -mr-4 p-1 bg-gray-100 border rounded-full hover:bg-gray-200"
+          >
+            {sidebarOpen ? "<" : ">"}
+          </button>
+          {sidebarOpen && (
+            <>
+              <div className="bg-white rounded-lg p-4"><AIGenerate /></div>
+              <div className="bg-white rounded-lg p-4"><AIModify /></div>
+              <div className="bg-white rounded-lg p-4"><AIStyleTransfer /></div>
+            </>
+          )}
         </aside>
-        <main className="flex-1 bg-gray-100 p-6 overflow-hidden">
-          <MidiEditorCore />
-        </main>
+
+        <div className="flex-1 flex flex-col">
+          <WorkspaceNavBar
+            onNew={handleNew}
+            onOpen={handleOpen}
+            onSave={handleSave}
+            onSaveAs={handleSaveAs}
+            onImportMidi={handleImportMidi}
+            onExportMidi={handleExportMidi}
+            onExportStems={handleExportStems}
+            onClose={handleClose}
+          />
+          <div className="flex-1 overflow-auto p-4">
+            <h2 className="text-xl font-semibold mb-4">{project.name}</h2>
+            <MidiEditorCore
+            key={project.id}
+            projectId={project.id}
+            bpm={project.data.bpm}
+            initialTracks={project.data.tracks}
+            // whenever the editor’s bpm or tracks change, push them into project state:
+            onChange={(newBpm, newTracks) =>
+              setProject({
+                ...project,
+                data: { bpm: newBpm, tracks: newTracks },
+              })
+            }
+            // keep your Save button on the nav bar for persisting to the backend:
+            onSave={() => handleSave()}
+          />
+
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -3997,16 +4501,20 @@ export const getProjectById = async (id: number) => {
   return res.data;
 };
 
-export const createProject = async (name: string, data: string) => {
+export const createProject = async (name: string, data: any) => {
   const res = await axios.post(
-    API_URL + "/",
+    `${API_URL}/`,
     { name, data },
     getAuthHeader()
   );
   return res.data;
 };
 
-export const updateProject = async (id: number, name: string, data: string) => {
+export const updateProject = async (
+  id: number,
+  name: string,
+  data: any
+) => {
   const res = await axios.put(
     `${API_URL}/${id}`,
     { name, data },
