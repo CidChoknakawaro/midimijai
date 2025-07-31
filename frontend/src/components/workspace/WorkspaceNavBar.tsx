@@ -10,12 +10,32 @@ import MIDIToolsMenu from "./MIDIToolsMenu";
 const TABS = ["File", "Edit", "Sound Library", "Settings", "MIDI Tools"] as const;
 type Tab = typeof TABS[number];
 
-const WorkspaceNavBar: React.FC = () => {
+interface WorkspaceNavBarProps {
+  onNew: () => void;
+  onOpen: () => void;
+  onSave: () => void;
+  onSaveAs: () => void;
+  onImportMidi: (file: File) => void;
+  onExportMidi: () => void;
+  onExportStems: () => void;
+  onClose: () => void;
+}
+
+const WorkspaceNavBar: React.FC<WorkspaceNavBarProps> = ({
+  onNew,
+  onOpen,
+  onSave,
+  onSaveAs,
+  onImportMidi,
+  onExportMidi,
+  onExportStems,
+  onClose,
+}) => {
   const [openDropdown, setOpenDropdown] = useState<Tab | null>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // close any open dropdown if you click outside
+  // close dropdown on outside click
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -36,13 +56,12 @@ const WorkspaceNavBar: React.FC = () => {
 
   return (
     <div ref={ref} className="relative bg-white shadow-sm">
-      {/* Top row */}
       <div className="flex items-center justify-between px-6 py-2">
         <div className="flex items-center space-x-4">
-          <button className="p-1 hover:bg-gray-100 rounded" onClick={() => {/* back */}}>
+          <button className="p-1 hover:bg-gray-100 rounded" onClick={() => window.history.back()}>
             <ChevronLeft size={20} />
           </button>
-          <button className="p-1 hover:bg-gray-100 rounded" onClick={() => {/* forward */}}>
+          <button className="p-1 hover:bg-gray-100 rounded" onClick={() => window.history.forward()}>
             <ChevronRight size={20} />
           </button>
 
@@ -60,9 +79,18 @@ const WorkspaceNavBar: React.FC = () => {
                   {tab}
                 </button>
 
-                {/* mount only the list under each tab */}
                 {openDropdown === "File" && tab === "File" && (
-                  <FileMenu onSelect={() => setOpenDropdown(null)} />
+                  <FileMenu
+                    onSelect={() => setOpenDropdown(null)}
+                    onNew={onNew}
+                    onOpen={onOpen}
+                    onSave={onSave}
+                    onSaveAs={onSaveAs}
+                    onImportMidi={onImportMidi}
+                    onExportMidi={onExportMidi}
+                    onExportStems={onExportStems}
+                    onClose={onClose}
+                  />
                 )}
                 {openDropdown === "Edit" && tab === "Edit" && (
                   <EditMenu onSelect={() => setOpenDropdown(null)} />
@@ -78,12 +106,12 @@ const WorkspaceNavBar: React.FC = () => {
           </nav>
         </div>
 
-        <button className="p-2 hover:bg-gray-100 rounded-full">
+        <button className="p-2 hover:bg-gray-100 rounded-full" onClick={() => setLibraryOpen(true)}>
           <HelpCircle size={20} />
         </button>
       </div>
 
-      {/* Sound Library is a modal */}
+      {/* Sound Library Modal */}
       <SoundLibraryModal isOpen={libraryOpen} onClose={() => setLibraryOpen(false)} />
     </div>
   );
