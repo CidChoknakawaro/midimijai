@@ -19,6 +19,26 @@ interface WorkspaceNavBarProps {
   onExportMidi: () => void;
   onExportStems: () => void;
   onClose: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  onCut: () => void;
+  onCopy: () => void;
+  onPaste: () => void;
+  onDelete: () => void;
+  onSelectAll: () => void;
+  onKeyScaleLock: () => void;
+  onAudioEngine: () => void;
+  onMidiInput: () => void;
+  onShortcuts: () => void;
+  onGridSettings: () => void;
+  onLatency: () => void;
+  onTranspose: () => void;
+  onVelocity: () => void;
+  onNoteLength: () => void;
+  onHumanize: () => void;
+  onArpeggiate: () => void;
+  onStrum: () => void;
+  onLegato: () => void;
 }
 
 const WorkspaceNavBar: React.FC<WorkspaceNavBarProps> = ({
@@ -92,14 +112,40 @@ const WorkspaceNavBar: React.FC<WorkspaceNavBarProps> = ({
                     onClose={onClose}
                   />
                 )}
-                {openDropdown === "Edit" && tab === "Edit" && (
-                  <EditMenu onSelect={() => setOpenDropdown(null)} />
+                {openDropdown === "Edit"     && tab === "Edit" && (
+                  <EditMenu
+                    onSelect={() => setOpenDropdown(null)}
+                    onUndo={() => {/* TODO */}}
+                    onRedo={() => {/* TODO */}}
+                    onCut={() => {/* TODO */}}
+                    onCopy={() => {/* TODO */}}
+                    onPaste={() => {/* TODO */}}
+                    onDelete={() => {/* TODO */}}
+                    onSelectAll={() => {/* TODO */}}
+                  />
                 )}
                 {openDropdown === "Settings" && tab === "Settings" && (
-                  <SettingsMenu onSelect={() => setOpenDropdown(null)} />
+                  <SettingsMenu
+                    onSelect={() => setOpenDropdown(null)}
+                    onKeyScaleLock={() => {/* TODO */}}
+                    onAudioEngine={() => {/* TODO */}}
+                    onMidiInput={() => {/* TODO */}}
+                    onShortcuts={() => {/* TODO */}}
+                    onGridSettings={() => {/* TODO */}}
+                    onLatency={() => {/* TODO */}}
+                  />
                 )}
                 {openDropdown === "MIDI Tools" && tab === "MIDI Tools" && (
-                  <MIDIToolsMenu onSelect={() => setOpenDropdown(null)} />
+                  <MIDIToolsMenu
+                    onSelect={() => setOpenDropdown(null)}
+                    onTranspose={() => {/* TODO */}}
+                    onVelocity={() => {/* TODO */}}
+                    onNoteLength={() => {/* TODO */}}
+                    onHumanize={() => {/* TODO */}}
+                    onArpeggiate={() => {/* TODO */}}
+                    onStrum={() => {/* TODO */}}
+                    onLegato={() => {/* TODO */}}
+                  />
                 )}
               </div>
             ))}
@@ -112,7 +158,11 @@ const WorkspaceNavBar: React.FC<WorkspaceNavBarProps> = ({
       </div>
 
       {/* Sound Library Modal */}
-      <SoundLibraryModal isOpen={libraryOpen} onClose={() => setLibraryOpen(false)} />
+      <SoundLibraryModal
+        isOpen={libraryOpen}
+        onClose={() => setLibraryOpen(false)}
+        onImportSample={onImportMidi}
+      />
     </div>
   );
 };

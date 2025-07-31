@@ -1,31 +1,40 @@
+// frontend/src/components/workspace/MIDIToolsMenu.tsx
 import React from "react";
 
 interface MIDIToolsMenuProps {
   onSelect: () => void;
+  onTranspose: () => void;
+  onVelocity: () => void;
+  onNoteLength: () => void;
+  onHumanize: () => void;
+  onArpeggiate: () => void;
+  onStrum: () => void;
+  onLegato: () => void;
 }
 
-export default function MIDIToolsMenu({ onSelect }: MIDIToolsMenuProps) {
+const MIDIToolsMenu: React.FC<MIDIToolsMenuProps> = ({
+  onSelect,
+  onTranspose,
+  onVelocity,
+  onNoteLength,
+  onHumanize,
+  onArpeggiate,
+  onStrum,
+  onLegato,
+}) => {
   const items = [
-    { label: "Transpose", action: () => {/* TODO */} },
-    { label: "Velocity Control",action: () => {/* TODO */} },
+    { label: "Transpose",          action: onTranspose },
+    { label: "Velocity Control",   action: onVelocity },
+    { label: "Note Length Adjust", action: onNoteLength },
     { separator: true },
-    { label: "Note Length Adjust", action: () => {/* TODO */} },
-    { label: "Humanization", action: () => {/* TODO */} },
-    { separator: true },
-    { label: "Arpeggiator", action: () => {/* TODO */} },
-    { label: "Strumming Effect", action: () => {/* TODO */} },
-    { label: "Legato/Portamento", action: () => {/* TODO */} },
+    { label: "Humanization",       action: onHumanize },
+    { label: "Arpeggiator",        action: onArpeggiate },
+    { label: "Strumming Effect",   action: onStrum },
+    { label: "Legato/Portamento",  action: onLegato },
   ] as const;
 
   return (
-    <div
-      className="
-        absolute left-0 top-full mt-1
-        w-56 bg-white
-        border border-gray-200
-        rounded-md shadow-lg z-50
-      "
-    >
+    <div className="absolute left-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50">
       {items.map((item, i) =>
         "separator" in item ? (
           <div key={i} className="border-t border-gray-200 my-1" />
@@ -36,19 +45,14 @@ export default function MIDIToolsMenu({ onSelect }: MIDIToolsMenuProps) {
               item.action();
               onSelect();
             }}
-            className="
-              flex justify-between w-full
-              px-4 py-2 text-sm text-gray-700
-              hover:bg-gray-100 focus:outline-none
-            "
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
-            <span>{item.label}</span>
-            {item.shortcut && (
-              <span className="text-xs text-gray-400">{item.shortcut}</span>
-            )}
+            {item.label}
           </button>
         )
       )}
     </div>
   );
-}
+};
+
+export default MIDIToolsMenu;
