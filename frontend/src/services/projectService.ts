@@ -22,16 +22,20 @@ export const getProjectById = async (id: number) => {
   return res.data;
 };
 
-export const createProject = async (name: string, data: string) => {
+export const createProject = async (name: string, data: any) => {
   const res = await axios.post(
-    API_URL + "/",
+    `${API_URL}/`,
     { name, data },
     getAuthHeader()
   );
   return res.data;
 };
 
-export const updateProject = async (id: number, name: string, data: string) => {
+export const updateProject = async (
+  id: number,
+  name: string,
+  data: any
+) => {
   const res = await axios.put(
     `${API_URL}/${id}`,
     { name, data },

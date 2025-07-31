@@ -9,7 +9,6 @@ from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectInDB
 from app.core.security import get_current_user
 
 router = APIRouter(
-    prefix="/projects",
     tags=["projects"],
 )
 

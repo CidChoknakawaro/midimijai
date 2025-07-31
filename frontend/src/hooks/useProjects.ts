@@ -34,7 +34,7 @@ export const useProjects = () => {
     }
   };
 
-  const addProject = async (name: string, data: string) => {
+  const addProject = async (name: string, data: any) => {
     const newProject = await createProject(name, data);
     setProjects((prev) => [...prev, newProject]);
   };
@@ -44,7 +44,7 @@ export const useProjects = () => {
     setProjects((prev) => prev.filter((p) => p.id !== id));
   };
 
-  const renameProject = async (id: number, name: string, data: string) => {
+  const renameProject = async (id: number, name: string, data: any) => {
     const updated = await updateProject(id, name, data);
     setProjects((prev) =>
       prev.map((p) => (p.id === id ? { ...p, name: updated.name } : p))

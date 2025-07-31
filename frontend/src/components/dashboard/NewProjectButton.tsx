@@ -7,7 +7,7 @@ const NewProjectButton: React.FC = () => {
 
   const handleClick = async () => {
     const name = "Untitled Project";
-    const data = JSON.stringify({ notes: [], bpm: 120 });
+    const data = { notes: [], bpm: 120 };
     await addProject(name, data);
     window.location.reload();
   };

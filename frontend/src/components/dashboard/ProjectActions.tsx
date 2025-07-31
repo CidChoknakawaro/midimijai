@@ -7,7 +7,7 @@ import Modal from "../shared/Modal";
 interface ProjectActionsProps {
   projectId: number;
   name: string;
-  data: string;
+  data: any;
 }
 
 const ProjectActions: React.FC<ProjectActionsProps> = ({
@@ -39,7 +39,7 @@ const ProjectActions: React.FC<ProjectActionsProps> = ({
   // d → duplicate
   const onDuplicateClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    await addProject(`${name} (Copy)`, data);
+    await addProject(`${name} (Copy)`, JSON.parse(data));
     window.location.reload();
   };
 
