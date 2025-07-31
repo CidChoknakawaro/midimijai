@@ -1,44 +1,101 @@
-import React, { useState, useEffect } from "react";
+
+
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+
+import { getProjectById } from "../services/projectService";
 import WorkspaceNavBar from "../components/workspace/WorkspaceNavBar";
 import AIGenerate from "../components/workspace/AIGenerate";
 import AIModify from "../components/workspace/AIModify";
 import AIStyleTransfer from "../components/workspace/AIStyleTransfer";
 import MidiEditorCore from "../components/workspace/midi-editor/core/MidiEditorCore";
-import { useProjects } from "../hooks/useProjects";
+import LoadingSpinner from "../components/shared/LoadingSpinner";
+
+interface Project {
+  id: number;
+  name: string;
+  data: { bpm: number; tracks: any[] };
+}
 
 const WorkspacePage: React.FC = () => {
-  const { projects } = useProjects();
-  const [projectName, setProjectName] = useState<string>("");
+  const navigate = useNavigate();
+  const [project, setProject] = useState<Project | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // read the activeProjectId set by the dashboard
   useEffect(() => {
-    const activeId = localStorage.getItem("activeProjectId");
-    if (activeId) {
-      const proj = projects.find((p) => String(p.id) === activeId);
-      setProjectName(proj?.name || "");
+    const idStr = localStorage.getItem("activeProjectId");
+    if (!idStr) {
+      toast.error("No active project selected");
+      return navigate("/dashboard");
     }
-  }, [projects]);
+    const id = parseInt(idStr, 10);
+
+    getProjectById(id)
+      .then((data) => setProject(data))
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to load project");
+      })
+      .finally(() => setLoading(false));
+  }, [navigate]);
+
+  if (loading) return <LoadingSpinner />;
+  if (!project) return null;
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Project Header */}
-      <div className="px-6 py-4 bg-white border-b">
-        <h1 className="text-2xl font-semibold">{projectName}</h1>
-      </div>
+    <div className="flex h-screen">
+      {/* AI Sidebar */}
+      <aside
+        className={`
+          relative flex-shrink-0 bg-gray-100 overflow-hidden
+          transition-all duration-300
+          ${sidebarOpen ? "w-64 p-4 space-y-4" : "w-8 p-1"}
+        `}
+      >
+        {/* collapse/expand handle */}
+        <button
+          onClick={() => setSidebarOpen((v) => !v)}
+          className="
+            absolute top-4 right-0
+            -mr-4 p-1 bg-gray-100 border border-gray-300 rounded-full
+            hover:bg-gray-200
+          "
+        >
+          {sidebarOpen ? "<" : ">"}
+        </button>
 
-      {/* DAW-style Top Bar */}
-      <WorkspaceNavBar />
+        {sidebarOpen && (
+          <>
+            <div className="bg-white rounded-lg p-4">
+              <AIGenerate />
+            </div>
+            <div className="bg-white rounded-lg p-4">
+              <AIModify />
+            </div>
+            <div className="bg-white rounded-lg p-4">
+              <AIStyleTransfer />
+            </div>
+          </>
+        )}
+      </aside>
 
-      {/* Main Content: AI tools on left, editor on right */}
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-72 border-r bg-white p-4 overflow-y-auto">
-          <AIGenerate />
-          <AIModify />
-          <AIStyleTransfer />
-        </aside>
-        <main className="flex-1 bg-gray-100 p-6 overflow-hidden">
-          <MidiEditorCore />
-        </main>
+      {/* Main Workspace Area */}
+      <div className="flex-1 flex flex-col">
+        <WorkspaceNavBar />
+
+        <div className="flex-1 overflow-auto p-4">
+          <h2 className="text-xl font-semibold mb-4">{project.name}</h2>
+          <MidiEditorCore
+            projectId={project.id}
+            bpm={project.data.bpm}
+            initialTracks={project.data.tracks}
+            onSave={(bpm, tracks) => {
+              // TODO: call updateProject(...) here
+            }}
+          />
+        </div>
       </div>
     </div>
   );
