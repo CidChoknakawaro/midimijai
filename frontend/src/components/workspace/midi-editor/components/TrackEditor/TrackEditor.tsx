@@ -5,6 +5,7 @@ import { exportMidi } from "../../core/exportMidi";
 import { importMidiFile } from "../../core/importMidi";
 import { getActiveNotesAtBeat } from "../../core/midiUtils";
 import { TransportContext } from "../../core/TransportContext";
+import { subscribe, EditorCommand } from "../../core/editorBus";
 
 const MAX_BEAT = 63;
 const BUILT_IN_INSTRUMENTS = ["Piano", "Synth", "AMSynth", "MembraneSynth"];
@@ -27,19 +28,22 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
   const { bpm, isPlaying, playheadBeat, setPlayheadBeat } =
     useContext(TransportContext);
 
-  const [zoomLevel, setZoomLevel] = useState(1);
+  const [zoomLevel, setZoomLevel] = useState<1 | 2 | 4>(1);
   const [snapToGrid, setSnapToGrid] = useState(true);
+
   const playheadRef = useRef<HTMLDivElement>(null);
   const synthRef = useRef<any>(null);
   const redLineRef = useRef(playheadBeat);
   const animationRef = useRef<number>();
   const activeNotes = useRef<Set<string>>(new Set());
+
   const gridWidth = 40 * zoomLevel;
 
   // Audio-timing reference
   const audioStartTimeRef = useRef<number | null>(null);
   const beatAtStartRef = useRef<number>(0);
 
+  // ---------- synth init by instrument ----------
   useEffect(() => {
     if (synthRef.current) synthRef.current.dispose?.();
     if (track.instrument.startsWith("Imported:")) {
@@ -64,6 +68,7 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
     }
   }, [track.instrument]);
 
+  // ---------- transport-driven animation ----------
   useEffect(() => {
     let lastTime = performance.now();
 
@@ -103,8 +108,59 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
 
     animationRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animationRef.current!);
-  }, [isPlaying, bpm, playheadBeat]);
+  }, [isPlaying, bpm, playheadBeat, setPlayheadBeat]);
 
+  // ---------- editorBus subscription ----------
+  useEffect(() => {
+    const unsub = subscribe(async (cmd: EditorCommand) => {
+      switch (cmd.type) {
+        case "SET_ZOOM":
+          setZoomLevel(cmd.value);
+          break;
+        case "TOGGLE_SNAP":
+          setSnapToGrid((s) => !s);
+          break;
+        case "EXPORT_MIDI":
+          exportMidi(track.notes, bpm);
+          break;
+        case "IMPORT_MIDI_FILE": {
+          const file = cmd.file;
+          if (file) {
+            const result = await importMidiFile(file);
+            // If your import returns bpm, you can decide whether to update bpm via context elsewhere
+            updateTrack({ notes: result.notes });
+          }
+          break;
+        }
+
+        // Tools — leave as stubs for now, or plug in your actual transforms:
+        case "TRANSPOSE":
+        case "VELOCITY":
+        case "NOTE_LENGTH":
+        case "HUMANIZE":
+        case "ARPEGGIATE":
+        case "STRUM":
+        case "LEGATO":
+        case "OPEN_AUDIO_ENGINE":
+        case "OPEN_MIDI_INPUT":
+        case "OPEN_SHORTCUTS":
+        case "OPEN_GRID_SETTINGS":
+        case "OPEN_LATENCY_SETTINGS":
+        case "UNDO":
+        case "REDO":
+        case "CUT":
+        case "COPY":
+        case "PASTE":
+        case "DELETE":
+        case "SELECT_ALL":
+          console.log("[editorBus] command received:", cmd.type);
+          break;
+      }
+    });
+    return unsub;
+  }, [track.notes, bpm, updateTrack]);
+
+  // ---------- note trigger helpers ----------
   const triggerNotesAt = (beat: number) => {
     const nowActive = getActiveNotesAtBeat(track.notes, beat);
 
@@ -124,7 +180,6 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
           const name = Tone.Frequency(note.pitch, "midi").toNote();
           synthRef.current?.triggerAttack(name, now, note.velocity / 127);
         }
-
         activeNotes.current.add(note.id);
       }
     });
@@ -166,6 +221,7 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
     updatePlayhead(beat);
   };
 
+  // ---------- UI helpers that remain local ----------
   const handleUploadSound = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -176,8 +232,7 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
   };
 
   const testImportedSound = async () => {
-    if (!track.instrument.startsWith("Imported:") || !track.customSoundUrl)
-      return;
+    if (!track.instrument.startsWith("Imported:") || !track.customSoundUrl) return;
     const player = new Tone.Player(track.customSoundUrl).toDestination();
     await Tone.start();
     player.autostart = true;
@@ -188,17 +243,10 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
       <button onClick={goBack}>🔙 Back to Tracks</button>
       <h2>{track.name}</h2>
 
-      <div
-        style={{ display: "flex", gap: 20, marginBottom: 10, flexWrap: "wrap" }}
-      >
+      <div style={{ display: "flex", gap: 20, marginBottom: 10, flexWrap: "wrap" }}>
         <div>
-          <label>
-            <strong>Zoom:</strong>
-          </label>{" "}
-          <select
-            value={zoomLevel}
-            onChange={(e) => setZoomLevel(Number(e.target.value))}
-          >
+          <label><strong>Zoom:</strong></label>{" "}
+          <select value={zoomLevel} onChange={(e) => setZoomLevel(Number(e.target.value) as 1|2|4)}>
             <option value={1}>1/4</option>
             <option value={2}>1/8</option>
             <option value={4}>1/16</option>
@@ -215,17 +263,13 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
         </label>
 
         <div>
-          <label>
-            <strong>Instrument:</strong>
-          </label>{" "}
+          <label><strong>Instrument:</strong></label>{" "}
           <select
             value={track.instrument}
             onChange={(e) => updateTrack({ instrument: e.target.value })}
           >
             {BUILT_IN_INSTRUMENTS.map((inst) => (
-              <option key={inst} value={inst}>
-                {inst}
-              </option>
+              <option key={inst} value={inst}>{inst}</option>
             ))}
             {track.customSoundUrl && (
               <option value={track.instrument}>{track.instrument}</option>
@@ -245,9 +289,7 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
         </div>
 
         <div>
-          <button onClick={() => exportMidi(track.notes, bpm)}>
-            Export MIDI
-          </button>{" "}
+          <button onClick={() => exportMidi(track.notes, bpm)}>Export MIDI</button>{" "}
           <input
             type="file"
             accept=".mid"

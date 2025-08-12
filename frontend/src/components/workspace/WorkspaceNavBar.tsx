@@ -6,6 +6,7 @@ import EditMenu from "./EditMenu";
 import SoundLibraryModal from "./SoundLibraryModal";
 import SettingsMenu from "./SettingsMenu";
 import MIDIToolsMenu from "./MIDIToolsMenu";
+import { publish } from "./midi-editor/core/editorBus";
 
 const TABS = ["File", "Edit", "Sound Library", "Settings", "MIDI Tools"] as const;
 type Tab = typeof TABS[number];
@@ -19,26 +20,6 @@ interface WorkspaceNavBarProps {
   onExportMidi: () => void;
   onExportStems: () => void;
   onClose: () => void;
-  onUndo: () => void;
-  onRedo: () => void;
-  onCut: () => void;
-  onCopy: () => void;
-  onPaste: () => void;
-  onDelete: () => void;
-  onSelectAll: () => void;
-  onKeyScaleLock: () => void;
-  onAudioEngine: () => void;
-  onMidiInput: () => void;
-  onShortcuts: () => void;
-  onGridSettings: () => void;
-  onLatency: () => void;
-  onTranspose: () => void;
-  onVelocity: () => void;
-  onNoteLength: () => void;
-  onHumanize: () => void;
-  onArpeggiate: () => void;
-  onStrum: () => void;
-  onLegato: () => void;
 }
 
 const WorkspaceNavBar: React.FC<WorkspaceNavBarProps> = ({
@@ -112,39 +93,42 @@ const WorkspaceNavBar: React.FC<WorkspaceNavBarProps> = ({
                     onClose={onClose}
                   />
                 )}
-                {openDropdown === "Edit"     && tab === "Edit" && (
+
+                {openDropdown === "Edit" && tab === "Edit" && (
                   <EditMenu
                     onSelect={() => setOpenDropdown(null)}
-                    onUndo={() => {/* TODO */}}
-                    onRedo={() => {/* TODO */}}
-                    onCut={() => {/* TODO */}}
-                    onCopy={() => {/* TODO */}}
-                    onPaste={() => {/* TODO */}}
-                    onDelete={() => {/* TODO */}}
-                    onSelectAll={() => {/* TODO */}}
+                    onUndo={() => publish({ type: "UNDO" })}
+                    onRedo={() => publish({ type: "REDO" })}
+                    onCut={() => publish({ type: "CUT" })}
+                    onCopy={() => publish({ type: "COPY" })}
+                    onPaste={() => publish({ type: "PASTE" })}
+                    onDelete={() => publish({ type: "DELETE" })}
+                    onSelectAll={() => publish({ type: "SELECT_ALL" })}
                   />
                 )}
+
                 {openDropdown === "Settings" && tab === "Settings" && (
                   <SettingsMenu
                     onSelect={() => setOpenDropdown(null)}
-                    onKeyScaleLock={() => {/* TODO */}}
-                    onAudioEngine={() => {/* TODO */}}
-                    onMidiInput={() => {/* TODO */}}
-                    onShortcuts={() => {/* TODO */}}
-                    onGridSettings={() => {/* TODO */}}
-                    onLatency={() => {/* TODO */}}
+                    onKeyScaleLock={() => publish({ type: "OPEN_GRID_SETTINGS" })}
+                    onAudioEngine={() => publish({ type: "OPEN_AUDIO_ENGINE" })}
+                    onMidiInput={() => publish({ type: "OPEN_MIDI_INPUT" })}
+                    onShortcuts={() => publish({ type: "OPEN_SHORTCUTS" })}
+                    onGridSettings={() => publish({ type: "TOGGLE_SNAP" })}
+                    onLatency={() => publish({ type: "OPEN_LATENCY_SETTINGS" })}
                   />
                 )}
+
                 {openDropdown === "MIDI Tools" && tab === "MIDI Tools" && (
                   <MIDIToolsMenu
                     onSelect={() => setOpenDropdown(null)}
-                    onTranspose={() => {/* TODO */}}
-                    onVelocity={() => {/* TODO */}}
-                    onNoteLength={() => {/* TODO */}}
-                    onHumanize={() => {/* TODO */}}
-                    onArpeggiate={() => {/* TODO */}}
-                    onStrum={() => {/* TODO */}}
-                    onLegato={() => {/* TODO */}}
+                    onTranspose={() => publish({ type: "TRANSPOSE" })}
+                    onVelocity={() => publish({ type: "VELOCITY" })}
+                    onNoteLength={() => publish({ type: "NOTE_LENGTH" })}
+                    onHumanize={() => publish({ type: "HUMANIZE" })}
+                    onArpeggiate={() => publish({ type: "ARPEGGIATE" })}
+                    onStrum={() => publish({ type: "STRUM" })}
+                    onLegato={() => publish({ type: "LEGATO" })}
                   />
                 )}
               </div>

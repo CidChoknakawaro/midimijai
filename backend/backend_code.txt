@@ -30,7 +30,7 @@ File Contents
 --------------------------------------------------
 
 
-database.py
+app\database.py
 File type: .py
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -64,7 +64,7 @@ File End
 --------------------------------------------------
 
 
-main.py
+app\main.py
 File type: .py
 # backend/app/main.py
 
@@ -118,7 +118,7 @@ File End
 --------------------------------------------------
 
 
-middleware.py
+app\middleware.py
 File type: .py
 # Add later
 
@@ -127,7 +127,7 @@ File End
 --------------------------------------------------
 
 
-core\config.py
+app\core\config.py
 File type: .py
 from pydantic_settings import BaseSettings
 
@@ -149,7 +149,7 @@ File End
 --------------------------------------------------
 
 
-core\security.py
+app\core\security.py
 File type: .py
 from passlib.context import CryptContext
 from jose import JWTError, jwt
@@ -205,7 +205,7 @@ File End
 --------------------------------------------------
 
 
-models\midi.py
+app\models\midi.py
 File type: .py
 from sqlalchemy import Column, Integer, String, ForeignKey, JSON
 from sqlalchemy.orm import relationship
@@ -227,7 +227,7 @@ File End
 --------------------------------------------------
 
 
-models\project.py
+app\models\project.py
 File type: .py
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON
 from sqlalchemy.sql import func
@@ -256,7 +256,7 @@ File End
 --------------------------------------------------
 
 
-models\user.py
+app\models\user.py
 File type: .py
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
@@ -278,16 +278,21 @@ File End
 --------------------------------------------------
 
 
-routers\ai.py
+app\routers\ai.py
 File type: .py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import Any
+from typing import Any, Optional
 
 from app.database import get_db
 from app.core.security import get_current_user
 from app.schemas.ai import AIGenerateRequest, AIGenerateResponse
-from app.services.ai_service import generate_midi_from_prompt
+from app.services.ai_service import (
+    generate_midi_from_prompt,
+    suggest_from_prompt,
+    modify_from_prompt,
+    style_from_prompt,
+)
 
 router = APIRouter(tags=["ai"])
 
@@ -301,21 +306,36 @@ def ai_generate(
     db: Session = Depends(get_db),
 ) -> Any:
     try:
-        data = generate_midi_from_prompt(
-            prompt=payload.prompt,
-            length_beats=payload.length_beats,
-            temperature=payload.temperature
-        )
-        return {"data": data}
+        mode: Optional[str] = payload.mode
+        if mode in (None, "generate"):
+            data = generate_midi_from_prompt(
+                prompt=payload.prompt,
+                length_beats=payload.length_beats,
+                temperature=payload.temperature
+            )
+            return {"data": data}
+        elif mode == "suggest":
+            return {"suggestions": suggest_from_prompt(payload.prompt)}
+        elif mode == "modify":
+            return {"data": modify_from_prompt(payload.prompt)}
+        elif mode == "modify-suggest":
+            return {"suggestions": suggest_from_prompt(payload.prompt)}
+        elif mode == "style":
+            return {"data": style_from_prompt(payload.prompt)}
+        elif mode == "style-suggest":
+            return {"suggestions": suggest_from_prompt(payload.prompt)}
+        else:
+            raise HTTPException(400, detail="Unsupported mode")
     except Exception as e:
         raise HTTPException(500, detail=str(e))
+
 
 --------------------------------------------------
 File End
 --------------------------------------------------
 
 
-routers\auth.py
+app\routers\auth.py
 File type: .py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -353,7 +373,7 @@ File End
 --------------------------------------------------
 
 
-routers\midi.py
+app\routers\midi.py
 File type: .py
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -381,7 +401,7 @@ File End
 --------------------------------------------------
 
 
-routers\project.py
+app\routers\project.py
 File type: .py
 from typing import List
 
@@ -487,7 +507,7 @@ File End
 --------------------------------------------------
 
 
-routers\users.py
+app\routers\users.py
 File type: .py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -510,25 +530,38 @@ File End
 --------------------------------------------------
 
 
-schemas\ai.py
+app\schemas\ai.py
 File type: .py
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Literal
+
+AIMode = Literal[
+    "suggest",
+    "generate",
+    "modify-suggest",
+    "modify",
+    "style-suggest",
+    "style",
+]
 
 class AIGenerateRequest(BaseModel):
     prompt: str
+    mode: Optional[AIMode] = None
     length_beats: Optional[int] = 64
     temperature: Optional[float] = 1.0
 
 class AIGenerateResponse(BaseModel):
-    data: Dict[str, Any]
+    # either suggestions or data (project-shaped)
+    suggestions: Optional[list[str]] = None
+    data: Optional[Dict[str, Any]] = None
+
 
 --------------------------------------------------
 File End
 --------------------------------------------------
 
 
-schemas\midi.py
+app\schemas\midi.py
 File type: .py
 from pydantic import BaseModel
 
@@ -549,7 +582,7 @@ File End
 --------------------------------------------------
 
 
-schemas\project.py
+app\schemas\project.py
 File type: .py
 from datetime import datetime
 from pydantic import BaseModel
@@ -587,7 +620,7 @@ File End
 --------------------------------------------------
 
 
-schemas\user.py
+app\schemas\user.py
 File type: .py
 from pydantic import BaseModel
 
@@ -612,50 +645,47 @@ File End
 --------------------------------------------------
 
 
-services\ai_service.py
+app\services\ai_service.py
 File type: .py
-from typing import Dict, Any
+from typing import Dict, Any, List
+
+def _empty_project(name: str = "AI Track") -> Dict[str, Any]:
+    return {
+        "bpm": 120,
+        "tracks": [
+            {
+                "id": "ai1",
+                "name": name,
+                "instrument": "Piano",
+                "notes": []
+            }
+        ]
+    }
 
 def generate_midi_from_prompt(
     prompt: str,
     length_beats: int = 64,
     temperature: float = 1.0
 ) -> Dict[str, Any]:
-    """
-    Stub for AI-based MIDI generation.
-    - `prompt`: user text prompt
-    - `length_beats`: how many beats of output to generate
-    - `temperature`: randomness control
+    # TODO: integrate real model
+    return _empty_project("Generated Track")
 
-    Returns a dict shape matching your Project.data JSON:
-    {
-      "bpm": 120,
-      "tracks": [
-        {
-          "id": "<track-id>",
-          "name": "AI Track",
-          "instrument": "Piano",
-          "notes": [
-            { "id": "<note-id>", "pitch": 60, "time": 0, "duration": 1, "velocity": 0.8 },
-            …
-          ]
-        }
-      ]
-    }
-    """
-    # TODO: wire up your model / OpenAI call here
-    # For now, return an empty single-track stub:
-    return {
-        "bpm": 120,
-        "tracks": [
-            {
-                "id": "ai1",
-                "name": "AI Track",
-                "instrument": "Piano",
-                "notes": []
-            }
-        ]
-    }
+def suggest_from_prompt(prompt: str) -> List[str]:
+    # TODO: integrate LLM suggestions
+    return [
+        f"Try a {prompt} motif in 4 bars.",
+        "Increase swing to 55%.",
+        "Layer a second voice one octave above.",
+    ]
+
+def modify_from_prompt(prompt: str) -> Dict[str, Any]:
+    # TODO: transform existing project with prompt
+    return _empty_project("Modified Track")
+
+def style_from_prompt(prompt: str) -> Dict[str, Any]:
+    # TODO: apply style transfer
+    return _empty_project(f"Style: {prompt}")
+
 
 --------------------------------------------------
 File End

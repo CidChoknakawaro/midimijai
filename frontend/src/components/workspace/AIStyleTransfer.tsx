@@ -1,4 +1,3 @@
-// frontend/src/components/workspace/AIStyleTransfer.tsx
 import React, { useState } from "react";
 import { postAIGenerate } from "../../services/aiService";
 
@@ -11,7 +10,7 @@ export default function AIStyleTransfer() {
     setLoading(true);
     try {
       const resp = await postAIGenerate({ prompt, mode: "style-suggest" });
-      setOutput(resp.suggestions.join("\n"));
+      setOutput((resp.suggestions || []).join("\n"));
     } finally {
       setLoading(false);
     }
@@ -21,7 +20,7 @@ export default function AIStyleTransfer() {
     setLoading(true);
     try {
       const resp = await postAIGenerate({ prompt, mode: "style" });
-      setOutput("Styled MIDI – open track to view.");
+      setOutput(resp.data ? "Styled data generated" : "No data");
     } finally {
       setLoading(false);
     }
@@ -37,26 +36,14 @@ export default function AIStyleTransfer() {
         className="w-full px-3 py-2 border rounded"
       />
       <div className="flex space-x-2">
-        <button
-          onClick={handleSuggestions}
-          disabled={loading}
-          className="flex-1 px-3 py-1 bg-orange-400 text-white rounded"
-        >
+        <button onClick={handleSuggestions} disabled={loading} className="flex-1 px-3 py-1 bg-orange-400 text-white rounded">
           Suggestions
         </button>
-        <button
-          onClick={handleStyle}
-          disabled={loading}
-          className="flex-1 px-3 py-1 bg-orange-400 text-white rounded"
-        >
+        <button onClick={handleStyle} disabled={loading} className="flex-1 px-3 py-1 bg-orange-400 text-white rounded">
           Style
         </button>
       </div>
-      <textarea
-        readOnly
-        value={output}
-        className="w-full h-24 p-2 border rounded resize-none"
-      />
+      <textarea readOnly value={output} className="w-full h-24 p-2 border rounded resize-none" />
     </div>
   );
 }

@@ -1,46 +1,48 @@
-import React, { useContext } from 'react';
-import { TransportContext } from '../../core/TransportContext';
 import './GlobalTransportBar.css'
 
-const GlobalTransportBar: React.FC = () => {
-  const {
-    bpm,
-    setBpm,
-    isPlaying,
-    handlePlay,
-    handlePause,
-    returnToStart,
-    toggleMetronome,
-    metronome,
-    handleZoomIn,
-    handleZoomOut,
-  } = useContext(TransportContext);
+import React, { useContext } from "react";
+import { TransportContext } from "../../core/TransportContext";
+
+type Props = {
+  bpm?: number;
+  setBpm?: (n: number) => void;
+  onSave?: () => void;
+};
+
+const GlobalTransportBar: React.FC<Props> = ({ bpm, setBpm, onSave }) => {
+  const ctx = useContext(TransportContext);
+
+  const effectiveBpm  = bpm    ?? ctx?.bpm ?? 120;
+  const changeBpm     = setBpm ?? ctx?.setBpm ?? (() => {});
+  const isPlaying     = ctx?.isPlaying;
+  const play          = ctx?.handlePlay;
+  const pause         = ctx?.handlePause;
+  const toStart       = ctx?.returnToStart;
+  const metronome     = ctx?.metronome;
+  const toggleMetro   = ctx?.toggleMetronome;
+  const zoomIn        = ctx?.handleZoomIn;
+  const zoomOut       = ctx?.handleZoomOut;
 
   return (
-    <div style={{
-      border: '2px solid black',
-      padding: 10,
-      borderRadius: '16px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 10
-    }}>
-      <span>–</span>
-      <input type="range" min={30} max={300} value={bpm} onChange={(e) => setBpm(Number(e.target.value))} />
-      <span>+</span>
-
-      <button onClick={toggleMetronome}>
-        {metronome ? '🎵 On' : '🎵 Off'}
-      </button>
-      <button onClick={handlePause}>⏸</button>
-      <button onClick={handlePlay}>▶</button>
-      <button onClick={returnToStart}>⏮</button>
-
-      <span>🔍–</span>
-      <button onClick={handleZoomOut}>-</button>
-      <button onClick={handleZoomIn}>+</button>
-      <span>🔍+</span>
+    <div className="transport-bar">
+      <button onClick={toStart}>⏮️</button>
+      {isPlaying ? (
+        <button onClick={pause}>⏸️</button>
+      ) : (
+        <button onClick={play}>▶️</button>
+      )}
+      <input
+        type="range"
+        min={40}
+        max={240}
+        value={effectiveBpm}
+        onChange={(e) => changeBpm(parseInt(e.target.value, 10))}
+      />
+      <span>{effectiveBpm} BPM</span>
+      <button onClick={toggleMetro}>{metronome ? "🎵 On" : "🎵 Off"}</button>
+      <button onClick={zoomOut}>🔍−</button>
+      <button onClick={zoomIn}>🔍＋</button>
+      {onSave && <button onClick={onSave}>💾</button>}
     </div>
   );
 };

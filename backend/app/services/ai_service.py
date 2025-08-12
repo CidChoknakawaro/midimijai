@@ -1,42 +1,38 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
+
+def _empty_project(name: str = "AI Track") -> Dict[str, Any]:
+    return {
+        "bpm": 120,
+        "tracks": [
+            {
+                "id": "ai1",
+                "name": name,
+                "instrument": "Piano",
+                "notes": []
+            }
+        ]
+    }
 
 def generate_midi_from_prompt(
     prompt: str,
     length_beats: int = 64,
     temperature: float = 1.0
 ) -> Dict[str, Any]:
-    """
-    Stub for AI-based MIDI generation.
-    - `prompt`: user text prompt
-    - `length_beats`: how many beats of output to generate
-    - `temperature`: randomness control
+    # TODO: integrate real model
+    return _empty_project("Generated Track")
 
-    Returns a dict shape matching your Project.data JSON:
-    {
-      "bpm": 120,
-      "tracks": [
-        {
-          "id": "<track-id>",
-          "name": "AI Track",
-          "instrument": "Piano",
-          "notes": [
-            { "id": "<note-id>", "pitch": 60, "time": 0, "duration": 1, "velocity": 0.8 },
-            …
-          ]
-        }
-      ]
-    }
-    """
-    # TODO: wire up your model / OpenAI call here
-    # For now, return an empty single-track stub:
-    return {
-        "bpm": 120,
-        "tracks": [
-            {
-                "id": "ai1",
-                "name": "AI Track",
-                "instrument": "Piano",
-                "notes": []
-            }
-        ]
-    }
+def suggest_from_prompt(prompt: str) -> List[str]:
+    # TODO: integrate LLM suggestions
+    return [
+        f"Try a {prompt} motif in 4 bars.",
+        "Increase swing to 55%.",
+        "Layer a second voice one octave above.",
+    ]
+
+def modify_from_prompt(prompt: str) -> Dict[str, Any]:
+    # TODO: transform existing project with prompt
+    return _empty_project("Modified Track")
+
+def style_from_prompt(prompt: str) -> Dict[str, Any]:
+    # TODO: apply style transfer
+    return _empty_project(f"Style: {prompt}")
