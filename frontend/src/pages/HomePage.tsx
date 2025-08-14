@@ -8,7 +8,7 @@ import Footer from "../components/home/Footer";
 
 const HomePage: React.FC = () => {
   return (
-    <div>
+    <div className="min-h-screen bg-[#F7F1EA] text-[#1c1917]">
       <Navbar />
       <HeroSection />
       <FeatureList />

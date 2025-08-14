@@ -1,3 +1,4 @@
+// src/pages/WorkspacePage.tsx
 import React, { useMemo, useState } from "react";
 import WorkspaceNavBar from "../components/workspace/WorkspaceNavBar";
 import MidiEditorCore from "../components/workspace/midi-editor/core/MidiEditorCore";
@@ -44,16 +45,17 @@ export default function WorkspacePage() {
   const [projectId, setProjectId] = useState<number | null>(null);
   const [projectName, setProjectName] = useState<string>("Untitled Project");
 
-  // Editor state (lifted here so File/AI panels can see it)
+  // Editor state
   const [bpm, setBpm] = useState<number>(DEFAULT_DATA.bpm);
   const [tracks, setTracks] = useState<Track[]>(DEFAULT_DATA.tracks);
 
   // UI state
   const [openPicker, setOpenPicker] = useState(false);
   const [saveAsOpen, setSaveAsOpen] = useState(false);
-  const [aiTab, setAiTab] = useState<"Generate" | "Modify" | "Style">(
-    "Generate"
-  );
+  const [aiTab, setAiTab] = useState<"Generate" | "Modify" | "Style">("Generate");
+
+  // 🔹 Track editor active? For now, always true until you implement dashboard/editor switching
+  const isTrackEditorActive = true;
 
   const hasProject = useMemo(() => projectId !== null, [projectId]);
   const dataForSave: ProjectData = useMemo(() => ({ bpm, tracks }), [bpm, tracks]);
@@ -121,7 +123,6 @@ export default function WorkspacePage() {
   };
 
   const handleExportMidi = () => {
-    // Build multi-track MIDI from current state
     const midi = new Midi();
     midi.header.ppq = 480;
     midi.header.setTempo(bpm || 120);
@@ -153,16 +154,15 @@ export default function WorkspacePage() {
     alert("Export Stems is not implemented yet.");
   };
 
-  // Editor -> page sync
   const handleEditorChange = (nextBpm: number, nextTracks: Track[]) => {
     setBpm(nextBpm);
     setTracks(nextTracks);
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen w-full flex flex-col">
       {/* Top nav / menus */}
-      <div className="fixed top-0 left-0 right-0 bg-white z-10">
+      <header className="sticky top-0 bg-white z-20 shadow">
         <WorkspaceNavBar
           onNew={handleNew}
           onOpen={handleOpen}
@@ -172,36 +172,15 @@ export default function WorkspacePage() {
           onExportMidi={handleExportMidi}
           onExportStems={handleExportStems}
           onClose={handleCloseProject}
-          // Edit/Settings/MIDI Tools callbacks will be wired after we expose editor commands
-          onUndo={() => {}}
-          onRedo={() => {}}
-          onCut={() => {}}
-          onCopy={() => {}}
-          onPaste={() => {}}
-          onDelete={() => {}}
-          onSelectAll={() => {}}
-          onKeyScaleLock={() => {}}
-          onAudioEngine={() => {}}
-          onMidiInput={() => {}}
-          onShortcuts={() => {}}
-          onGridSettings={() => {}}
-          onLatency={() => {}}
-          onTranspose={() => {}}
-          onVelocity={() => {}}
-          onNoteLength={() => {}}
-          onHumanize={() => {}}
-          onArpeggiate={() => {}}
-          onStrum={() => {}}
-          onLegato={() => {}}
+          canUseTrackActions={isTrackEditorActive}
         />
-      </div>
+      </header>
 
       {/* Main area */}
-      <div className="flex-1 pt-14 overflow-hidden">
-        <div className="h-full grid grid-cols-12 gap-4 p-4">
-          {/* LEFT: Editor (transport is rendered inside the editor) */}
+      <div className="flex-1 overflow-hidden">
+        <div className="grid grid-cols-12 gap-6 h-full p-6">
           <div className="col-span-8 min-h-0">
-            <div className="p-6 bg-white rounded-2xl shadow">
+            <div className="h-full p-6 bg-white rounded-2xl shadow flex flex-col">
               <div className="mb-4">
                 <h2 className="text-2xl font-semibold">
                   {projectName} {hasProject ? "" : "(unsaved)"}
@@ -210,27 +189,30 @@ export default function WorkspacePage() {
                   BPM: {bpm} • Tracks: {tracks.length}
                 </p>
               </div>
-
-              <MidiEditorCore
-                projectId={projectId ?? -1}
-                bpm={bpm}
-                initialTracks={tracks}
-                onChange={handleEditorChange}
-                onSave={handleSave}
-              />
+              <div className="flex-1 min-h-0">
+                <MidiEditorCore
+                  projectId={projectId ?? -1}
+                  bpm={bpm}
+                  initialTracks={tracks}
+                  onChange={handleEditorChange}
+                  onSave={handleSave}
+                />
+              </div>
             </div>
           </div>
 
-          {/* RIGHT: AI tools */}
-          <aside className="col-span-4 min-h-0 bg-white rounded-2xl shadow p-4 flex flex-col">
-            <h3 className="text-xl font-semibold mb-3">AI Tools</h3>
+          {/* Right: AI tools */}
+          <aside className="col-span-4 min-h-0">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold text-gray-700">AI Tools</h3>
+            </div>
 
-            <div className="flex items-center space-x-2 mb-4">
+            <div className="flex items-center gap-2 mb-3">
               {(["Generate", "Modify", "Style"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setAiTab(t)}
-                  className={`px-3 py-1 rounded ${
+                  className={`px-3 py-1 rounded-full text-xs ${
                     aiTab === t
                       ? "bg-teal-500 text-white"
                       : "bg-gray-100 hover:bg-gray-200"
@@ -241,7 +223,7 @@ export default function WorkspacePage() {
               ))}
             </div>
 
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-auto min-h-[180px]">
               {aiTab === "Generate" && <AIGenerate />}
               {aiTab === "Modify" && <AIModify />}
               {aiTab === "Style" && <AIStyleTransfer />}

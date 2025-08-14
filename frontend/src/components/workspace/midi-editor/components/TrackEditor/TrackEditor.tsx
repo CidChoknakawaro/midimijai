@@ -6,6 +6,7 @@ import { importMidiFile } from "../../core/importMidi";
 import { getActiveNotesAtBeat } from "../../core/midiUtils";
 import { TransportContext } from "../../core/TransportContext";
 import { subscribe, EditorCommand } from "../../core/editorBus";
+import { ChevronLeft, Upload, Music4, FileDown } from "lucide-react";
 
 const MAX_BEAT = 63;
 const BUILT_IN_INSTRUMENTS = ["Piano", "Synth", "AMSynth", "MembraneSynth"];
@@ -240,69 +241,84 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
 
   return (
     <div style={{ padding: 10, overflowY: "auto" }}>
-      <button onClick={goBack}>🔙 Back to Tracks</button>
-      <h2>{track.name}</h2>
+      <div className="px-4 py-3 space-y-4">
+  {/* Header */}
+  <div className="flex items-center justify-between">
+    <button
+      onClick={goBack}
+      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border hover:bg-gray-50"
+    >
+      <ChevronLeft className="w-4 h-4" />
+      <span>Back to Tracks</span>
+    </button>
 
-      <div style={{ display: "flex", gap: 20, marginBottom: 10, flexWrap: "wrap" }}>
-        <div>
-          <label><strong>Zoom:</strong></label>{" "}
-          <select value={zoomLevel} onChange={(e) => setZoomLevel(Number(e.target.value) as 1|2|4)}>
-            <option value={1}>1/4</option>
-            <option value={2}>1/8</option>
-            <option value={4}>1/16</option>
-          </select>
-        </div>
+    <h2 className="text-xl font-semibold truncate">{track.name}</h2>
+  </div>
 
-        <label>
-          <input
-            type="checkbox"
-            checked={snapToGrid}
-            onChange={(e) => setSnapToGrid(e.target.checked)}
-          />{" "}
-          Snap to Grid
-        </label>
+  {/* Toolbar */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    {/* Zoom */}
+    <div className="flex items-center gap-2">
+      <span className="text-sm font-medium">Zoom:</span>
+      <select
+        value={zoomLevel}
+        onChange={(e) => setZoomLevel(Number(e.target.value) as 1 | 2 | 4)}
+        className="px-2 py-1 border rounded-md text-sm"
+      >
+        <option value={1}>1/4</option>
+        <option value={2}>1/8</option>
+        <option value={4}>1/16</option>
+      </select>
+      <label className="ml-3 inline-flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          className="accent-teal-500"
+          checked={snapToGrid}
+          onChange={(e) => setSnapToGrid(e.target.checked)}
+        />
+        Snap to Grid
+      </label>
+    </div>
 
-        <div>
-          <label><strong>Instrument:</strong></label>{" "}
-          <select
-            value={track.instrument}
-            onChange={(e) => updateTrack({ instrument: e.target.value })}
-          >
-            {BUILT_IN_INSTRUMENTS.map((inst) => (
-              <option key={inst} value={inst}>{inst}</option>
-            ))}
-            {track.customSoundUrl && (
-              <option value={track.instrument}>{track.instrument}</option>
-            )}
-          </select>
-          <input
-            type="file"
-            accept=".mp3,.wav"
-            onChange={handleUploadSound}
-            style={{ marginLeft: 10 }}
-          />
-          {track.instrument.startsWith("Imported:") && track.customSoundUrl && (
-            <button onClick={testImportedSound} style={{ marginLeft: 10 }}>
-              🔊 Test Sound
-            </button>
+    {/* Instrument */}
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-sm font-medium">Instrument:</span>
+      <div className="flex items-center gap-2">
+        <Music4 className="w-4 h-4 text-gray-500" />
+        <select
+          value={track.instrument}
+          onChange={(e) => updateTrack({ instrument: e.target.value })}
+          className="px-2 py-1 border rounded-md text-sm"
+        >
+          {BUILT_IN_INSTRUMENTS.map((inst) => (
+            <option key={inst} value={inst}>
+              {inst}
+            </option>
+          ))}
+          {track.customSoundUrl && (
+            <option value={track.instrument}>{track.instrument}</option>
           )}
-        </div>
-
-        <div>
-          <button onClick={() => exportMidi(track.notes, bpm)}>Export MIDI</button>{" "}
-          <input
-            type="file"
-            accept=".mid"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                const result = await importMidiFile(file);
-                updateTrack({ notes: result.notes });
-              }
-            }}
-          />
-        </div>
+        </select>
       </div>
+
+      
+    </div>
+
+    {/* MIDI Import */}
+    
+
+    {/* MIDI Export */}
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => exportMidi(track.notes, bpm)}
+        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border hover:bg-gray-50 text-sm"
+      >
+        <FileDown className="w-4 h-4" />
+        Export MIDI
+      </button>
+    </div>
+  </div>
+</div>
 
       <PianoRoll
         notes={track.notes}

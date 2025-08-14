@@ -111,3 +111,16 @@
   border-top: 1px solid #ddd;  /* ✅ This replaces row border */
   box-sizing: border-box;
 }
+
+/* ruler */
+.pr-ruler { color:#9aa3af; }
+
+/* bar lines */
+.pr-bar { border-left:1px solid #e5e7eb; }
+.pr-bar-strong { border-left:1px solid #cbd5e1; }
+
+/* note label column */
+.pr-key { color:#6b7280; }
+
+/* notes */
+.pr-note { border-radius:4px; }

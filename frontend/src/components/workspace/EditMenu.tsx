@@ -35,7 +35,7 @@ const EditMenu: React.FC<EditMenuProps> = ({
   ] as const;
 
   return (
-    <div className="absolute left-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+    <div className="mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg">
       {items.map((item, i) =>
         "separator" in item ? (
           <div key={i} className="border-t border-gray-200 my-1" />

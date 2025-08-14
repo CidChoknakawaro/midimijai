@@ -110,7 +110,7 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
   return (
     <TransportProvider>
       <div className="flex flex-col h-full bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           {activeTrack ? (
             <TrackEditor
               ref={editorRef}
