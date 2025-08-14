@@ -2,7 +2,14 @@ import React from "react";
 
 const GuestLogin: React.FC = () => {
   return (
-    <button className="w-full p-2 mt-2 bg-gray-400 text-white rounded">
+    <button
+      className="
+        w-full h-11 mt-3 rounded-md
+        bg-black/20 text-black font-medium
+        hover:bg-black/25 transition
+      "
+      type="button"
+    >
       Continue as Guest
     </button>
   );

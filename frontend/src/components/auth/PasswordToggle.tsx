@@ -1,23 +1,38 @@
 import React, { useState } from "react";
 
-interface PasswordToggleProps {
+interface Props {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (v: string) => void;
+  placeholder?: string;
 }
 
-const PasswordToggle: React.FC<PasswordToggleProps> = ({ value, onChange }) => {
-  const [showPassword, setShowPassword] = useState(false);
-
+const PasswordToggle: React.FC<Props> = ({ value, onChange, placeholder = "Password" }) => {
+  const [show, setShow] = useState(false);
   return (
-    <div className="flex border border-gray-300 rounded mb-2">
-      <input
-        type={showPassword ? "text" : "password"}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full p-2"
-      />
-      <button onClick={() => setShowPassword(!showPassword)}>👁</button>
-    </div>
+    <label className="block mb-2">
+      <span className="block text-xs text-black/60 mb-1">{placeholder}</span>
+      <div className="relative">
+        <input
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="
+            w-full bg-white/80 px-3 py-2 rounded-lg
+            border border.black/20 focus:outline-none
+            focus:border.black/60 placeholder:text-black/40
+          "
+        />
+        <button
+          type="button"
+          onClick={() => setShow((s) => !s)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-black/60 hover:text-black"
+          aria-label={show ? "Hide password" : "Show password"}
+        >
+          {show ? "🙈" : "👁️"}
+        </button>
+      </div>
+    </label>
   );
 };
 

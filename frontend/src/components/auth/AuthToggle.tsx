@@ -2,24 +2,36 @@ import React from "react";
 
 interface AuthToggleProps {
   isLogin: boolean;
-  setIsLogin: (value: boolean) => void;
+  setIsLogin: (v: boolean) => void;
 }
 
 const AuthToggle: React.FC<AuthToggleProps> = ({ isLogin, setIsLogin }) => {
   return (
-    <div className="flex mb-4">
-      <button
-        className={`w-1/2 py-2 ${isLogin ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-        onClick={() => setIsLogin(true)}
-      >
-        Log in
-      </button>
-      <button
-        className={`w-1/2 py-2 ${!isLogin ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-        onClick={() => setIsLogin(false)}
-      >
-        Sign up
-      </button>
+    <div className="w-full">
+      <div className="grid grid-cols-2 rounded-xl overflow-hidden bg-white/60 border border-black/10">
+        <button
+          onClick={() => setIsLogin(false)}
+          className={
+            "py-2.5 text-sm sm:text-base transition " +
+            (!isLogin
+              ? "bg-[#ff7a00] text-black font-semibold"
+              : "text-black/70 hover:bg-black/5")
+          }
+        >
+          Sign up
+        </button>
+        <button
+          onClick={() => setIsLogin(true)}
+          className={
+            "py-2.5 text-sm sm:text-base transition " +
+            (isLogin
+              ? "bg-[#ff7a00] text-black font-semibold"
+              : "text-black/70 hover:bg.black/5")
+          }
+        >
+          Log in
+        </button>
+      </div>
     </div>
   );
 };
