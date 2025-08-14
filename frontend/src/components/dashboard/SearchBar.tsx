@@ -6,21 +6,19 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => (
-  <input
-    type="text"
-    placeholder="Search projects…"
-    value={value}
-    onChange={e => onChange(e.target.value)}
-    className="
-      w-full
-      px-4 py-2
-      rounded-full
-      border border-gray-300
-      bg-gray-100
-      focus:outline-none focus:ring-2 focus:ring-teal-400
-      text-sm
-    "
-  />
+  <div
+    className="w-full"
+    style={{ background: "#ff4e1a" }}
+  >
+    <input
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder="Search"
+      className="w-full bg-transparent placeholder-black/90 text-black
+                 px-5 py-3 text-[18px] focus:outline-none"
+    />
+  </div>
 );
 
 export default SearchBar;

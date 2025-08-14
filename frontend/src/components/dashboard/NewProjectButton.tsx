@@ -1,5 +1,4 @@
 import React from "react";
-import { Plus } from "lucide-react";
 import { useProjects } from "../../hooks/useProjects";
 
 const NewProjectButton: React.FC = () => {
@@ -16,18 +15,15 @@ const NewProjectButton: React.FC = () => {
     <button
       onClick={handleClick}
       className="
-        flex items-center space-x-2
-        px-6 py-3
-        bg-teal-400 hover:bg-teal-500
-        text-black font-semibold
-        rounded-full shadow
-        text-sm
+        inline-flex items-center justify-center
+        h-14 px-10
+        text-black text-lg
+        hover:brightness-110 active:translate-y-px transition
       "
+      style={{ background: "#ff4e1a" }}
     >
-      <div className="bg-white rounded-full p-1">
-        <Plus className="w-4 h-4" />
-      </div>
-      <span>Create new project</span>
+      <span className="text-2xl mr-3">＋</span>
+      Create new project
     </button>
   );
 };
