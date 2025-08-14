@@ -115,15 +115,17 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
 
   return (
     <TransportProvider>
-      <div className="flex flex-col h-full bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="flex-1 min-h-0 overflow-y-auto">
+ <div className="flex flex-col h-full bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden">
           {activeTrack ? (
+            <div className="max-h-[420px] overflow-y-auto">
             <TrackEditor
               ref={editorRef}
               track={activeTrack}
               updateTrack={(u) => updateTrack(activeTrack.id, u)}
               goBack={() => setActiveTrackId(null)}
             />
+            </div>
           ) : (
             <TrackDashboard
               tracks={tracks}

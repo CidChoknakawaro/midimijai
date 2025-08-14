@@ -11,10 +11,7 @@ const SoundLibraryMenu: React.FC<SoundLibraryMenuProps> = ({
   onUploadSound,
 }) => {
   const items = [
-    { label: "Upload sound…", action: onUploadSound },
-    // Future:
-    // { label: "Favorites", action: () => {} },
-    // { label: "Manage libraries…", action: () => {} },
+    { label: "Import sound…", action: onUploadSound },
   ] as const;
 
   return (

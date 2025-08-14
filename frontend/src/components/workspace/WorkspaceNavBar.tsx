@@ -53,7 +53,7 @@ const WorkspaceNavBar: React.FC<Props> = ({
   };
 
   return (
-    <div ref={ref} className="sticky top-0 z-40 bg-white shadow-sm">
+    <div ref={ref} className="relative bg-white shadow-sm">
       {/* Top row */}
       <div className="flex items-center justify-between px-6 h-12">
         <div className="flex items-center gap-4">
@@ -89,8 +89,17 @@ const WorkspaceNavBar: React.FC<Props> = ({
                       onOpen={onOpen}
                       onSave={onSave}
                       onSaveAs={onSaveAs}
-                      onImportMidi={onImportMidi}
-                      onExportMidi={onExportMidi}
+                      // Import MIDI -> publish to editor
+                      onImportMidi={(file) => {
+                        publish({ type: "IMPORT_MIDI_FILE", file });
+                        // still bubble if caller cares
+                        onImportMidi?.(file);
+                      }}
+                      // Export MIDI -> publish to editor
+                      onExportMidi={() => {
+                        publish({ type: "EXPORT_MIDI" });
+                        onExportMidi?.();
+                      }}
                       onExportStems={onExportStems}
                       onClose={onClose}
                     />
@@ -167,11 +176,10 @@ const WorkspaceNavBar: React.FC<Props> = ({
         </button>
       </div>
 
-      {/* Sound Library Modal (upload flow) */}
+      {/* Sound Library Modal (upload / imported sounds) */}
       <SoundLibraryModal
         isOpen={libraryOpen}
         onClose={() => setLibraryOpen(false)}
-        onImportSample={onImportMidi}
       />
     </div>
   );

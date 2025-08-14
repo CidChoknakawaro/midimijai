@@ -242,6 +242,7 @@ const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack,delet
                   <label className="slider-row">
                     <span>Volume</span>
                     <input
+                      className="range volume"
                       type="range"
                       min={0}
                       max={100}
@@ -252,6 +253,7 @@ const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack,delet
                   <label className="slider-row">
                     <span>Pan</span>
                     <input
+                      className="range pan"
                       type="range"
                       min={-1}
                       max={1}

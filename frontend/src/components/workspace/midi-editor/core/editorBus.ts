@@ -1,6 +1,5 @@
-// src/components/workspace/midi-editor/core/editorBus.ts
-
-export type EditorCommand =
+// frontend/src/components/workspace/midi-editor/core/editorBus.ts
+type EditorCommand =
   | { type: "UNDO" }
   | { type: "REDO" }
   | { type: "CUT" }
@@ -8,10 +7,6 @@ export type EditorCommand =
   | { type: "PASTE" }
   | { type: "DELETE" }
   | { type: "SELECT_ALL" }
-  | { type: "SET_ZOOM"; value: 1 | 2 | 4 }
-  | { type: "TOGGLE_SNAP" }
-  | { type: "EXPORT_MIDI" }
-  | { type: "IMPORT_MIDI_FILE"; file: File }
   | { type: "TRANSPOSE" }
   | { type: "VELOCITY" }
   | { type: "NOTE_LENGTH" }
@@ -19,33 +14,19 @@ export type EditorCommand =
   | { type: "ARPEGGIATE" }
   | { type: "STRUM" }
   | { type: "LEGATO" }
-  | { type: "OPEN_AUDIO_ENGINE" }
-  | { type: "OPEN_MIDI_INPUT" }
-  | { type: "OPEN_SHORTCUTS" }
-  | { type: "OPEN_GRID_SETTINGS" }
-  | { type: "OPEN_LATENCY_SETTINGS" };
+  | { type: "IMPORT_SAMPLE"; file: File };   // <- NEW
 
-type Subscriber = (cmd: EditorCommand) => void;
-
-const subs = new Set<Subscriber>();
+const bus = new EventTarget();
 
 export function publish(cmd: EditorCommand) {
-  subs.forEach((fn) => {
-    try {
-      fn(cmd);
-    } catch (e) {
-      console.error("[editorBus] subscriber error:", e);
-    }
-  });
+  bus.dispatchEvent(new CustomEvent("cmd", { detail: cmd }));
 }
 
-export function subscribe(fn: Subscriber) {
-  subs.add(fn);
-  return () => subs.delete(fn);
+export function subscribe(fn: (cmd: EditorCommand) => void) {
+  const handler = (e: Event) => {
+    const ce = e as CustomEvent<EditorCommand>;
+    fn(ce.detail);
+  };
+  bus.addEventListener("cmd", handler);
+  return () => bus.removeEventListener("cmd", handler);
 }
-
-// ✅ Compatibility alias so older code can still import this name
-export const postEditorCommand = publish;
-
-const editorBus = { publish, subscribe };
-export default editorBus;

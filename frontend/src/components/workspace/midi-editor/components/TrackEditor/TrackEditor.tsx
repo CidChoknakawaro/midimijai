@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import PianoRoll from "../PianoRoll/PianoRoll";
 import * as Tone from "tone";
 import { exportMidi } from "../../core/exportMidi";
@@ -6,7 +6,7 @@ import { importMidiFile } from "../../core/importMidi";
 import { getActiveNotesAtBeat } from "../../core/midiUtils";
 import { TransportContext } from "../../core/TransportContext";
 import { subscribe, EditorCommand } from "../../core/editorBus";
-import { ChevronLeft, Upload, Music4, FileDown } from "lucide-react";
+import { ChevronLeft, Music4, FileDown } from "lucide-react";
 
 const MAX_BEAT = 63;
 const BUILT_IN_INSTRUMENTS = ["Piano", "Synth", "AMSynth", "MembraneSynth"];
@@ -26,11 +26,18 @@ type Props = {
 };
 
 const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
-  const { bpm, isPlaying, playheadBeat, setPlayheadBeat } =
-    useContext(TransportContext);
-
-  const [zoomLevel, setZoomLevel] = useState<1 | 2 | 4>(1);
-  const [snapToGrid, setSnapToGrid] = useState(true);
+  const {
+    // transport
+    bpm,
+    isPlaying,
+    playheadBeat,
+    setPlayheadBeat,
+    // global zoom/snap from context
+    zoom,                 // 1 | 2 | 4  (1→1/4, 2→1/8, 4→1/16)
+    setZoomLevel,         // (z) => void
+    snapToGrid,           // boolean
+    toggleSnap,           // () => void
+  } = useContext(TransportContext);
 
   const playheadRef = useRef<HTMLDivElement>(null);
   const synthRef = useRef<any>(null);
@@ -38,7 +45,8 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
   const animationRef = useRef<number>();
   const activeNotes = useRef<Set<string>>(new Set());
 
-  const gridWidth = 40 * zoomLevel;
+  // ✅ grid width now follows GLOBAL zoom
+  const gridWidth = 40 * zoom;
 
   // Audio-timing reference
   const audioStartTimeRef = useRef<number | null>(null);
@@ -116,10 +124,10 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
     const unsub = subscribe(async (cmd: EditorCommand) => {
       switch (cmd.type) {
         case "SET_ZOOM":
-          setZoomLevel(cmd.value);
+          setZoomLevel(cmd.value as 1 | 2 | 4);
           break;
         case "TOGGLE_SNAP":
-          setSnapToGrid((s) => !s);
+          toggleSnap();
           break;
         case "EXPORT_MIDI":
           exportMidi(track.notes, bpm);
@@ -128,38 +136,17 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
           const file = cmd.file;
           if (file) {
             const result = await importMidiFile(file);
-            // If your import returns bpm, you can decide whether to update bpm via context elsewhere
             updateTrack({ notes: result.notes });
           }
           break;
         }
-
-        // Tools — leave as stubs for now, or plug in your actual transforms:
-        case "TRANSPOSE":
-        case "VELOCITY":
-        case "NOTE_LENGTH":
-        case "HUMANIZE":
-        case "ARPEGGIATE":
-        case "STRUM":
-        case "LEGATO":
-        case "OPEN_AUDIO_ENGINE":
-        case "OPEN_MIDI_INPUT":
-        case "OPEN_SHORTCUTS":
-        case "OPEN_GRID_SETTINGS":
-        case "OPEN_LATENCY_SETTINGS":
-        case "UNDO":
-        case "REDO":
-        case "CUT":
-        case "COPY":
-        case "PASTE":
-        case "DELETE":
-        case "SELECT_ALL":
-          console.log("[editorBus] command received:", cmd.type);
+        default:
+          // other editor commands…
           break;
       }
     });
     return unsub;
-  }, [track.notes, bpm, updateTrack]);
+  }, [bpm, setZoomLevel, toggleSnap, track.notes, updateTrack]);
 
   // ---------- note trigger helpers ----------
   const triggerNotesAt = (beat: number) => {
@@ -222,103 +209,22 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
     updatePlayhead(beat);
   };
 
-  // ---------- UI helpers that remain local ----------
-  const handleUploadSound = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      const name = `Imported: ${file.name}`;
-      updateTrack({ instrument: name, customSoundUrl: url });
-    }
-  };
-
-  const testImportedSound = async () => {
-    if (!track.instrument.startsWith("Imported:") || !track.customSoundUrl) return;
-    const player = new Tone.Player(track.customSoundUrl).toDestination();
-    await Tone.start();
-    player.autostart = true;
-  };
-
   return (
     <div style={{ padding: 10, overflowY: "auto" }}>
       <div className="px-4 py-3 space-y-4">
-  {/* Header */}
-  <div className="flex items-center justify-between">
-    <button
-      onClick={goBack}
-      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border hover:bg-gray-50"
-    >
-      <ChevronLeft className="w-4 h-4" />
-      <span>Back to Tracks</span>
-    </button>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={goBack}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border hover:bg-gray-50"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Back to Tracks</span>
+          </button>
 
-    <h2 className="text-xl font-semibold truncate">{track.name}</h2>
-  </div>
-
-  {/* Toolbar */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-    {/* Zoom */}
-    <div className="flex items-center gap-2">
-      <span className="text-sm font-medium">Zoom:</span>
-      <select
-        value={zoomLevel}
-        onChange={(e) => setZoomLevel(Number(e.target.value) as 1 | 2 | 4)}
-        className="px-2 py-1 border rounded-md text-sm"
-      >
-        <option value={1}>1/4</option>
-        <option value={2}>1/8</option>
-        <option value={4}>1/16</option>
-      </select>
-      <label className="ml-3 inline-flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          className="accent-teal-500"
-          checked={snapToGrid}
-          onChange={(e) => setSnapToGrid(e.target.checked)}
-        />
-        Snap to Grid
-      </label>
-    </div>
-
-    {/* Instrument */}
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm font-medium">Instrument:</span>
-      <div className="flex items-center gap-2">
-        <Music4 className="w-4 h-4 text-gray-500" />
-        <select
-          value={track.instrument}
-          onChange={(e) => updateTrack({ instrument: e.target.value })}
-          className="px-2 py-1 border rounded-md text-sm"
-        >
-          {BUILT_IN_INSTRUMENTS.map((inst) => (
-            <option key={inst} value={inst}>
-              {inst}
-            </option>
-          ))}
-          {track.customSoundUrl && (
-            <option value={track.instrument}>{track.instrument}</option>
-          )}
-        </select>
+          <h2 className="text-xl font-semibold truncate">{track.name}</h2>
+        </div>
       </div>
-
-      
-    </div>
-
-    {/* MIDI Import */}
-    
-
-    {/* MIDI Export */}
-    <div className="flex items-center gap-2">
-      <button
-        onClick={() => exportMidi(track.notes, bpm)}
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border hover:bg-gray-50 text-sm"
-      >
-        <FileDown className="w-4 h-4" />
-        Export MIDI
-      </button>
-    </div>
-  </div>
-</div>
 
       <PianoRoll
         notes={track.notes}
