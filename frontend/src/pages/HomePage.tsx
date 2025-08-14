@@ -1,15 +1,13 @@
 import React from "react";
-import Navbar from "../components/home/NavBar";
-import HeroSection from "../components/home/HeroSection";
 import FeatureList from "../components/home/FeatureList";
 import StepGuide from "../components/home/StepGuide";
 import UserTypes from "../components/home/UserTypes";
 import Footer from "../components/home/Footer";
+import HeroSection from "../components/home/HeroSection";
 
 const HomePage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-[#F7F1EA] text-[#1c1917]">
-      <Navbar />
+    <div className="min-h-screen bg-[#fbf5ee]">
       <HeroSection />
       <FeatureList />
       <StepGuide />

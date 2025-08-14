@@ -1,1 +1,26 @@
+/* 1) Fonts FIRST */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* 2) Tailwind (or @tailwind directives) */
 @import "tailwindcss";
+/* 3) Your custom rules AFTER all @imports/@tailwind */
+:root {
+  --app-font: 'Poppins', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+html, body, #root {
+  height: 100%;
+  font-family: var(--app-font);
+}
+
+/* helpers used earlier */
+.plate-glow {
+  box-shadow:
+    0 28px 48px -18px rgba(0,0,0,.45),
+    0 0 28px 8px rgba(255,255,255,.85);
+}
+.text-glow-white {
+  text-shadow:
+    0 0 10px rgba(255,255,255,.95),
+    0 0 18px rgba(255,255,255,.65);
+}

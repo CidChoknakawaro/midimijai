@@ -28,6 +28,7 @@ src/
             FeatureCard.tsx
             FeatureList.tsx
             Footer.tsx
+            HeroSection.css
             HeroSection.tsx
             NavBar.tsx
             StepGuide.tsx
@@ -53,6 +54,7 @@ src/
             FileMenu.tsx
             MIDIToolsMenu.tsx
             SettingsMenu.tsx
+            SoundLibraryMenu.tsx
             SoundLibraryModal.tsx
             WorkspaceNavBar.tsx
             midi-editor/
@@ -684,60 +686,68 @@ const features = [
   {
     title: "AI-powered MIDI generation",
     description:
-      "Generate unique melodies, chord progressions, and rhythms instantly with AI. Just type a prompt or select a style, and let MIDIMIJAI do the rest.",
+      "Generate melodies, chords, and rhythms from a simple prompt. Pick a style or vibe—let AI draft your starting point in seconds.",
   },
   {
-    title: "Deep MIDI editing",
+    title: "Precise MIDI editing",
     description:
-      "Manually fine-tune every MIDI note with powerful editing tools. Change timing, note length, velocity, or add advanced musical techniques.",
+      "Adjust note length, timing, velocity, and articulation with snap-to-grid and power tools.",
   },
   {
-    title: "Import and edit multiple MIDI files",
+    title: "Import & refine MIDI",
     description:
-      "Load multiple MIDI files into the workspace, edit them side by side, and create a seamless composition.",
+      "Bring in your .mid files, combine, clean up, and create multi‑track arrangements.",
   },
   {
-    title: "Assign custom sound libraries",
+    title: "Assign custom sounds",
     description:
-      "Use your own samples and virtual instruments. Assign custom sounds to tracks for more control over your MIDI compositions.",
+      "Use your own samples or instruments for each track to nail the exact tone.",
   },
 ];
 
 const FeatureList: React.FC = () => {
-  const [selectedFeatureIndex, setSelectedFeatureIndex] = useState<number | null>(0);
+  const [openIndex, setOpenIndex] = useState<number>(0);
 
   return (
-    <section className="py-10 px-4 max-w-6xl mx-auto">
-      <h2 className="text-3xl font-bold mb-6 text-center">What can you do with MIDIMIJAI?</h2>
+    <section className="px-4 sm:px-6 lg:px-10 pt-10 sm:pt-14">
+      <h2 className="text-[28px] sm:text-[34px] font-extrabold tracking-tight mb-6">
+        <span className="text-[#1b1b1b]/80">What</span>{" "}
+        <span className="text-[#ff5200]">can MIDIMIJAI</span>{" "}
+        <span className="text-[#1b1b1b]/80">do?</span>
+      </h2>
 
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* LEFT: Dropdown Accordion List */}
-        <ul className="flex-1">
-          {features.map((feature, index) => (
-            <li
-              key={index}
-              className="border-b py-4 cursor-pointer"
-              onClick={() =>
-                setSelectedFeatureIndex(index === selectedFeatureIndex ? null : index)
-              }
-            >
-              <div className="flex justify-between items-center font-semibold text-lg">
-                <span>{feature.title}</span>
-                <span>{selectedFeatureIndex === index ? "▲" : "▼"}</span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        {/* Left: accordion cards */}
+        <div className="space-y-4">
+          {features.map((f, i) => {
+            const open = i === openIndex;
+            return (
+              <div
+                key={f.title}
+                className="bg-white border border-black/10 rounded-xl shadow-sm overflow-hidden"
+              >
+                <button
+                  className="w-full flex items-center justify-between text-left px-5 py-4"
+                  onClick={() => setOpenIndex(open ? -1 : i)}
+                >
+                  <span className="font-semibold text-[17px]">{f.title}</span>
+                  <span className="text-xl select-none">{open ? "▲" : "▼"}</span>
+                </button>
+                {open && (
+                  <div className="px-5 pb-5 -mt-1 text-[15px] text-[#1b1b1b]/70">
+                    {f.description}
+                  </div>
+                )}
               </div>
-              {selectedFeatureIndex === index && (
-                <p className="mt-2 text-gray-600">{feature.description}</p>
-              )}
-            </li>
-          ))}
-        </ul>
+            );
+          })}
+        </div>
 
-        {/* RIGHT: Video Placeholder */}
-        <div className="flex-1 flex items-start justify-center">
-          <div className="w-full h-64 bg-gray-300 flex items-center justify-center text-gray-600 text-sm rounded border">
-            {selectedFeatureIndex !== null
-              ? `[Video for: ${features[selectedFeatureIndex].title}]`
-              : `[No feature selected]`}
+        {/* Right: demo placeholder with beige blob behind */}
+        <div className="relative">
+          <div className="absolute -top-10 -right-6 w-64 h-40 bg-[#decab2] rounded-[32px] shadow-[0_16px_40px_rgba(0,0,0,0.1)] -z-10" />
+          <div className="w-full h-64 sm:h-72 bg-white border border-black/10 rounded-2xl flex items-center justify-center text-sm text-black/50 shadow-sm">
+            [Demo clip area]
           </div>
         </div>
       </div>
@@ -746,6 +756,7 @@ const FeatureList: React.FC = () => {
 };
 
 export default FeatureList;
+
 
 --------------------------------------------------
 File End
@@ -758,19 +769,103 @@ import React from "react";
 
 const Footer: React.FC = () => {
   return (
-    <footer className="py-6 bg-gray-900 text-white text-center text-sm px-4">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
-        <div><h4 className="font-bold">Company</h4><p>About Us</p><p>Contact</p></div>
-        <div><h4 className="font-bold">Platform</h4><p>Pricing</p><p>FAQs</p></div>
-        <div><h4 className="font-bold">Support</h4><p>Terms of Service</p></div>
-        <div><h4 className="font-bold">Legal</h4><p>Privacy Policy</p><p>Cookie Policy</p></div>
+    <footer className="mt-10 bg-[#efe6dc]">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-[13px]">
+          <div>
+            <h4 className="font-semibold mb-2">Company</h4>
+            <p>About us</p>
+            <p>Contact</p>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-2">Platform</h4>
+            <p>Pricing</p>
+            <p>FAQs</p>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-2">Support</h4>
+            <p>Terms of Service</p>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-2">Legal & Policies</h4>
+            <p>Privacy Policy</p>
+            <p>Cookie Policy</p>
+            <p>User Agreements</p>
+          </div>
+        </div>
+        <p className="text-[12px] text-black/60 mt-6">
+          © {new Date().getFullYear()} MIDIMIJAI. All rights reserved.
+        </p>
       </div>
-      <p className="mt-6">&copy; 2025 MIDIMIJAI. All rights reserved.</p>
     </footer>
   );
 };
 
 export default Footer;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\home\HeroSection.css
+File type: .css
+/* HeroSection.css */
+.hero {
+  position: relative;
+  width: 100%;
+  background-color: #e2cfb5; /* exact design color */
+  text-align: center;
+  padding: 3rem 1rem 6rem;
+  overflow: hidden;
+}
+
+.hero-logo {
+  width: 280px; /* bigger logo */
+  margin-bottom: 1.5rem;
+}
+
+.hero-text-box {
+  background-color: #e9dbc7;
+  display: inline-block;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  margin-bottom: 1.5rem;
+  max-width: 700px;
+}
+
+.hero-text-box p {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.hero-btn {
+  background-color: #ff5a00;
+  color: white;
+  font-size: 1.1rem;
+  padding: 0.75rem 2rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.hero-btn:hover {
+  background-color: #e84f00;
+}
+
+.hero-wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 120px;
+  background: url('/wave-shape.svg') no-repeat bottom;
+  background-size: cover;
+}
+
 
 --------------------------------------------------
 File End
@@ -785,16 +880,26 @@ import { useNavigate } from "react-router-dom";
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
 
-  const handleLoginClick = () => {
-    navigate("/auth");
-  };
-
   return (
-    <nav className="w-full p-4 bg-gray-900 text-white flex justify-between items-center px-8">
-      <button className="border px-3 py-1 rounded">EN | TH</button>
-      <button onClick={handleLoginClick} className="p-2 border border-white rounded">
-        Login
-      </button>
+    <nav className="w-full flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
+      {/* Logo tiny (top-left corner like figma) */}
+      <img
+        src="/MIDIMIJAI-LOGO.png"
+        alt="MIDIMIJAI"
+        className="h-5 w-auto"
+      />
+
+      <div className="flex items-center gap-2 sm:gap-3">
+        <button className="text-xs sm:text-[12px] border border-[#1b1b1b] rounded-md px-3 py-1 bg-white/60">
+          EN / TH
+        </button>
+        <button
+          onClick={() => navigate("/auth")}
+          className="text-xs sm:text-[12px] border border-[#1b1b1b] rounded-md px-3 py-1 bg-white/60"
+        >
+          Login
+        </button>
+      </div>
     </nav>
   );
 };
@@ -814,62 +919,67 @@ import React, { useState } from "react";
 const steps = [
   {
     title: "Step 1: Type a prompt",
-    description:
-      "Use natural language to generate MIDI patterns. You can describe a mood, style, or musical idea, and the AI will generate a matching MIDI sequence.",
+    description: "Describe mood or style; AI drafts your MIDI idea.",
   },
   {
-    title: "Step 2: Modify in the MIDI Editor",
-    description:
-      "Once the AI generates your MIDI, you can tweak it using the editor. Adjust note timing, velocity, or structure to better fit your style.",
+    title: "Step 2: Refine in the editor",
+    description: "Edit notes, timing, and dynamics with precise tools.",
   },
   {
-    title: "Step 3: Import custom sound libraries",
-    description:
-      "Instead of using default MIDI instrument sounds, you can import and assign custom sound samples or virtual instruments.",
+    title: "Step 3: Assign custom sounds",
+    description: "Swap instruments or upload your own samples.",
   },
   {
-    title: "Step 4: Export and use in any DAW",
-    description:
-      "Once your MIDI is ready, export it and use it in any Digital Audio Workstation (DAW) like FL Studio, Ableton, or Logic Pro.",
+    title: "Step 4: Export",
+    description: "Download as .mid and use in any DAW.",
   },
 ];
 
 const StepGuide: React.FC = () => {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(0);
+  const [openIndex, setOpenIndex] = useState<number>(0);
 
   return (
-    <section className="py-10 px-4 max-w-6xl mx-auto">
-      <h2 className="text-3xl font-bold mb-6 text-center">Step-by-Step Guide</h2>
+    <section className="px-4 sm:px-6 lg:px-10 pt-14">
+      <div className="flex items-baseline gap-2 mb-6">
+        <h2 className="text-[28px] sm:text-[34px] font-extrabold">
+          Step <span className="text-[#1b1b1b]/80">by step</span>{" "}
+          <span className="text-[#ff5200]">Guide</span>
+        </h2>
+      </div>
 
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* LEFT: Step List */}
-        <ul className="flex-1">
-          {steps.map((step, index) => (
-            <li
-              key={index}
-              className="border-b py-4 cursor-pointer"
-              onClick={() =>
-                setSelectedIndex(selectedIndex === index ? null : index)
-              }
-            >
-              <div className="flex justify-between items-center font-semibold text-lg">
-                <span>{step.title}</span>
-                <span>{selectedIndex === index ? "▲" : "▼"}</span>
-              </div>
-              {selectedIndex === index && (
-                <p className="mt-2 text-gray-700">{step.description}</p>
-              )}
-            </li>
-          ))}
-        </ul>
-
-        {/* RIGHT: Video Placeholder */}
-        <div className="flex-1 flex items-start justify-center">
-          <div className="w-full h-64 bg-gray-300 flex items-center justify-center text-gray-600 text-sm rounded border">
-            {selectedIndex !== null
-              ? `[Video for: ${steps[selectedIndex].title}]`
-              : `[No step selected]`}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        {/* Left: mini-demo area with corner blob */}
+        <div className="relative">
+          <div className="absolute -top-10 -left-6 w-64 h-40 bg-[#decab2] rounded-[32px] shadow-[0_16px_40px_rgba(0,0,0,0.1)] -z-10" />
+          <div className="w-full h-72 bg-white border border-black/10 rounded-2xl flex items-center justify-center text-sm text-black/50 shadow-sm">
+            [Mini demo area]
           </div>
+        </div>
+
+        {/* Right: steps accordion */}
+        <div className="space-y-4">
+          {steps.map((s, i) => {
+            const open = i === openIndex;
+            return (
+              <div
+                key={s.title}
+                className="bg-white border border-black/10 rounded-xl shadow-sm overflow-hidden"
+              >
+                <button
+                  className="w-full flex items-center justify-between text-left px-5 py-4"
+                  onClick={() => setOpenIndex(open ? -1 : i)}
+                >
+                  <span className="font-semibold text-[17px]">{s.title}</span>
+                  <span className="text-xl select-none">{open ? "▲" : "▼"}</span>
+                </button>
+                {open && (
+                  <div className="px-5 pb-5 -mt-1 text-[15px] text-[#1b1b1b]/70">
+                    {s.description}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -877,6 +987,7 @@ const StepGuide: React.FC = () => {
 };
 
 export default StepGuide;
+
 
 --------------------------------------------------
 File End
@@ -887,53 +998,47 @@ src\components\home\UserTypes.tsx
 File type: .tsx
 import React from "react";
 
-const userTypes = [
+const cards = [
+  {
+    title: "For Beginners",
+    img: "/Beginner.png",
+    blurb: "Start quick with AI‑assisted ideas.",
+  },
   {
     title: "For Producers",
-    description: "Quickly generate MIDI ideas.",
-    colorTop: "#3BD6D6",
-    colorBottom: "white",
+    img: "/Producer.png",
+    blurb: "Draft hooks, chords, and beats faster.",
   },
   {
     title: "For Musicians",
-    description: "Use AI to build melodies & chords.",
-    colorTop: "#3BD6D6",
-    colorBottom: "#3BD6D6",
-  },
-  {
-    title: "For Beginners",
-    description: "Learn MIDI editing in an easy way.",
-    colorTop: "white",
-    colorBottom: "#3BD6D6",
+    img: "/Musician.png",
+    blurb: "Shape melodies and harmonies with precision.",
   },
 ];
 
 const UserTypes: React.FC = () => {
   return (
-    <section className="py-10 px-4">
-      <h2 className="text-3xl font-bold mb-6 text-center">Who is this for?</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        {userTypes.map((user, index) => (
-          <div
-            key={index}
-            className="p-6 border rounded-lg shadow-md flex flex-col items-center text-center"
-          >
-            {/* SVG Placeholder */}
-            <svg width="50" height="100" className="mb-4" viewBox="0 0 50 100">
-              <circle cx="25" cy="20" r="15" stroke="black" strokeWidth="2" fill={user.colorTop} />
-              <ellipse
-                cx="25"
-                cy="70"
-                rx="18"
-                ry="28"
-                stroke="black"
-                strokeWidth="2"
-                fill={user.colorBottom}
-              />
-            </svg>
+    <section className="px-4 sm:px-6 lg:px-10 pt-14 pb-6">
+      <h2 className="text-center text-[30px] sm:text-[36px] font-extrabold mb-8">
+        Who is this <span className="text-[#ff5200]">for?</span>
+      </h2>
 
-            <h3 className="text-xl font-bold">{user.title}</h3>
-            <p className="text-sm mt-2">{user.description}</p>
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        {cards.map((c) => (
+          <div
+            key={c.title}
+            className="bg-white rounded-2xl shadow-[0_12px_30px_rgba(255,122,0,0.15)] p-8 flex flex-col items-center text-center border border-black/5"
+          >
+            <div className="relative w-40 h-40 mb-5">
+              <div className="absolute inset-0 rounded-full bg-[#ff5200]/10 blur-2xl" />
+              <img
+                src={c.img}
+                alt={c.title}
+                className="relative mx-auto h-40 w-auto object-contain"
+              />
+            </div>
+            <h3 className="font-bold text-lg mb-1">{c.title}</h3>
+            <p className="text-sm text-black/60">{c.blurb}</p>
           </div>
         ))}
       </div>
@@ -942,6 +1047,7 @@ const UserTypes: React.FC = () => {
 };
 
 export default UserTypes;
+
 
 --------------------------------------------------
 File End
@@ -1601,7 +1707,7 @@ const EditMenu: React.FC<EditMenuProps> = ({
   ] as const;
 
   return (
-    <div className="absolute left-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+    <div className="mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg">
       {items.map((item, i) =>
         "separator" in item ? (
           <div key={i} className="border-t border-gray-200 my-1" />
@@ -1635,7 +1741,17 @@ File End
 
 src\components\workspace\FileMenu.tsx
 File type: .tsx
+// src/components/workspace/FileMenu.tsx
 import React from "react";
+
+type MenuItem =
+  | { separator: true }
+  | {
+      label: string;
+      action: () => void;
+      shortcut?: string;
+      disabled?: boolean;
+    };
 
 interface FileMenuProps {
   onSelect: () => void;                // closes the dropdown
@@ -1647,6 +1763,9 @@ interface FileMenuProps {
   onExportMidi: () => void;
   onExportStems: () => void;
   onClose: () => void;
+
+  /** If false, Import/Export MIDI are disabled (e.g., not in Track Editor). */
+  canUseTrackActions?: boolean;
 }
 
 export default function FileMenu({
@@ -1659,8 +1778,12 @@ export default function FileMenu({
   onExportMidi,
   onExportStems,
   onClose,
+  canUseTrackActions,
 }: FileMenuProps) {
-  const items = [
+  // default to true if not provided
+  const canUse = canUseTrackActions !== false;
+
+  const items: MenuItem[] = [
     { label: "New Project",    shortcut: "Ctrl+N",       action: onNew },
     { label: "Open Project…",  shortcut: "Ctrl+O",       action: onOpen },
     { separator: true },
@@ -1669,7 +1792,9 @@ export default function FileMenu({
     { separator: true },
     {
       label: "Import MIDI",
+      disabled: !canUse,
       action: () => {
+        if (!canUse) return;
         const inp = document.createElement("input");
         inp.type = "file";
         inp.accept = ".mid";
@@ -1679,28 +1804,42 @@ export default function FileMenu({
         inp.click();
       },
     },
-    { label: "Export MIDI",    action: onExportMidi },
-    { label: "Export Stems",   action: onExportStems },
+    {
+      label: "Export MIDI",
+      disabled: !canUse,
+      action: () => {
+        if (!canUse) return;
+        onExportMidi();
+      },
+    },
+    { label: "Export Stems", action: onExportStems },
     { separator: true },
-    { label: "Close Project",  action: onClose },
-  ] as const;
+    { label: "Close Project", action: onClose },
+  ];
 
   return (
     <div className="absolute left-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50">
       {items.map((item, i) =>
         "separator" in item ? (
-          <div key={i} className="border-t border-gray-200 my-1" />
+          <div key={`sep-${i}`} className="border-t border-gray-200 my-1" />
         ) : (
           <button
             key={item.label}
             onClick={() => {
+              if (item.disabled) return;
               item.action();
               onSelect();
             }}
-            className="flex justify-between w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
+            disabled={item.disabled}
+            className={
+              "flex justify-between w-full px-4 py-2 text-sm focus:outline-none " +
+              (item.disabled
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-700 hover:bg-gray-100")
+            }
           >
             <span>{item.label}</span>
-            {"shortcut" in item && item.shortcut && (
+            {item.shortcut && (
               <span className="text-xs text-gray-400">{item.shortcut}</span>
             )}
           </button>
@@ -1754,7 +1893,7 @@ const MIDIToolsMenu: React.FC<MIDIToolsMenuProps> = ({
   ] as const;
 
   return (
-    <div className="absolute left-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+    <div className="mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg">
       {items.map((item, i) =>
         "separator" in item ? (
           <div key={i} className="border-t border-gray-200 my-1" />
@@ -1783,6 +1922,116 @@ File End
 --------------------------------------------------
 
 
+src\components\workspace\SettingsMenu.tsx
+File type: .tsx
+// frontend/src/components/workspace/SettingsMenu.tsx
+import React from "react";
+
+interface SettingsMenuProps {
+  onSelect: () => void;
+  onKeyScaleLock: () => void;
+  onAudioEngine: () => void;
+  onMidiInput: () => void;
+  onShortcuts: () => void;
+  onGridSettings: () => void;
+  onLatency: () => void;
+}
+
+const SettingsMenu: React.FC<SettingsMenuProps> = ({
+  onSelect,
+  onKeyScaleLock,
+  onAudioEngine,
+  onMidiInput,
+  onShortcuts,
+  onGridSettings,
+  onLatency,
+}) => {
+  const items = [
+    { label: "Key / Scale Lock…", action: onKeyScaleLock },
+    { label: "Audio Engine…",     action: onAudioEngine },
+    { label: "MIDI Input…",       action: onMidiInput },
+    { separator: true },
+    { label: "Editor Shortcuts",  action: onShortcuts },
+    { label: "Grid / Snap",       action: onGridSettings },
+    { label: "Latency / Buffer",  action: onLatency },
+  ] as const;
+
+  return (
+    <div className="mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg">
+      {items.map((item, i) =>
+        "separator" in item ? (
+          <div key={i} className="border-t border-gray-200 my-1" />
+        ) : (
+          <button
+            key={item.label}
+            onClick={() => {
+              item.action();
+              onSelect();
+            }}
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            {item.label}
+          </button>
+        )
+      )}
+    </div>
+  );
+};
+
+export default SettingsMenu;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\workspace\SoundLibraryMenu.tsx
+File type: .tsx
+// frontend/src/components/workspace/SoundLibraryMenu.tsx
+import React from "react";
+
+interface SoundLibraryMenuProps {
+  onSelect: () => void;      // close dropdown
+  onUploadSound: () => void; // open modal
+}
+
+const SoundLibraryMenu: React.FC<SoundLibraryMenuProps> = ({
+  onSelect,
+  onUploadSound,
+}) => {
+  const items = [
+    { label: "Upload sound…", action: onUploadSound },
+    // Future:
+    // { label: "Favorites", action: () => {} },
+    // { label: "Manage libraries…", action: () => {} },
+  ] as const;
+
+  return (
+    <div className="mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg">
+      {items.map((item) => (
+        <button
+          key={item.label}
+          onClick={() => {
+            item.action();
+            onSelect();
+          }}
+          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+export default SoundLibraryMenu;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\workspace\WorkspaceNavBar.tsx
 File type: .tsx
 import React, { useState, useRef, useEffect } from "react";
@@ -1790,15 +2039,16 @@ import { ChevronLeft, ChevronRight, HelpCircle } from "lucide-react";
 
 import FileMenu from "./FileMenu";
 import EditMenu from "./EditMenu";
-import SoundLibraryModal from "./SoundLibraryModal";
+import SoundLibraryMenu from "./SoundLibraryMenu";
 import SettingsMenu from "./SettingsMenu";
 import MIDIToolsMenu from "./MIDIToolsMenu";
+import SoundLibraryModal from "./SoundLibraryModal";
 import { publish } from "./midi-editor/core/editorBus";
 
 const TABS = ["File", "Edit", "Sound Library", "Settings", "MIDI Tools"] as const;
 type Tab = typeof TABS[number];
 
-interface WorkspaceNavBarProps {
+type Props = {
   onNew: () => void;
   onOpen: () => void;
   onSave: () => void;
@@ -1807,9 +2057,9 @@ interface WorkspaceNavBarProps {
   onExportMidi: () => void;
   onExportStems: () => void;
   onClose: () => void;
-}
+};
 
-const WorkspaceNavBar: React.FC<WorkspaceNavBarProps> = ({
+const WorkspaceNavBar: React.FC<Props> = ({
   onNew,
   onOpen,
   onSave,
@@ -1823,7 +2073,7 @@ const WorkspaceNavBar: React.FC<WorkspaceNavBarProps> = ({
   const [libraryOpen, setLibraryOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // close dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -1835,17 +2085,15 @@ const WorkspaceNavBar: React.FC<WorkspaceNavBarProps> = ({
   }, []);
 
   const toggle = (tab: Tab) => {
-    if (tab === "Sound Library") {
-      setLibraryOpen((v) => !v);
-      return;
-    }
     setOpenDropdown((prev) => (prev === tab ? null : tab));
   };
 
   return (
     <div ref={ref} className="relative bg-white shadow-sm">
-      <div className="flex items-center justify-between px-6 py-2">
-        <div className="flex items-center space-x-4">
+      {/* Top row */}
+      <div className="flex items-center justify-between px-6 h-12">
+        <div className="flex items-center gap-4">
+          {/* Nav history */}
           <button className="p-1 hover:bg-gray-100 rounded" onClick={() => window.history.back()}>
             <ChevronLeft size={20} />
           </button>
@@ -1853,12 +2101,13 @@ const WorkspaceNavBar: React.FC<WorkspaceNavBarProps> = ({
             <ChevronRight size={20} />
           </button>
 
-          <nav className="flex space-x-6 ml-4">
+          {/* Tabs */}
+          <nav className="flex gap-6 ml-4">
             {TABS.map((tab) => (
               <div key={tab} className="relative">
                 <button
                   onClick={() => toggle(tab)}
-                  className={`pb-2 text-sm ${
+                  className={`pb-[10px] text-sm ${
                     openDropdown === tab
                       ? "border-b-2 border-teal-500 font-medium"
                       : "text-gray-600 hover:text-black"
@@ -1867,68 +2116,94 @@ const WorkspaceNavBar: React.FC<WorkspaceNavBarProps> = ({
                   {tab}
                 </button>
 
+                {/* File */}
                 {openDropdown === "File" && tab === "File" && (
-                  <FileMenu
-                    onSelect={() => setOpenDropdown(null)}
-                    onNew={onNew}
-                    onOpen={onOpen}
-                    onSave={onSave}
-                    onSaveAs={onSaveAs}
-                    onImportMidi={onImportMidi}
-                    onExportMidi={onExportMidi}
-                    onExportStems={onExportStems}
-                    onClose={onClose}
-                  />
+                  <div className="absolute left-0 top-full z-30">
+                    <FileMenu
+                      onSelect={() => setOpenDropdown(null)}
+                      onNew={onNew}
+                      onOpen={onOpen}
+                      onSave={onSave}
+                      onSaveAs={onSaveAs}
+                      onImportMidi={onImportMidi}
+                      onExportMidi={onExportMidi}
+                      onExportStems={onExportStems}
+                      onClose={onClose}
+                    />
+                  </div>
                 )}
 
+                {/* Edit */}
                 {openDropdown === "Edit" && tab === "Edit" && (
-                  <EditMenu
-                    onSelect={() => setOpenDropdown(null)}
-                    onUndo={() => publish({ type: "UNDO" })}
-                    onRedo={() => publish({ type: "REDO" })}
-                    onCut={() => publish({ type: "CUT" })}
-                    onCopy={() => publish({ type: "COPY" })}
-                    onPaste={() => publish({ type: "PASTE" })}
-                    onDelete={() => publish({ type: "DELETE" })}
-                    onSelectAll={() => publish({ type: "SELECT_ALL" })}
-                  />
+                  <div className="absolute left-0 top-full z-30">
+                    <EditMenu
+                      onSelect={() => setOpenDropdown(null)}
+                      onUndo={() => publish({ type: "UNDO" })}
+                      onRedo={() => publish({ type: "REDO" })}
+                      onCut={() => publish({ type: "CUT" })}
+                      onCopy={() => publish({ type: "COPY" })}
+                      onPaste={() => publish({ type: "PASTE" })}
+                      onDelete={() => publish({ type: "DELETE" })}
+                      onSelectAll={() => publish({ type: "SELECT_ALL" })}
+                    />
+                  </div>
                 )}
 
+                {/* Sound Library -> dropdown (opens modal on "Upload sound…") */}
+                {openDropdown === "Sound Library" && tab === "Sound Library" && (
+                  <div className="absolute left-0 top-full z-30">
+                    <SoundLibraryMenu
+                      onSelect={() => setOpenDropdown(null)}
+                      onUploadSound={() => {
+                        setOpenDropdown(null);
+                        setLibraryOpen(true);
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Settings */}
                 {openDropdown === "Settings" && tab === "Settings" && (
-                  <SettingsMenu
-                    onSelect={() => setOpenDropdown(null)}
-                    onKeyScaleLock={() => publish({ type: "OPEN_GRID_SETTINGS" })}
-                    onAudioEngine={() => publish({ type: "OPEN_AUDIO_ENGINE" })}
-                    onMidiInput={() => publish({ type: "OPEN_MIDI_INPUT" })}
-                    onShortcuts={() => publish({ type: "OPEN_SHORTCUTS" })}
-                    onGridSettings={() => publish({ type: "TOGGLE_SNAP" })}
-                    onLatency={() => publish({ type: "OPEN_LATENCY_SETTINGS" })}
-                  />
+                  <div className="absolute left-0 top-full z-30">
+                    <SettingsMenu
+                      onSelect={() => setOpenDropdown(null)}
+                      onKeyScaleLock={() => publish({ type: "OPEN_GRID_SETTINGS" })}
+                      onAudioEngine={() => publish({ type: "OPEN_AUDIO_ENGINE" })}
+                      onMidiInput={() => publish({ type: "OPEN_MIDI_INPUT" })}
+                      onShortcuts={() => publish({ type: "OPEN_SHORTCUTS" })}
+                      onGridSettings={() => publish({ type: "TOGGLE_SNAP" })}
+                      onLatency={() => publish({ type: "OPEN_LATENCY_SETTINGS" })}
+                    />
+                  </div>
                 )}
 
+                {/* MIDI Tools */}
                 {openDropdown === "MIDI Tools" && tab === "MIDI Tools" && (
-                  <MIDIToolsMenu
-                    onSelect={() => setOpenDropdown(null)}
-                    onTranspose={() => publish({ type: "TRANSPOSE" })}
-                    onVelocity={() => publish({ type: "VELOCITY" })}
-                    onNoteLength={() => publish({ type: "NOTE_LENGTH" })}
-                    onHumanize={() => publish({ type: "HUMANIZE" })}
-                    onArpeggiate={() => publish({ type: "ARPEGGIATE" })}
-                    onStrum={() => publish({ type: "STRUM" })}
-                    onLegato={() => publish({ type: "LEGATO" })}
-                  />
+                  <div className="absolute left-0 top-full z-30">
+                    <MIDIToolsMenu
+                      onSelect={() => setOpenDropdown(null)}
+                      onTranspose={() => publish({ type: "TRANSPOSE" })}
+                      onVelocity={() => publish({ type: "VELOCITY" })}
+                      onNoteLength={() => publish({ type: "NOTE_LENGTH" })}
+                      onHumanize={() => publish({ type: "HUMANIZE" })}
+                      onArpeggiate={() => publish({ type: "ARPEGGIATE" })}
+                      onStrum={() => publish({ type: "STRUM" })}
+                      onLegato={() => publish({ type: "LEGATO" })}
+                    />
+                  </div>
                 )}
               </div>
             ))}
           </nav>
         </div>
 
+        {/* Help placeholder */}
         <button className="p-2 hover:bg-gray-100 rounded-full" onClick={() => setLibraryOpen(true)}>
           <HelpCircle size={20} />
         </button>
       </div>
 
-      {/* Sound Library Modal */}
+      {/* Sound Library Modal (upload flow) */}
       <SoundLibraryModal
         isOpen={libraryOpen}
         onClose={() => setLibraryOpen(false)}
@@ -2038,6 +2313,351 @@ File type: .css
   border: 2px dashed #ccc;
   margin-top: 10px;
 }
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\workspace\midi-editor\components\TrackEditor\TrackEditor.tsx
+File type: .tsx
+import React, { useContext, useEffect, useRef, useState } from "react";
+import PianoRoll from "../PianoRoll/PianoRoll";
+import * as Tone from "tone";
+import { exportMidi } from "../../core/exportMidi";
+import { importMidiFile } from "../../core/importMidi";
+import { getActiveNotesAtBeat } from "../../core/midiUtils";
+import { TransportContext } from "../../core/TransportContext";
+import { subscribe, EditorCommand } from "../../core/editorBus";
+import { ChevronLeft, Upload, Music4, FileDown } from "lucide-react";
+
+const MAX_BEAT = 63;
+const BUILT_IN_INSTRUMENTS = ["Piano", "Synth", "AMSynth", "MembraneSynth"];
+
+type Track = {
+  id: string;
+  name: string;
+  notes: any[];
+  instrument: string;
+  customSoundUrl?: string;
+};
+
+type Props = {
+  track: Track;
+  updateTrack: (updates: Partial<Track>) => void;
+  goBack: () => void;
+};
+
+const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
+  const { bpm, isPlaying, playheadBeat, setPlayheadBeat } =
+    useContext(TransportContext);
+
+  const [zoomLevel, setZoomLevel] = useState<1 | 2 | 4>(1);
+  const [snapToGrid, setSnapToGrid] = useState(true);
+
+  const playheadRef = useRef<HTMLDivElement>(null);
+  const synthRef = useRef<any>(null);
+  const redLineRef = useRef(playheadBeat);
+  const animationRef = useRef<number>();
+  const activeNotes = useRef<Set<string>>(new Set());
+
+  const gridWidth = 40 * zoomLevel;
+
+  // Audio-timing reference
+  const audioStartTimeRef = useRef<number | null>(null);
+  const beatAtStartRef = useRef<number>(0);
+
+  // ---------- synth init by instrument ----------
+  useEffect(() => {
+    if (synthRef.current) synthRef.current.dispose?.();
+    if (track.instrument.startsWith("Imported:")) {
+      synthRef.current = null;
+    } else {
+      switch (track.instrument) {
+        case "Piano":
+          synthRef.current = new Tone.PolySynth().toDestination();
+          break;
+        case "Synth":
+          synthRef.current = new Tone.Synth().toDestination();
+          break;
+        case "AMSynth":
+          synthRef.current = new Tone.AMSynth().toDestination();
+          break;
+        case "MembraneSynth":
+          synthRef.current = new Tone.MembraneSynth().toDestination();
+          break;
+        default:
+          synthRef.current = new Tone.PolySynth().toDestination();
+      }
+    }
+  }, [track.instrument]);
+
+  // ---------- transport-driven animation ----------
+  useEffect(() => {
+    let lastTime = performance.now();
+
+    const tick = (now: number) => {
+      const delta = Math.max(now - lastTime, 0) / 1000;
+      lastTime = now;
+
+      if (isPlaying) {
+        if (audioStartTimeRef.current === null) {
+          audioStartTimeRef.current = Tone.now();
+          beatAtStartRef.current = redLineRef.current;
+        }
+        const currentAudioTime = Tone.now();
+        const elapsed = currentAudioTime - audioStartTimeRef.current;
+        const beat = beatAtStartRef.current + (bpm / 60) * elapsed;
+
+        redLineRef.current = beat;
+        if (redLineRef.current >= MAX_BEAT) {
+          redLineRef.current = 0;
+          audioStartTimeRef.current = Tone.now();
+          beatAtStartRef.current = 0;
+          activeNotes.current.clear();
+        }
+
+        setPlayheadBeat(redLineRef.current);
+        updatePlayhead(redLineRef.current);
+        triggerNotesAt(redLineRef.current);
+      } else {
+        redLineRef.current = playheadBeat;
+        updatePlayhead(playheadBeat);
+        stopAllNotes();
+        audioStartTimeRef.current = null;
+      }
+
+      animationRef.current = requestAnimationFrame(tick);
+    };
+
+    animationRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animationRef.current!);
+  }, [isPlaying, bpm, playheadBeat, setPlayheadBeat]);
+
+  // ---------- editorBus subscription ----------
+  useEffect(() => {
+    const unsub = subscribe(async (cmd: EditorCommand) => {
+      switch (cmd.type) {
+        case "SET_ZOOM":
+          setZoomLevel(cmd.value);
+          break;
+        case "TOGGLE_SNAP":
+          setSnapToGrid((s) => !s);
+          break;
+        case "EXPORT_MIDI":
+          exportMidi(track.notes, bpm);
+          break;
+        case "IMPORT_MIDI_FILE": {
+          const file = cmd.file;
+          if (file) {
+            const result = await importMidiFile(file);
+            // If your import returns bpm, you can decide whether to update bpm via context elsewhere
+            updateTrack({ notes: result.notes });
+          }
+          break;
+        }
+
+        // Tools — leave as stubs for now, or plug in your actual transforms:
+        case "TRANSPOSE":
+        case "VELOCITY":
+        case "NOTE_LENGTH":
+        case "HUMANIZE":
+        case "ARPEGGIATE":
+        case "STRUM":
+        case "LEGATO":
+        case "OPEN_AUDIO_ENGINE":
+        case "OPEN_MIDI_INPUT":
+        case "OPEN_SHORTCUTS":
+        case "OPEN_GRID_SETTINGS":
+        case "OPEN_LATENCY_SETTINGS":
+        case "UNDO":
+        case "REDO":
+        case "CUT":
+        case "COPY":
+        case "PASTE":
+        case "DELETE":
+        case "SELECT_ALL":
+          console.log("[editorBus] command received:", cmd.type);
+          break;
+      }
+    });
+    return unsub;
+  }, [track.notes, bpm, updateTrack]);
+
+  // ---------- note trigger helpers ----------
+  const triggerNotesAt = (beat: number) => {
+    const nowActive = getActiveNotesAtBeat(track.notes, beat);
+
+    nowActive.forEach((note) => {
+      if (!activeNotes.current.has(note.id)) {
+        const now = Tone.now();
+        if (track.instrument.startsWith("Imported:") && track.customSoundUrl) {
+          const durationSec = (note.duration / bpm) * 60;
+          const player = new Tone.Player({
+            url: track.customSoundUrl,
+            playbackRate: Math.pow(2, (note.pitch - 60) / 12),
+            autostart: true,
+            onstop: () => player.dispose(),
+          }).toDestination();
+          setTimeout(() => player.stop(), durationSec * 1000);
+        } else {
+          const name = Tone.Frequency(note.pitch, "midi").toNote();
+          synthRef.current?.triggerAttack(name, now, note.velocity / 127);
+        }
+        activeNotes.current.add(note.id);
+      }
+    });
+
+    activeNotes.current.forEach((id) => {
+      const stillActive = nowActive.find((n) => n.id === id);
+      if (!stillActive) {
+        const note = track.notes.find((n) => n.id === id);
+        if (note && !track.instrument.startsWith("Imported:")) {
+          const name = Tone.Frequency(note.pitch, "midi").toNote();
+          synthRef.current?.triggerRelease(name, Tone.now());
+        }
+        activeNotes.current.delete(id);
+      }
+    });
+  };
+
+  const stopAllNotes = () => {
+    activeNotes.current.forEach((id) => {
+      const note = track.notes.find((n) => n.id === id);
+      if (note && !track.instrument.startsWith("Imported:")) {
+        const name = Tone.Frequency(note.pitch, "midi").toNote();
+        synthRef.current?.triggerRelease(name, Tone.now());
+      }
+    });
+    activeNotes.current.clear();
+  };
+
+  const updatePlayhead = (beat: number) => {
+    const left = beat * gridWidth;
+    if (playheadRef.current) {
+      playheadRef.current.style.left = `${left}px`;
+    }
+  };
+
+  const scrubToBeat = (beat: number) => {
+    redLineRef.current = beat;
+    setPlayheadBeat(beat);
+    updatePlayhead(beat);
+  };
+
+  // ---------- UI helpers that remain local ----------
+  const handleUploadSound = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      const name = `Imported: ${file.name}`;
+      updateTrack({ instrument: name, customSoundUrl: url });
+    }
+  };
+
+  const testImportedSound = async () => {
+    if (!track.instrument.startsWith("Imported:") || !track.customSoundUrl) return;
+    const player = new Tone.Player(track.customSoundUrl).toDestination();
+    await Tone.start();
+    player.autostart = true;
+  };
+
+  return (
+    <div style={{ padding: 10, overflowY: "auto" }}>
+      <div className="px-4 py-3 space-y-4">
+  {/* Header */}
+  <div className="flex items-center justify-between">
+    <button
+      onClick={goBack}
+      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border hover:bg-gray-50"
+    >
+      <ChevronLeft className="w-4 h-4" />
+      <span>Back to Tracks</span>
+    </button>
+
+    <h2 className="text-xl font-semibold truncate">{track.name}</h2>
+  </div>
+
+  {/* Toolbar */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    {/* Zoom */}
+    <div className="flex items-center gap-2">
+      <span className="text-sm font-medium">Zoom:</span>
+      <select
+        value={zoomLevel}
+        onChange={(e) => setZoomLevel(Number(e.target.value) as 1 | 2 | 4)}
+        className="px-2 py-1 border rounded-md text-sm"
+      >
+        <option value={1}>1/4</option>
+        <option value={2}>1/8</option>
+        <option value={4}>1/16</option>
+      </select>
+      <label className="ml-3 inline-flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          className="accent-teal-500"
+          checked={snapToGrid}
+          onChange={(e) => setSnapToGrid(e.target.checked)}
+        />
+        Snap to Grid
+      </label>
+    </div>
+
+    {/* Instrument */}
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-sm font-medium">Instrument:</span>
+      <div className="flex items-center gap-2">
+        <Music4 className="w-4 h-4 text-gray-500" />
+        <select
+          value={track.instrument}
+          onChange={(e) => updateTrack({ instrument: e.target.value })}
+          className="px-2 py-1 border rounded-md text-sm"
+        >
+          {BUILT_IN_INSTRUMENTS.map((inst) => (
+            <option key={inst} value={inst}>
+              {inst}
+            </option>
+          ))}
+          {track.customSoundUrl && (
+            <option value={track.instrument}>{track.instrument}</option>
+          )}
+        </select>
+      </div>
+
+      
+    </div>
+
+    {/* MIDI Import */}
+    
+
+    {/* MIDI Export */}
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => exportMidi(track.notes, bpm)}
+        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border hover:bg-gray-50 text-sm"
+      >
+        <FileDown className="w-4 h-4" />
+        Export MIDI
+      </button>
+    </div>
+  </div>
+</div>
+
+      <PianoRoll
+        notes={track.notes}
+        setNotes={(updated) => updateTrack({ notes: updated })}
+        playheadRef={playheadRef}
+        gridWidth={gridWidth}
+        snapToGrid={snapToGrid}
+        isPlaying={isPlaying}
+        onPlayheadScrub={scrubToBeat}
+      />
+    </div>
+  );
+};
+
+export default TrackEditor;
 
 
 --------------------------------------------------
@@ -2323,7 +2943,7 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
   return (
     <TransportProvider>
       <div className="flex flex-col h-full bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           {activeTrack ? (
             <TrackEditor
               ref={editorRef}
@@ -2715,17 +3335,15 @@ File End
 src\pages\HomePage.tsx
 File type: .tsx
 import React from "react";
-import Navbar from "../components/home/NavBar";
-import HeroSection from "../components/home/HeroSection";
 import FeatureList from "../components/home/FeatureList";
 import StepGuide from "../components/home/StepGuide";
 import UserTypes from "../components/home/UserTypes";
 import Footer from "../components/home/Footer";
+import HeroSection from "../components/home/HeroSection";
 
 const HomePage: React.FC = () => {
   return (
-    <div>
-      <Navbar />
+    <div className="min-h-screen bg-[#fbf5ee]">
       <HeroSection />
       <FeatureList />
       <StepGuide />
@@ -2736,281 +3354,6 @@ const HomePage: React.FC = () => {
 };
 
 export default HomePage;
-
---------------------------------------------------
-File End
---------------------------------------------------
-
-
-src\pages\WorkspacePage.tsx
-File type: .tsx
-import React, { useMemo, useState } from "react";
-import WorkspaceNavBar from "../components/workspace/WorkspaceNavBar";
-import MidiEditorCore from "../components/workspace/midi-editor/core/MidiEditorCore";
-import AIGenerate from "../components/workspace/AIGenerate";
-import AIModify from "../components/workspace/AIModify";
-import AIStyleTransfer from "../components/workspace/AIStyleTransfer";
-import OpenProjectModal from "../components/shared/OpenProjectModal";
-import SaveAsModal from "../components/shared/SaveAsModal";
-
-import {
-  createProject,
-  getProjectById,
-  updateProject,
-} from "../services/projectService";
-
-import { importMidiFile } from "../components/workspace/midi-editor/core/importMidi";
-import { Midi } from "@tonejs/midi";
-
-type Note = {
-  id: string;
-  pitch: number;
-  time: number;
-  duration: number;
-  velocity: number;
-};
-
-type Track = {
-  id: string;
-  name: string;
-  instrument: string;
-  notes: Note[];
-  customSoundUrl?: string;
-};
-
-type ProjectData = {
-  bpm: number;
-  tracks: Track[];
-};
-
-const DEFAULT_DATA: ProjectData = { bpm: 120, tracks: [] };
-
-export default function WorkspacePage() {
-  // Project identity
-  const [projectId, setProjectId] = useState<number | null>(null);
-  const [projectName, setProjectName] = useState<string>("Untitled Project");
-
-  // Editor state (lifted here so File/AI panels can see it)
-  const [bpm, setBpm] = useState<number>(DEFAULT_DATA.bpm);
-  const [tracks, setTracks] = useState<Track[]>(DEFAULT_DATA.tracks);
-
-  // UI state
-  const [openPicker, setOpenPicker] = useState(false);
-  const [saveAsOpen, setSaveAsOpen] = useState(false);
-  const [aiTab, setAiTab] = useState<"Generate" | "Modify" | "Style">(
-    "Generate"
-  );
-
-  const hasProject = useMemo(() => projectId !== null, [projectId]);
-  const dataForSave: ProjectData = useMemo(() => ({ bpm, tracks }), [bpm, tracks]);
-
-  // ----- File actions -----
-  const handleNew = async () => {
-    setProjectId(null);
-    setProjectName("Untitled Project");
-    setBpm(120);
-    setTracks([]);
-  };
-
-  const handleOpen = () => setOpenPicker(true);
-
-  const handleOpenSelect = async (id: number) => {
-    const proj = await getProjectById(id);
-    setProjectId(proj.id);
-    setProjectName(proj.name || "Untitled Project");
-    const payload = (proj.data || DEFAULT_DATA) as ProjectData;
-    setBpm(payload.bpm ?? 120);
-    setTracks(payload.tracks ?? []);
-    setOpenPicker(false);
-  };
-
-  const handleSave = async () => {
-    if (!hasProject) {
-      setSaveAsOpen(true);
-      return;
-    }
-    await updateProject(projectId!, projectName, dataForSave);
-  };
-
-  const handleSaveAs = () => setSaveAsOpen(true);
-
-  const handleSaveAsConfirm = async (newName: string) => {
-    const created = await createProject(newName, dataForSave);
-    setProjectId(created.id);
-    setProjectName(newName);
-    setSaveAsOpen(false);
-  };
-
-  const handleCloseProject = () => {
-    setProjectId(null);
-    setProjectName("Untitled Project");
-    setBpm(120);
-    setTracks([]);
-  };
-
-  const handleImportMidi = async (file: File) => {
-    const imported = await importMidiFile(file);
-    const newTrack: Track = {
-      id: `t-${Date.now()}`,
-      name: "Imported",
-      instrument: "Piano",
-      notes: imported.notes.map((n: any, i: number) => ({
-        id: `${i}-${n.time}`,
-        pitch: n.pitch,
-        time: n.time,
-        duration: n.duration,
-        velocity: n.velocity,
-      })),
-    };
-    setBpm(imported.bpm ?? bpm);
-    setTracks((prev) => [...prev, newTrack]);
-  };
-
-  const handleExportMidi = () => {
-    // Build multi-track MIDI from current state
-    const midi = new Midi();
-    midi.header.ppq = 480;
-    midi.header.setTempo(bpm || 120);
-    tracks.forEach((t) => {
-      const tr = midi.addTrack();
-      tr.name = t.name;
-      t.notes.forEach((n) =>
-        tr.addNote({
-          midi: n.pitch,
-          time: n.time,
-          duration: n.duration,
-          velocity: Math.min(Math.max(n.velocity / 127, 0), 1),
-        })
-      );
-    });
-    const bytes = midi.toArray();
-    const blob = new Blob([bytes], { type: "audio/midi" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${projectName || "project"}.mid`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleExportStems = () => {
-    alert("Export Stems is not implemented yet.");
-  };
-
-  // Editor -> page sync
-  const handleEditorChange = (nextBpm: number, nextTracks: Track[]) => {
-    setBpm(nextBpm);
-    setTracks(nextTracks);
-  };
-
-  return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      {/* Top nav / menus */}
-      <div className="fixed top-0 left-0 right-0 bg-white z-10">
-        <WorkspaceNavBar
-          onNew={handleNew}
-          onOpen={handleOpen}
-          onSave={handleSave}
-          onSaveAs={handleSaveAs}
-          onImportMidi={handleImportMidi}
-          onExportMidi={handleExportMidi}
-          onExportStems={handleExportStems}
-          onClose={handleCloseProject}
-          // Edit/Settings/MIDI Tools callbacks will be wired after we expose editor commands
-          onUndo={() => {}}
-          onRedo={() => {}}
-          onCut={() => {}}
-          onCopy={() => {}}
-          onPaste={() => {}}
-          onDelete={() => {}}
-          onSelectAll={() => {}}
-          onKeyScaleLock={() => {}}
-          onAudioEngine={() => {}}
-          onMidiInput={() => {}}
-          onShortcuts={() => {}}
-          onGridSettings={() => {}}
-          onLatency={() => {}}
-          onTranspose={() => {}}
-          onVelocity={() => {}}
-          onNoteLength={() => {}}
-          onHumanize={() => {}}
-          onArpeggiate={() => {}}
-          onStrum={() => {}}
-          onLegato={() => {}}
-        />
-      </div>
-
-      {/* Main area */}
-      <div className="flex-1 pt-14 overflow-hidden">
-        <div className="h-full grid grid-cols-12 gap-4 p-4">
-          {/* LEFT: Editor (transport is rendered inside the editor) */}
-          <div className="col-span-8 min-h-0">
-            <div className="p-6 bg-white rounded-2xl shadow">
-              <div className="mb-4">
-                <h2 className="text-2xl font-semibold">
-                  {projectName} {hasProject ? "" : "(unsaved)"}
-                </h2>
-                <p className="text-sm text-gray-500">
-                  BPM: {bpm} • Tracks: {tracks.length}
-                </p>
-              </div>
-
-              <MidiEditorCore
-                projectId={projectId ?? -1}
-                bpm={bpm}
-                initialTracks={tracks}
-                onChange={handleEditorChange}
-                onSave={handleSave}
-              />
-            </div>
-          </div>
-
-          {/* RIGHT: AI tools */}
-          <aside className="col-span-4 min-h-0 bg-white rounded-2xl shadow p-4 flex flex-col">
-            <h3 className="text-xl font-semibold mb-3">AI Tools</h3>
-
-            <div className="flex items-center space-x-2 mb-4">
-              {(["Generate", "Modify", "Style"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setAiTab(t)}
-                  className={`px-3 py-1 rounded ${
-                    aiTab === t
-                      ? "bg-teal-500 text-white"
-                      : "bg-gray-100 hover:bg-gray-200"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex-1 overflow-auto">
-              {aiTab === "Generate" && <AIGenerate />}
-              {aiTab === "Modify" && <AIModify />}
-              {aiTab === "Style" && <AIStyleTransfer />}
-            </div>
-          </aside>
-        </div>
-      </div>
-
-      {/* Modals */}
-      <OpenProjectModal
-        isOpen={openPicker}
-        onSelect={handleOpenSelect}
-        onCancel={() => setOpenPicker(false)}
-      />
-      <SaveAsModal
-        isOpen={saveAsOpen}
-        initialName={projectName}
-        onSave={handleSaveAsConfirm}
-        onCancel={() => setSaveAsOpen(false)}
-      />
-    </div>
-  );
-}
 
 
 --------------------------------------------------
