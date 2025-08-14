@@ -14,14 +14,9 @@ src/
             SignUpForm.tsx
             SubmitButton.tsx
         dashboard/
-            FolderStructure.tsx
-            NewFolderButton.tsx
             NewProjectButton.tsx
-            ProjectActions.tsx
-            ProjectCard.tsx
             ProjectList.tsx
             SearchBar.tsx
-            SortDropdown.tsx
             SortTabs.tsx
             UserDropdown.tsx
         home/
@@ -492,99 +487,191 @@ File End
 --------------------------------------------------
 
 
-src\components\dashboard\NewFolderButton.tsx
+src\components\dashboard\ProjectList.tsx
 File type: .tsx
-import React from "react";
-import { Plus } from "lucide-react";
-
-const NewFolderButton: React.FC = () => (
-  <button
-    onClick={() => alert("Create folder…")}
-    className="
-      flex items-center space-x-2
-      px-6 py-3
-      bg-teal-400 hover:bg-teal-500
-      text-black font-semibold
-      rounded-full shadow
-      text-sm
-    "
-  >
-    <div className="bg-white rounded-full p-1">
-      <Plus className="w-4 h-4" />
-    </div>
-    <span>Create new folder</span>
-  </button>
-);
-
-export default NewFolderButton;
-
-
---------------------------------------------------
-File End
---------------------------------------------------
-
-
-src\components\dashboard\NewProjectButton.tsx
-File type: .tsx
-import React from "react";
-import { Plus } from "lucide-react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Modal from "../shared/Modal";
 import { useProjects } from "../../hooks/useProjects";
+import { exportProject } from "../../utils/exportProject";
 
-const NewProjectButton: React.FC = () => {
-  const { addProject } = useProjects();
+type Project = {
+  id: number;
+  name: string;
+  created_at?: string;
+  updated_at?: string;
+  data?: any;
+};
 
-  const handleClick = async () => {
-    const name = "Untitled Project";
-    const data = { notes: [], bpm: 120 };
-    await addProject(name, data);
-    window.location.reload();
+interface Props {
+  projects: Project[];
+}
+
+const normalizeDataForDuplicate = (data: any) => {
+  try {
+    return typeof data === "string" ? JSON.parse(data) : data ?? {};
+  } catch {
+    return {};
+  }
+};
+
+const normalizeDataForExport = (data: any) => {
+  try {
+    return typeof data === "string" ? data : JSON.stringify(data ?? {});
+  } catch {
+    return JSON.stringify({});
+  }
+};
+
+const Row: React.FC<{ project: Project; onChanged: () => void }> = ({
+  project,
+  onChanged,
+}) => {
+  const navigate = useNavigate();
+  const { removeProject, renameProject, addProject } = useProjects();
+
+  const [showDelete, setShowDelete] = useState(false);
+  const [showRename, setShowRename] = useState(false);
+  const [newName, setNewName] = useState(project.name || "Untitled");
+
+  const handleOpen = () => {
+    localStorage.setItem("activeProjectId", String(project.id));
+    navigate("/workspace");
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDelete(true);
+  };
+  const confirmDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await removeProject(project.id);
+    setShowDelete(false);
+    onChanged();
+  };
+
+  const handleRename = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowRename(true);
+  };
+  const confirmRename = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const data = normalizeDataForDuplicate(project.data);
+    await renameProject(project.id, newName, data);
+    setShowRename(false);
+    onChanged();
+  };
+
+  const handleDuplicate = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const data = normalizeDataForDuplicate(project.data);
+    await addProject(`${project.name} (Copy)`, data);
+    onChanged();
+  };
+
+  const handleExport = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const json = normalizeDataForExport(project.data);
+    exportProject(json, project.name || "project");
   };
 
   return (
-    <button
-      onClick={handleClick}
-      className="
-        flex items-center space-x-2
-        px-6 py-3
-        bg-teal-400 hover:bg-teal-500
-        text-black font-semibold
-        rounded-full shadow
-        text-sm
-      "
-    >
-      <div className="bg-white rounded-full p-1">
-        <Plus className="w-4 h-4" />
+    <>
+      <div
+        onClick={handleOpen}
+        className="
+          relative flex items-center justify-between
+          px-5 h-12 rounded-xl
+          bg-[#e9dcc9] shadow-[inset_0_2px_0_rgba(255,255,255,0.7),0_8px_16px_-8px_rgba(0,0,0,0.35)]
+          border border-black/10 cursor-pointer
+        "
+      >
+        {/* Left side: delete + name */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleDelete}
+            className="p-1.5 rounded-full hover:brightness-110"
+            title="Delete"
+          >
+            <img src="delete.png" alt="Delete" className="w-5 h-5" />
+          </button>
+          <span className="truncate font-medium text-[14px]">
+            {project.name || "Untitled"}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button onClick={handleRename} title="Rename">
+            <img src="rename.png" alt="Rename" className="w-4 h-4" />
+          </button>
+          <button onClick={handleDuplicate} title="Duplicate">
+            <img src="duplicate.png" alt="Duplicate" className="w-4 h-4" />
+          </button>
+          <button onClick={handleExport} title="Export">
+            <img src="export.png" alt="Export" className="w-4 h-4" />
+          </button>
+        </div>
       </div>
-      <span>Create new project</span>
-    </button>
+
+      {showDelete && (
+        <Modal onClose={() => setShowDelete(false)}>
+          <h3 className="text-lg font-semibold mb-2">Delete Project?</h3>
+          <p className="mb-4">
+            Are you sure you want to delete <strong>{project.name}</strong>?
+          </p>
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setShowDelete(false)}>Cancel</button>
+            <button onClick={confirmDelete} style={{ color: "red" }}>
+              Delete
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {showRename && (
+        <Modal onClose={() => setShowRename(false)}>
+          <h3 className="text-lg font-semibold mb-2">Rename Project</h3>
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            className="w-full mt-2 mb-4 p-2 border rounded"
+          />
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setShowRename(false)}>Cancel</button>
+            <button onClick={confirmRename}>Rename</button>
+          </div>
+        </Modal>
+      )}
+    </>
   );
 };
 
-export default NewProjectButton;
+const ProjectList: React.FC<Props> = ({ projects }) => {
+  const forceRefresh = () => window.location.reload();
 
-
---------------------------------------------------
-File End
---------------------------------------------------
-
-
-src\components\dashboard\ProjectList.tsx
-File type: .tsx
-import React from "react";
-import FolderStructure from "./FolderStructure";
-
-const mockProjects = [
-  { id: "1", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: null },
-  { id: "2", name: "Untitled", createdAt: "21/03/2025", duration: "00:00", folderId: "f1" },
-];
-
-const mockFolders = [
-  { id: "f1", name: "Folder A" },
-  { id: "f2", name: "Folder B" },
-];
-
-const ProjectList: React.FC = () => {
-  return <FolderStructure projects={mockProjects} folders={mockFolders} />;
+  return (
+    <div
+      className="overflow-y-auto px-6 py-3 rounded-[28px]"
+      style={{
+        maxHeight: "calc(100vh - 280px)",
+        scrollbarColor: "#121633 #e9dcc9",
+        scrollbarWidth: "thin",
+      }}
+    >
+      {/* width cap + centered */}
+      <div className="mx-auto w-[95%] max-w-[1200px]">
+        <div className="space-y-3">
+          {projects.length === 0 && (
+            <div className="text-center text-black/60 py-8">No projects yet</div>
+          )}
+          {projects.map((p) => (
+            <Row key={p.id} project={p} onChanged={forceRefresh} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default ProjectList;
@@ -604,21 +691,19 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => (
-  <input
-    type="text"
-    placeholder="Search projects…"
-    value={value}
-    onChange={e => onChange(e.target.value)}
-    className="
-      w-full
-      px-4 py-2
-      rounded-full
-      border border-gray-300
-      bg-gray-100
-      focus:outline-none focus:ring-2 focus:ring-teal-400
-      text-sm
-    "
-  />
+  <div
+    className="w-full"
+    style={{ background: "#ff4e1a" }}
+  >
+    <input
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder="Search"
+      className="w-full bg-transparent placeholder-black/90 text-black
+                 px-5 py-3 text-[18px] focus:outline-none"
+    />
+  </div>
 );
 
 export default SearchBar;
@@ -629,56 +714,41 @@ File End
 --------------------------------------------------
 
 
-src\components\dashboard\SortDropdown.tsx
-File type: .tsx
-import React from "react";
-
-const SortDropdown: React.FC = () => {
-  return (
-    <select className="border rounded px-2 py-1">
-      <option value="created">Created</option>
-      <option value="name">Name</option>
-      <option value="modified">Modified</option>
-    </select>
-  );
-};
-
-export default SortDropdown;
-
---------------------------------------------------
-File End
---------------------------------------------------
-
-
 src\components\dashboard\SortTabs.tsx
 File type: .tsx
 import React from "react";
 
-export type SortKey = "created" | "custom" | "modified";
+export type SortKey = "created" | "name" | "modified";
 
 interface SortTabsProps {
   selected: SortKey;
   onSelect: (key: SortKey) => void;
 }
 
-const SortTabs: React.FC<SortTabsProps> = ({ selected, onSelect }) => (
-  <div className="flex space-x-2">
-    {(["created", "custom", "modified"] as SortKey[]).map((key) => (
-      <button
-        key={key}
-        onClick={() => onSelect(key)}
-        className={
-          "px-3 py-1 rounded-full text-sm " +
-          (selected === key
-            ? "bg-gray-200 font-semibold"
-            : "hover:bg-gray-100")
-        }
-      >
-        {key.charAt(0).toUpperCase() + key.slice(1)}
-      </button>
-    ))}
-  </div>
+const Chip: React.FC<{
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}> = ({ active, onClick, children }) => (
+  <button
+    onClick={onClick}
+    className={`px-4 h-9 rounded-full text-sm tracking-wide transition
+      ${active ? "bg-[#121633] text-white shadow" : "bg-[#121633] text-white/80 hover:text-white"}`}
+    style={{ boxShadow: active ? "0 8px 18px -8px rgba(0,0,0,.45)" : undefined }}
+  >
+    {children}
+  </button>
 );
+
+const SortTabs: React.FC<SortTabsProps> = ({ selected, onSelect }) => {
+  return (
+    <div className="flex items-center gap-2">
+      <Chip active={selected === "created"} onClick={() => onSelect("created")}>Created</Chip>
+      <Chip active={selected === "name"} onClick={() => onSelect("name")}>Name</Chip>
+      <Chip active={selected === "modified"} onClick={() => onSelect("modified")}>Modified</Chip>
+    </div>
+  );
+};
 
 export default SortTabs;
 
@@ -690,27 +760,38 @@ File End
 
 src\components\dashboard\UserDropdown.tsx
 File type: .tsx
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 const UserDropdown: React.FC = () => {
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
 
   return (
-    <div className="relative inline-block text-left">
+    <div ref={ref} className="relative">
       <button
-        onClick={() => setOpen(!open)}
-        className="border rounded-full px-3 py-2 bg-cyan-300"
+        onClick={() => setOpen((v) => !v)}
+        className="min-w-[190px] px-5 py-3 rounded-md text-white flex items-center justify-between"
+        style={{ background: "#000" }}
       >
-        Username ▼
+        <span>Username</span>
+        <span className="ml-3">▾</span>
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg">
-          <button className="block px-4 py-2 w-full text-left hover:bg-gray-100">
-            Switch Account
+        <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg overflow-hidden">
+          <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+            Switch account
           </button>
-          <button className="block px-4 py-2 w-full text-left hover:bg-gray-100">
-            Sign Out
+          <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+            Sign out
           </button>
         </div>
       )}
@@ -719,6 +800,7 @@ const UserDropdown: React.FC = () => {
 };
 
 export default UserDropdown;
+
 
 --------------------------------------------------
 File End
@@ -1484,32 +1566,84 @@ import AIStyleTransfer from "./AIStyleTransfer";
 
 type Tab = "Generate" | "Modify" | "Style";
 
+const ORANGE = "#ff5200";
+
 export default function AIDock() {
   const [tab, setTab] = useState<Tab>("Generate");
+  const [open, setOpen] = useState(true);
 
   return (
-    <aside className="w-full lg:w-96 border-l bg-white">
-      <div className="px-4 py-3 border-b flex items-center justify-between">
-        <h3 className="text-sm font-semibold">AI Tools</h3>
-        <div className="flex gap-2">
-          {(["Generate", "Modify", "Style"] as Tab[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-2 py-1 text-xs rounded ${
-                tab === t ? "bg-teal-500 text-white" : "hover:bg-gray-100"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-      </div>
+    <aside
+      className="
+        relative h-full
+        transition-all duration-300
+      "
+      style={{ width: open ? 360 : 40 }}
+    >
+      {/* slide handle */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="
+          absolute -left-3 top-1/2 -translate-y-1/2
+          w-7 h-10 rounded-full
+          shadow-[0_10px_20px_-10px_rgba(0,0,0,0.5)]
+          border border-black/10
+          text-black
+          flex items-center justify-center
+          z-10
+        "
+        style={{ background: ORANGE }}
+        title={open ? "Collapse" : "Expand"}
+      >
+        {open ? "›" : "‹"}
+      </button>
 
-      <div className="p-4">
-        {tab === "Generate" && <AIGenerate />}
-        {tab === "Modify" && <AIModify />}
-        {tab === "Style" && <AIStyleTransfer />}
+      {/* dock body */}
+      <div
+        className="
+          h-full rounded-[22px]
+          shadow-[0_40px_60px_-26px_rgba(0,0,0,0.45)]
+          border border-black/10
+          flex flex-col
+          overflow-hidden
+        "
+        style={{ background: ORANGE }}
+      >
+        {/* inner plate */}
+        <div className="m-3 rounded-[18px] bg-white/92 border border-black/10 flex-1 flex flex-col overflow-hidden">
+          {/* tabs */}
+          <div className="px-3 pt-3 pb-2 flex items-center gap-2">
+            {(["Generate", "Style", "Modify"] as Tab[]).map((t) => {
+              const active = tab === t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={
+                    "px-3 py-1 rounded-full text-sm border " +
+                    (active
+                      ? "bg-white text-black border-black/20 shadow"
+                      : "bg-transparent text-black/80 hover:bg-white/70 border-black/10")
+                  }
+                >
+                  {t}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* header */}
+          <div className="px-4 pb-2 text-center text-[18px] font-semibold">
+            AI Generate
+          </div>
+
+          {/* content area */}
+          <div className="px-3 pb-3 flex-1 overflow-auto">
+            {tab === "Generate" && <AIGenerate />}
+            {tab === "Modify" && <AIModify />}
+            {tab === "Style" && <AIStyleTransfer />}
+          </div>
+        </div>
       </div>
     </aside>
   );
@@ -2101,7 +2235,7 @@ const WorkspaceNavBar: React.FC<Props> = ({
   };
 
   return (
-    <div ref={ref} className="relative bg-white shadow-sm">
+    <div ref={ref} className="sticky top-0 z-40 bg-white shadow-sm">
       {/* Top row */}
       <div className="flex items-center justify-between px-6 h-12">
         <div className="flex items-center gap-4">
@@ -2226,105 +2360,6 @@ const WorkspaceNavBar: React.FC<Props> = ({
 };
 
 export default WorkspaceNavBar;
-
-
---------------------------------------------------
-File End
---------------------------------------------------
-
-
-src\components\workspace\midi-editor\components\TrackDashboard\TrackDashboard.css
-File type: .css
-.dashboard-container {
-  max-height: 600px;
-  overflow-y: auto;
-  border: 1px solid #ccc;
-  padding: 10px;
-  background: white;
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.dashboard-timeline-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.dashboard-track-row {
-  border: 1px solid #ccc;
-  padding: 10px;
-  background: #fdfdfd;
-}
-
-.track-row-flex {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-}
-
-.track-controls {
-  width: 200px;
-}
-
-.track-meta {
-  margin-top: 5px;
-}
-
-.track-sliders {
-  margin-top: 10px;
-}
-
-.track-timeline {
-  position: relative;
-  width: 640px;
-  height: 200px;
-  overflow: hidden;
-  background: white;
-  border: 1px solid #eee;
-}
-
-.timeline-cell {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 10px;
-  border-left: 1px solid #eee;
-}
-
-.timeline-cell.bar {
-  border-left: 1px solid #999;
-}
-
-.mini-note {
-  position: absolute;
-  height: 5px;
-  background: #4c79ff;
-  border-radius: 2px;
-}
-
-.mini-playhead {
-  position: absolute;
-  width: 2px;
-  height: 100%;
-  background: red;
-  z-index: 999;
-}
-
-.add-track-row {
-  text-align: center;
-  padding: 20px;
-  font-size: 32px;
-  cursor: pointer;
-  color: #888;
-  border: 2px dashed #ccc;
-  margin-top: 10px;
-}
 
 
 --------------------------------------------------
@@ -2680,32 +2715,35 @@ File End
 src\components\workspace\midi-editor\components\TransportBar\GlobalTransportBar.css
 File type: .css
 .transport-bar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: white;
-    padding: 8px 16px;
-    border: 2px solid black;
-    border-radius: 12px;
-    gap: 10px;
-  }
-  
-  .transport-bar button {
-    font-size: 18px;
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-  
-  .transport-bar button:hover {
-    transform: scale(1.1);
-  }
-  
-  .transport-bar input[type="range"] {
-    width: 100px;
-  }
-  
-  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9dcc9;           
+  padding: 12px 18px;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 16px;
+  gap: 12px;
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,0.7),
+    0 10px 20px -10px rgba(0,0,0,0.35);
+}
+
+.transport-bar button {
+  font-size: 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #121633; 
+}            
+
+.transport-bar button:hover {
+  transform: scale(1.06);
+}
+
+.transport-bar input[type="range"] {
+  width: 120px;
+}
+
 
 --------------------------------------------------
 File End
@@ -2927,6 +2965,12 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
     onChange(bpm, next);
   };
 
+  const deleteTrack = (id: string) => {
+  const next = tracks.filter(t => t.id !== id);
+  setTracks(next);
+  onChange(bpm, next);
+};
+
   const changeBpm = (newBpm: number) => {
     setBpm(newBpm);
     onChange(newBpm, tracks);
@@ -2969,6 +3013,7 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
               onEditTrack={(id) => setActiveTrackId(id)}
               onAddTrack={addNewTrack}
               updateTrack={updateTrack}
+              deleteTrack={deleteTrack} 
             />
           )}
         </div>
@@ -3270,43 +3315,44 @@ File End
 
 src\pages\DashboardPage.tsx
 File type: .tsx
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import SortTabs, { SortKey } from "../components/dashboard/SortTabs";
 import SearchBar from "../components/dashboard/SearchBar";
 import UserDropdown from "../components/dashboard/UserDropdown";
-import FolderStructure from "../components/dashboard/FolderStructure";
+import ProjectList from "../components/dashboard/ProjectList";
 import NewProjectButton from "../components/dashboard/NewProjectButton";
-import NewFolderButton from "../components/dashboard/NewFolderButton";
 import { useProjects } from "../hooks/useProjects";
 
-const DashboardPage: React.FC = () => {
-  const { projects = [], folders = [], loading, error } = useProjects();
+const PAGE_BG = "#fbf5ee";       // off‑white
+const BEIGE   = "#e9dcc9";       // panel fill
 
-  const [sortOption, setSortOption] = useState<SortKey>("custom");
+const DashboardPage: React.FC = () => {
+  const { projects = [], loading, error } = useProjects();
+
+  const [sortOption, setSortOption] = useState<SortKey>("created");
   const [searchTerm, setSearchTerm] = useState("");
 
   const sortedProjects = useMemo(() => {
     let copy = projects.slice();
 
-    // filter
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
-      copy = copy.filter((p) => p.name.toLowerCase().includes(q));
+      copy = copy.filter((p: any) => p.name?.toLowerCase().includes(q));
     }
 
-    // sort
     switch (sortOption) {
       case "created":
         return copy.sort(
-          (a, b) =>
+          (a: any, b: any) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
-      case "custom":
-        return copy.sort((a, b) => a.name.localeCompare(b.name));
+      case "name":
+        return copy.sort((a: any, b: any) => (a.name || "").localeCompare(b.name || ""));
       case "modified":
         return copy.sort(
-          (a, b) =>
-            new Date(b.modified_at!).getTime() - new Date(a.modified_at!).getTime()
+          (a: any, b: any) =>
+            new Date(b.updated_at || b.modified_at || b.created_at).getTime() -
+            new Date(a.updated_at || a.modified_at || a.created_at).getTime()
         );
       default:
         return copy;
@@ -3314,47 +3360,33 @@ const DashboardPage: React.FC = () => {
   }, [projects, sortOption, searchTerm]);
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-8 py-4 bg-white shadow">
-        <div className="flex items-center space-x-6">
-          <SortTabs selected={sortOption} onSelect={setSortOption} />
-          <button className="p-2 rounded-full hover:bg-gray-100">
-            {/* Hamburger icon */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-6 h-6 text-gray-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="flex-1 px-8">
+    <div className="min-h-screen flex flex-col" style={{ background: PAGE_BG }}>
+      {/* Top bar */}
+      <div className="w-full flex items-center gap-4 px-5 sm:px-6 pt-4">
+        <SortTabs selected={sortOption} onSelect={setSortOption} />
+        <div className="flex-1">
           <SearchBar value={searchTerm} onChange={setSearchTerm} />
         </div>
-
-
         <UserDropdown />
       </div>
 
-      {/* Main Panel */}
-      <div className="flex-1 px-8 py-6 overflow-y-auto">
-        <div className="p-6 bg-white rounded-2xl shadow-lg">
-          {loading && <p className="text-gray-500 text-center">Loading projects…</p>}
-          {error && <p className="text-red-500 text-center">{error}</p>}
-
-          <FolderStructure projects={sortedProjects} folders={folders} />
+      {/* Main panel */}
+      <div className="px-5 sm:px-6 py-5">
+        <div
+          className="mx-auto w-full max-w-[1000px] rounded-[28px]"
+          style={{ background: BEIGE }}
+        >
+          {loading && <p className="text-center text-black/60">Loading projects…</p>}
+          {error && <p className="text-center text-red-500">{String(error)}</p>}
+          {!loading && !error && (
+            <ProjectList projects={sortedProjects} />
+          )}
         </div>
       </div>
 
-      {/* Bottom CTAs */}
-      <div className="flex justify-center items-center px-8 py-6 bg-white shadow">
+      {/* Bottom CTA */}
+      <div className="pb-8 flex items-center justify-center">
         <NewProjectButton />
-        <NewFolderButton />
       </div>
     </div>
   );
@@ -3390,6 +3422,82 @@ const HomePage: React.FC = () => {
 };
 
 export default HomePage;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\pages\WorkspacePage.tsx
+File type: .tsx
+import React, { useRef, useState } from "react";
+import WorkspaceNavBar from "../components/workspace/WorkspaceNavBar";
+import AIDock from "../components/workspace/AIDock";
+import MidiEditorCore, { MidiEditorAPI, Track } from "../components/workspace/midi-editor/core/MidiEditorCore";
+
+const PAGE_BG = "#fbf5ee";   // off‑white page
+const BEIGE   = "#e9dcc9";   // plate
+
+export default function WorkspacePage() {
+  // minimal editor state for demo (wire to your real project data)
+  const editorRef = useRef<MidiEditorAPI | null>(null);
+  const [projectId] = useState(1);
+  const [bpm, setBpm] = useState(120);
+  const [tracks, setTracks] = useState<Track[]>([
+    { id: "t1", name: "Track 1", instrument: "Piano", notes: [] },
+  ]);
+
+  return (
+    <div className="min-h-screen flex flex-col" style={{ background: PAGE_BG }}>
+      {/* Top nav (unchanged behavior) */}
+      <WorkspaceNavBar
+        onNew={() => {}}
+        onOpen={() => {}}
+        onSave={() => {}}
+        onSaveAs={() => {}}
+        onImportMidi={() => {}}
+        onExportMidi={() => editorRef.current?.exportMidi?.()}
+        onExportStems={() => {}}
+        onClose={() => {}}
+      />
+
+      {/* Main area */}
+      <div className="flex-1 px-4 sm:px-6 py-4">
+        <div
+          className="
+            relative grid grid-cols-1 lg:grid-cols-[1fr_360px]
+            gap-4 lg:gap-6 rounded-[28px]
+            shadow-[0_40px_80px_-28px_rgba(0,0,0,0.35)]
+            border border-black/10
+            p-3 sm:p-4 lg:p-5
+          "
+          style={{ background: BEIGE }}
+        >
+          {/* Editor plate */}
+          <div className="rounded-2xl bg-white overflow-hidden border border-black/10">
+            <MidiEditorCore
+              ref={editorRef as any}
+              projectId={projectId}
+              bpm={bpm}
+              initialTracks={tracks}
+              onChange={(nextBpm, nextTracks) => {
+                setBpm(nextBpm);
+                setTracks(nextTracks);
+              }}
+              showTransport
+            />
+          </div>
+
+          {/* AI dock */}
+          <div className="lg:block">
+            <AIDock />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 
 --------------------------------------------------

@@ -1,27 +1,29 @@
 .transport-bar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: white;
-    padding: 8px 16px;
-    border: 2px solid black;
-    border-radius: 12px;
-    gap: 10px;
-  }
-  
-  .transport-bar button {
-    font-size: 18px;
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-  
-  .transport-bar button:hover {
-    transform: scale(1.1);
-  }
-  
-  .transport-bar input[type="range"] {
-    width: 100px;
-  }
-  
-  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9dcc9;           
+  padding: 12px 18px;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 16px;
+  gap: 12px;
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,0.7),
+    0 10px 20px -10px rgba(0,0,0,0.35);
+}
+
+.transport-bar button {
+  font-size: 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #121633; 
+}            
+
+.transport-bar button:hover {
+  transform: scale(1.06);
+}
+
+.transport-bar input[type="range"] {
+  width: 120px;
+}

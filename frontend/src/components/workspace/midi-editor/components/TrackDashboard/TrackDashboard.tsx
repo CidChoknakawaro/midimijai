@@ -18,13 +18,14 @@ type Props = {
   onEditTrack: (id: string) => void;
   onAddTrack: () => void;
   updateTrack: (id: string, updates: Partial<Track>) => void;
+  deleteTrack: (id: string) => void;
 };
 
 const MAX_BEAT = 63;
-const NOTE_HEIGHT = 4;
+const NOTE_HEIGHT = 3;
 const PITCH_RANGE: [number, number] = [36, 84];
 
-const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack }) => {
+const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack,deleteTrack}) => {
   const { bpm, isPlaying, playheadBeat, setPlayheadBeat } = useContext(TransportContext);
 
   const [muteMap, setMuteMap] = useState<Record<string, boolean>>({});
@@ -183,23 +184,63 @@ const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack }) =>
         {tracks.map((track) => (
           <div className="dashboard-track-row" key={track.id}>
             <div className="track-row-flex">
-              {/* LEFT: basic controls */}
-              <div className="track-controls">
-                <div className="track-name">{track.name}</div>
-                <div className="track-meta">
-                  <span>{track.instrument}</span>
-                  <button onClick={() => toggleMute(track.id)} title="Mute/Unmute">
-                    {muteMap[track.id] ? "🔇" : "🔊"}
+              {/* LEFT: compact dark controls */}
+              <div className="track-controls ctrl-dark">
+                {/* Title → EDIT */}
+                <button
+                  type="button"
+                  className="ctrl-title"
+                  onClick={() => onEditTrack(track.id)}
+                  title="Open track editor"
+                  aria-label={`Open ${track.name} in editor`}
+                >
+                  {track.name}
+                </button>
+
+                {/* Instrument + Mute/Solo */}
+                <div className="instrument-line">
+                  <span className="instrument-name">
+                    {track.instrument || "Piano"}
+                  </span>
+
+                  <button
+                    type="button"
+                    className={`icon-btn ${muteMap[track.id] ? "active" : ""}`}
+                    onClick={() => toggleMute(track.id)}
+                    aria-pressed={!!muteMap[track.id]}
+                    title={muteMap[track.id] ? "Unmute" : "Mute"}
+                  >
+                    🔊
                   </button>
-                  <button onClick={() => toggleSolo(track.id)} title="Solo">
-                    {soloMap[track.id] ? "🎧 Soloed" : "🎧"}
+
+                  <button
+                    type="button"
+                    className={`icon-btn ${soloMap[track.id] ? "active" : ""}`}
+                    onClick={() => toggleSolo(track.id)}
+                    aria-pressed={!!soloMap[track.id]}
+                    title={soloMap[track.id] ? "Unsolo" : "Solo"}
+                  >
+                    🎧
                   </button>
-                  <button onClick={() => onEditTrack(track.id)} title="Open in editor">🎹</button>
+                  {/* Delete track */}
+                  <button
+                    type="button"
+                    className="icon-btn delete-btn"
+                    onClick={() => {
+                      if (window.confirm(`Delete track "${track.name}"?`)) {
+                          deleteTrack(track.id);
+                        }
+                    }}
+                    title="Delete track"
+                  >
+                    🗑
+                  </button>
                 </div>
 
+                {/* Sliders */}
                 <div className="track-sliders">
-                  <label>
-                    Volume
+                  <label className="slider-row">
+                    <span>Volume</span>
                     <input
                       type="range"
                       min={0}
@@ -208,8 +249,8 @@ const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack }) =>
                       onChange={(e) => setVolume(track.id, parseInt(e.target.value))}
                     />
                   </label>
-                  <label>
-                    Pan
+                  <label className="slider-row">
+                    <span>Pan</span>
                     <input
                       type="range"
                       min={-1}
@@ -226,9 +267,13 @@ const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack }) =>
               <div className="track-timeline">
                 <div className="mini-playhead" style={{ left: `${redLineLeft}px` }} />
                 {Array.from({ length: 64 }).map((_, i) => (
-                  <div className={`timeline-cell ${i % 4 === 0 ? "bar" : ""}`} key={i} style={{ left: i * 10 }} />
+                  <div
+                    key={i}
+                    className={`timeline-cell ${i % 4 === 0 ? "bar" : ""}`}
+                    style={{ left: i * 10 }}
+                  />
                 ))}
-                {track.notes.map(note => (
+                {track.notes.map((note) => (
                   <div
                     key={note.id}
                     className="mini-note"
@@ -244,18 +289,17 @@ const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack }) =>
             </div>
           </div>
         ))}
-
-        {/* ADD TRACK */}
         <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
-          <button
-            type="button"
-            className="add-track-row"
-            onClick={onAddTrack}
-            aria-label="Add track"
-          >
-            ＋
-          </button>
-        </div>
+        <button
+          type="button"
+          className="add-track-row"
+          onClick={onAddTrack}
+          aria-label="Add track"
+          title="Add track"
+        >
+          ＋
+        </button>
+      </div>
       </div>
     </div>
   );

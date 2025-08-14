@@ -82,6 +82,12 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
     onChange(bpm, next);
   };
 
+  const deleteTrack = (id: string) => {
+  const next = tracks.filter(t => t.id !== id);
+  setTracks(next);
+  onChange(bpm, next);
+};
+
   const changeBpm = (newBpm: number) => {
     setBpm(newBpm);
     onChange(newBpm, tracks);
@@ -124,6 +130,7 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
               onEditTrack={(id) => setActiveTrackId(id)}
               onAddTrack={addNewTrack}
               updateTrack={updateTrack}
+              deleteTrack={deleteTrack} 
             />
           )}
         </div>

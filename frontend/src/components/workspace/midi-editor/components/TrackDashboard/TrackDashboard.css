@@ -1,16 +1,47 @@
+/* Fixed-height, compact dashboard */
 .dashboard-container {
-  max-height: 600px;
+  --panel-bg: #f6efe6;
+  --row-bg: #fffaf3;
+  --ink: #0f1326;
+  
+
+  /* keep the dashboard fixed-height so transport & navbar never jump */
+  max-height: 420px;         /* <— adjust to taste */
+  min-height: 420px;
   overflow-y: auto;
-  border: 1px solid #ccc;
-  padding: 10px;
-  background: white;
+
+  border: 1px solid #e3dccf;
+  border-radius: 16px;
+  padding: 10px 12px;
+  background: var(--panel-bg);
+  padding-bottom: 96px;            /* <-- extra room for the transport bar */
+  scroll-padding-bottom: 96px;      /* ensures last item scrolls fully into view */
 }
 
 .dashboard-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.db-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.db-add {
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  border-radius: 999px;
+  border: 1px solid #cfc7b7;
+  background: #ff5200;
+  color: #000;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .dashboard-timeline-wrapper {
@@ -19,72 +50,249 @@
   gap: 10px;
 }
 
+/* slimmer rows */
 .dashboard-track-row {
-  border: 1px solid #ccc;
-  padding: 10px;
-  background: #fdfdfd;
+  border: 1px solid #e5dece;
+  border-radius: 12px;
+  padding: 8px;
+  background: var(--row-bg);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 10px 20px -14px rgba(0,0,0,.25);
 }
 
 .track-row-flex {
   display: flex;
-  flex-direction: row;
   align-items: flex-start;
+  gap: 12px;
 }
 
+/* left controls — narrow, stacked */
 .track-controls {
-  width: 200px;
+  width: 180px;
+  min-width: 180px;
+}
+
+.track-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.track-index {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  background: #121633;
+  color: #fff;
+  text-align: center;
+  line-height: 18px;
+  font-size: 11px;
+}
+
+.track-name {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: var(--ink);
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
 }
 
 .track-meta {
-  margin-top: 5px;
+  margin-bottom: 6px;
 }
 
-.track-sliders {
-  margin-top: 10px;
+.instrument-chip {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: #efe6d8;
+  border: 1px solid #ddcfba;
+  font-size: 11px;
+  color: #3a2f20;
 }
 
+/* Right side: mini timeline */
 .track-timeline {
   position: relative;
   width: 640px;
-  height: 200px;
+  height: 148px;          
   overflow: hidden;
-  background: white;
+  background: #fff;
   border: 1px solid #eee;
 }
 
+/* viewport scrolls horizontally; height kept small */
+.timeline-viewport {
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  height: 68px; /* compact lane height */
+  border: 1px solid #eee2cc;
+  border-radius: 10px;
+  background: #fff;
+}
+
+/* the wide inner strip */
+.timeline-inner {
+  position: relative;
+  height: 100%;
+}
+
+/* grid ticks */
 .timeline-cell {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 10px;
-  border-left: 1px solid #eee;
+  width: 0; /* using only border for the line */
+  border-left: 1px solid #f0ece5;
+  z-index: 0;    
 }
-
 .timeline-cell.bar {
-  border-left: 1px solid #999;
+  border-left-color: #c9bda9;
 }
 
+/* notes are slim but visible */
 .mini-note {
   position: absolute;
-  height: 5px;
-  background: #4c79ff;
-  border-radius: 2px;
+  height: 8px;
+  border-radius: 4px;
+  background: #121633;
 }
 
+/* slim red playhead */
 .mini-playhead {
   position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;                   /* translateX controls the X position */
   width: 2px;
-  height: 100%;
-  background: red;
-  z-index: 999;
+  background: #ff2b2b;       /* strong red */
+  z-index: 2;                /* <-- highest */
+  pointer-events: none;      /* never blocks interactions */
 }
 
+/* add-track card */
 .add-track-row {
-  text-align: center;
-  padding: 20px;
-  font-size: 32px;
-  cursor: pointer;
-  color: #888;
-  border: 2px dashed #ccc;
+  width: 100%;
   margin-top: 10px;
+  padding: 12px 0;
+  text-align: center;
+  font-size: 22px;
+  color: #666;
+  background: transparent;
+  border: 2px dashed #d6cbb7;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.add-track-row:hover {
+  background: rgba(255, 82, 0, 0.06);
+}
+
+/* Dark track lane styling */
+.track-controls.ctrl-dark {
+  width: 200px;               /* adjust if you want narrower/wider */
+  min-width: 200px;
+  background: #1D213C;        /* brand navy */
+  color: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,0.08),
+    0 10px 20px -12px rgba(0,0,0,0.35);
+  border: 1px solid rgba(0,0,0,0.2);
+}
+
+/* Title doubles as EDIT trigger */
+.ctrl-title {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0 0 6px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+  cursor: pointer;
+}
+.ctrl-title:hover { text-decoration: underline; }
+
+.ctrl-dark .track-sliders {
+  margin-top: 8px;
+}
+
+.ctrl-dark .slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0;
+}
+
+.ctrl-dark .slider-row > span {
+  width: 64px;          /* fixed label width: “Volume”, “Pan” */
+  flex: 0 0 auto;
+}
+
+.ctrl-dark .slider-row input[type="range"] {
+  width: 160px;         /* <-- prevents the slider from stretching too far */
+}
+
+/* Make sure the left control column doesn't crush the timeline */
+.track-controls {
+  width: 260px;         /* adjust if you want a bit more or less */
+}
+
+/* Instrument + action icons */
+.instrument-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.instrument-name {
+  font-size: 14px;
+  color: rgba(255,255,255,0.9);
+  margin-right: 4px;
+}
+
+/* Icon buttons: speaker = mute, headphones = solo */
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.25);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.icon-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
+.icon-btn.active {
+  background: #fff;
+  color: #1D213C;
+  border-color: #fff;
+}
+
+/* Compact slider rows to fit the dark card */
+.track-sliders .slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255,255,255,0.9);
+  font-size: 14px;
+  margin: 6px 0;
+}
+.track-sliders .slider-row input[type="range"] {
+  flex: 1;
 }

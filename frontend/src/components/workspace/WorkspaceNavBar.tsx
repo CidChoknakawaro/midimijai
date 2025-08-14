@@ -53,7 +53,7 @@ const WorkspaceNavBar: React.FC<Props> = ({
   };
 
   return (
-    <div ref={ref} className="relative bg-white shadow-sm">
+    <div ref={ref} className="sticky top-0 z-40 bg-white shadow-sm">
       {/* Top row */}
       <div className="flex items-center justify-between px-6 h-12">
         <div className="flex items-center gap-4">
