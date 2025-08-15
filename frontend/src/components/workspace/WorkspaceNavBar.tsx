@@ -53,7 +53,13 @@ const WorkspaceNavBar: React.FC<Props> = ({
   };
 
   return (
-    <div ref={ref} className="relative bg-white shadow-sm">
+    <div ref={ref}
+    className="w-full rounded-lg px-4 py-2 flex items-center justify-between shadow-sm"
+  style={{
+    backgroundColor: "#E9DCC9", 
+    borderRadius: "10px",
+    height: "40px"
+  }}>
       {/* Top row */}
       <div className="flex items-center justify-between px-6 h-12">
         <div className="flex items-center gap-4">

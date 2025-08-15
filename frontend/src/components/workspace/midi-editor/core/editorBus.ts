@@ -14,7 +14,12 @@ type EditorCommand =
   | { type: "ARPEGGIATE" }
   | { type: "STRUM" }
   | { type: "LEGATO" }
-  | { type: "IMPORT_SAMPLE"; file: File };   // <- NEW
+  | { type: "IMPORT_SAMPLE"; file: File }
+  // NEW — already published by your File menu/navbar
+  | { type: "IMPORT_MIDI_FILE"; file: File }
+  | { type: "EXPORT_MIDI" }
+  // NEW — apply one generated clip to current track (append at end or at playhead)
+  | { type: "APPLY_AI_TO_TRACK"; notes: Array<{ pitch:number; time:number; duration:number; velocity:number }>; bpm?: number; };
 
 const bus = new EventTarget();
 

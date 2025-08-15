@@ -6,7 +6,11 @@ interface Props {
   placeholder?: string;
 }
 
-const PasswordToggle: React.FC<Props> = ({ value, onChange, placeholder = "Password" }) => {
+const PasswordToggle: React.FC<Props> = ({
+  value,
+  onChange,
+  placeholder = "Password",
+}) => {
   const [show, setShow] = useState(false);
   return (
     <label className="block mb-2">
@@ -29,7 +33,11 @@ const PasswordToggle: React.FC<Props> = ({ value, onChange, placeholder = "Passw
           className="absolute right-2 top-1/2 -translate-y-1/2 text-black/60 hover:text-black"
           aria-label={show ? "Hide password" : "Show password"}
         >
-          {show ? "🙈" : "👁️"}
+          <img
+            src={show ? "/Close_eye.png" : "/Eye.png"}
+            alt={show ? "Hide password" : "Show password"}
+            className="w-5 h-5"
+          />
         </button>
       </div>
     </label>

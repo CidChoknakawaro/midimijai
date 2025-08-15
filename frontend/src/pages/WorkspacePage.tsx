@@ -3,11 +3,10 @@ import WorkspaceNavBar from "../components/workspace/WorkspaceNavBar";
 import AIDock from "../components/workspace/AIDock";
 import MidiEditorCore, { MidiEditorAPI, Track } from "../components/workspace/midi-editor/core/MidiEditorCore";
 
-const PAGE_BG = "#fbf5ee";   // off‑white page
-const BEIGE   = "#e9dcc9";   // plate
+const PAGE_BG = "#fbf5ee"; 
+const BEIGE   = "#e9dcc9";  
 
 export default function WorkspacePage() {
-  // minimal editor state for demo (wire to your real project data)
   const editorRef = useRef<MidiEditorAPI | null>(null);
   const [projectId] = useState(1);
   const [bpm, setBpm] = useState(120);
@@ -17,7 +16,7 @@ export default function WorkspacePage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: PAGE_BG }}>
-      {/* Top nav (unchanged behavior) */}
+      {/* Top nav */}
       <WorkspaceNavBar
         onNew={() => {}}
         onOpen={() => {}}
@@ -39,7 +38,10 @@ export default function WorkspacePage() {
             border border-black/10
             p-3 sm:p-4 lg:p-5
           "
-          style={{ background: BEIGE }}
+          style={{ 
+            background: BEIGE,
+            height: "calc(100vh - 100px)", 
+          }}
         >
           {/* Editor plate */}
           <div className="rounded-2xl bg-white overflow-hidden border border-black/10">
@@ -57,7 +59,7 @@ export default function WorkspacePage() {
           </div>
 
           {/* AI dock */}
-          <div className="lg:block">
+          <div className="lg:block min-h-0">
             <AIDock />
           </div>
         </div>

@@ -3,8 +3,8 @@ import LoginForm from "../components/auth/LoginForm";
 import SignUpForm from "../components/auth/SignUpForm";
 import AuthToggle from "../components/auth/AuthToggle";
 
-const BEIGE = "#dcc7af";           // same family as your site accents
-const PAGE_BG = "#f8f3ed";         // soft off‑white like the homepage
+const BEIGE = "#dcc7af";          
+const PAGE_BG = "#f8f3ed";         
 
 const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);

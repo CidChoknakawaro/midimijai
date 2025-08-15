@@ -203,6 +203,7 @@ const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack,delet
                     {track.instrument || "Piano"}
                   </span>
 
+                  {/* Mute toggle */}
                   <button
                     type="button"
                     className={`icon-btn ${muteMap[track.id] ? "active" : ""}`}
@@ -210,9 +211,14 @@ const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack,delet
                     aria-pressed={!!muteMap[track.id]}
                     title={muteMap[track.id] ? "Unmute" : "Mute"}
                   >
-                    🔊
+                    <img
+                      src={muteMap[track.id] ? "/not_mute.png" : "/mute.png"}
+                      alt={muteMap[track.id] ? "Unmute" : "Mute"}
+                      style={{ width: 16, height: 16 }}
+                    />
                   </button>
 
+                  {/* Solo toggle (using speaker.png for now) */}
                   <button
                     type="button"
                     className={`icon-btn ${soloMap[track.id] ? "active" : ""}`}
@@ -220,22 +226,32 @@ const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack,delet
                     aria-pressed={!!soloMap[track.id]}
                     title={soloMap[track.id] ? "Unsolo" : "Solo"}
                   >
-                    🎧
+                    <img
+                      src="/speaker.png"
+                      alt={soloMap[track.id] ? "Unsolo" : "Solo"}
+                      style={{ width: 16, height: 16 }}
+                    />
                   </button>
+
                   {/* Delete track */}
                   <button
                     type="button"
                     className="icon-btn delete-btn"
                     onClick={() => {
                       if (window.confirm(`Delete track "${track.name}"?`)) {
-                          deleteTrack(track.id);
-                        }
+                        deleteTrack(track.id);
+                      }
                     }}
                     title="Delete track"
                   >
-                    🗑
+                    <img
+                      src="/delete-white.png"
+                      alt="Delete"
+                      style={{ width: 16, height: 16 }}
+                    />
                   </button>
                 </div>
+
 
                 {/* Sliders */}
                 <div className="track-sliders">

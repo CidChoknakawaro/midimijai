@@ -24,3 +24,14 @@ html, body, #root {
     0 0 10px rgba(255,255,255,.95),
     0 0 18px rgba(255,255,255,.65);
 }
+
+:root{
+  --orange-prim:#FF6A2A;
+  --orange-dark:#E55513;
+  --orange-grad-hi:#FF6A2A;
+  --orange-grad-lo:#FFA37A;
+
+  --beige-plate:#E9DCC9;
+  --beige-card:#F7F2EA; 
+  --text-deep:#121633;  
+}

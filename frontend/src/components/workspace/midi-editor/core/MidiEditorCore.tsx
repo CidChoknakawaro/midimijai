@@ -5,6 +5,10 @@ import TrackDashboard from "../components/TrackDashboard/TrackDashboard";
 import TrackEditor, { TrackEditorAPI } from "../components/TrackEditor/TrackEditor";
 import { TransportProvider } from "../core/TransportContext";
 
+import { subscribe } from "./editorBus";
+import { importMidiFile } from "./importMidi";
+import { exportTrackToMidi, exportMultiTrackToMidi } from "./exportMidi";
+
 export interface Track {
   id: string;
   name: string;
@@ -17,14 +21,12 @@ interface MidiEditorCoreProps {
   projectId: number;
   bpm: number;
   initialTracks: Track[];
-  /** fire when user edits bpm or tracks */
   onChange: (bpm: number, tracks: Track[]) => void;
   onSave?: () => void;
   showTransport?: boolean;
 }
 
 export type MidiEditorAPI = {
-  // Edit
   undo(): void;
   redo(): void;
   cut(): void;
@@ -32,7 +34,6 @@ export type MidiEditorAPI = {
   paste(): void;
   deleteSelection(): void;
   selectAll(): void;
-  // MIDI tools
   transpose(semitones: number): void;
   velocityScale(mult: number): void;
   noteLengthScale(mult: number): void;
@@ -40,6 +41,8 @@ export type MidiEditorAPI = {
   arpeggiate(pattern?: "up" | "down" | "updown" | "random"): void;
   strum(ms?: number): void;
   legato(): void;
+  // optional helpers
+  exportMidi?(): void;
 };
 
 const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
@@ -53,6 +56,7 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
   const [bpm, setBpm] = useState(initialBpm);
   const [tracks, setTracks] = useState<Track[]>(initialTracks);
   const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
+  const editorRef = useRef<TrackEditorAPI | null>(null);
 
   useEffect(() => {
     setBpm(initialBpm);
@@ -60,9 +64,6 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
     setActiveTrackId(null);
   }, [projectId]);
 
-  const editorRef = useRef<TrackEditorAPI | null>(null);
-
-  // bubble changes
   const addNewTrack = () => {
     const id = `t-${Date.now()}`;
     const newTrack: Track = {
@@ -83,10 +84,10 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
   };
 
   const deleteTrack = (id: string) => {
-  const next = tracks.filter(t => t.id !== id);
-  setTracks(next);
-  onChange(bpm, next);
-};
+    const next = tracks.filter(t => t.id !== id);
+    setTracks(next);
+    onChange(bpm, next);
+  };
 
   const changeBpm = (newBpm: number) => {
     setBpm(newBpm);
@@ -95,7 +96,78 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
 
   const activeTrack = tracks.find((t) => t.id === activeTrackId) || null;
 
-  // Expose commands (no-ops when dashboard view is open)
+  // -------- EDITOR BUS: Import/Export + Apply AI to track --------
+  useEffect(() => {
+    return subscribe(async (cmd) => {
+      if (cmd.type === "IMPORT_MIDI_FILE") {
+        const parsed = await importMidiFile(cmd.file);
+        // If in track view, add to that track; otherwise create a new track
+        if (activeTrack) {
+          updateTrack(activeTrack.id, {
+            notes: [...activeTrack.notes, ...parsed.notes],
+          });
+          if (parsed.bpm && parsed.bpm !== bpm) changeBpm(parsed.bpm);
+        } else {
+          const id = `t-${Date.now()}`;
+          const next: Track = {
+            id,
+            name: "Imported",
+            instrument: "Piano",
+            notes: parsed.notes,
+          };
+          const tracksNext = [...tracks, next];
+          setTracks(tracksNext);
+          onChange(parsed.bpm || bpm, tracksNext);
+        }
+      } else if (cmd.type === "EXPORT_MIDI") {
+        if (activeTrack) {
+          exportTrackToMidi({
+            notes: activeTrack.notes.map(n => ({
+              midi: n.pitch, time: n.time, duration: n.duration, velocity: (n.velocity ?? 90) / 127
+            })),
+            bpm,
+            filename: activeTrack.name || "track"
+          });
+        } else {
+          exportMultiTrackToMidi({
+            tracks: tracks.map(t => ({
+              name: t.name,
+              notes: t.notes.map(n => ({
+                midi: n.pitch, time: n.time, duration: n.duration, velocity: (n.velocity ?? 90) / 127
+              }))
+            })),
+            bpm,
+            filename: "project"
+          });
+        }
+      } else if (cmd.type === "APPLY_AI_TO_TRACK") {
+        const dest = activeTrack
+          ? activeTrack
+          : (() => {
+              // create a track if none selected
+              const id = `t-${Date.now()}`;
+              const t: Track = { id, name: "AI Track", instrument: "Piano", notes: [] };
+              const tracksNext = [...tracks, t];
+              setTracks(tracksNext);
+              onChange(bpm, tracksNext);
+              setActiveTrackId(id);
+              return t;
+            })();
+
+        // append at the end of the destination track
+        const endBeat = dest.notes.reduce((m, n) => Math.max(m, n.time + n.duration), 0);
+        const shifted = cmd.notes.map(n => ({
+          ...n,
+          time: endBeat + n.time
+        }));
+
+        updateTrack(dest.id, { notes: [...dest.notes, ...shifted] });
+        if (cmd.bpm && cmd.bpm !== bpm) changeBpm(cmd.bpm);
+      }
+    });
+  }, [tracks, activeTrackId, bpm]); // eslint-disable-line
+
+  // Expose commands
   useImperativeHandle(ref, () => ({
     undo:            () => editorRef.current?.undo?.(),
     redo:            () => editorRef.current?.redo?.(),
@@ -111,20 +183,43 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
     arpeggiate:      (p)  => editorRef.current?.arpeggiate?.(p),
     strum:           (ms) => editorRef.current?.strum?.(ms),
     legato:          ()   => editorRef.current?.legato?.(),
-  }), []);
+    exportMidi:      () => {
+      // convenience if someone calls editorRef.current?.exportMidi?.()
+      if (activeTrack) {
+        exportTrackToMidi({
+          notes: activeTrack.notes.map(n => ({
+            midi: n.pitch, time: n.time, duration: n.duration, velocity: (n.velocity ?? 90) / 127
+          })),
+          bpm,
+          filename: activeTrack.name || "track"
+        });
+      } else {
+        exportMultiTrackToMidi({
+          tracks: tracks.map(t => ({
+            name: t.name,
+            notes: t.notes.map(n => ({
+              midi: n.pitch, time: n.time, duration: n.duration, velocity: (n.velocity ?? 90) / 127
+            }))
+          })),
+          bpm,
+          filename: "project"
+        });
+      }
+    }
+  }), [tracks, activeTrackId, bpm]);
 
   return (
     <TransportProvider>
- <div className="flex flex-col h-full bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="flex flex-col h-full bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="flex-1 min-h-0 overflow-hidden">
           {activeTrack ? (
             <div className="max-h-[420px] overflow-y-auto">
-            <TrackEditor
-              ref={editorRef}
-              track={activeTrack}
-              updateTrack={(u) => updateTrack(activeTrack.id, u)}
-              goBack={() => setActiveTrackId(null)}
-            />
+              <TrackEditor
+                ref={editorRef}
+                track={activeTrack}
+                updateTrack={(u) => updateTrack(activeTrack.id, u)}
+                goBack={() => setActiveTrackId(null)}
+              />
             </div>
           ) : (
             <TrackDashboard
@@ -132,7 +227,7 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
               onEditTrack={(id) => setActiveTrackId(id)}
               onAddTrack={addNewTrack}
               updateTrack={updateTrack}
-              deleteTrack={deleteTrack} 
+              deleteTrack={deleteTrack}
             />
           )}
         </div>

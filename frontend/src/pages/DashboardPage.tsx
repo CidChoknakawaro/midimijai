@@ -6,8 +6,8 @@ import ProjectList from "../components/dashboard/ProjectList";
 import NewProjectButton from "../components/dashboard/NewProjectButton";
 import { useProjects } from "../hooks/useProjects";
 
-const PAGE_BG = "#fbf5ee";       // off‑white
-const BEIGE   = "#e9dcc9";       // panel fill
+const PAGE_BG = "#fbf5ee";  
+const BEIGE   = "#e9dcc9";  
 
 const DashboardPage: React.FC = () => {
   const { projects = [], loading, error } = useProjects();

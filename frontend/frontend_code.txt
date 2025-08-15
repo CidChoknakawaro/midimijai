@@ -89,6 +89,7 @@ src/
     services/
         aiService.ts
         authService.ts
+        hfService.ts
         midiService.ts
         projectService.ts
         userService.ts
@@ -107,6 +108,8 @@ src/
         formatDate.ts
         generateMIDI.ts
         instruments.ts
+        magenta.ts
+        previewPlayer.ts
         validateForm.ts
 
 
@@ -382,6 +385,62 @@ const LoginForm: React.FC = () => {
 };
 
 export default LoginForm;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\auth\PasswordToggle.tsx
+File type: .tsx
+import React, { useState } from "react";
+
+interface Props {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}
+
+const PasswordToggle: React.FC<Props> = ({
+  value,
+  onChange,
+  placeholder = "Password",
+}) => {
+  const [show, setShow] = useState(false);
+  return (
+    <label className="block mb-2">
+      <span className="block text-xs text-black/60 mb-1">{placeholder}</span>
+      <div className="relative">
+        <input
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="
+            w-full bg-white/80 px-3 py-2 rounded-lg
+            border border.black/20 focus:outline-none
+            focus:border.black/60 placeholder:text-black/40
+          "
+        />
+        <button
+          type="button"
+          onClick={() => setShow((s) => !s)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-black/60 hover:text-black"
+          aria-label={show ? "Hide password" : "Show password"}
+        >
+          <img
+            src={show ? "/Close_eye.png" : "/Eye.png"}
+            alt={show ? "Hide password" : "Show password"}
+            className="w-5 h-5"
+          />
+        </button>
+      </div>
+    </label>
+  );
+};
+
+export default PasswordToggle;
 
 
 --------------------------------------------------
@@ -1564,9 +1623,11 @@ import AIGenerate from "./AIGenerate";
 import AIModify from "./AIModify";
 import AIStyleTransfer from "./AIStyleTransfer";
 
-type Tab = "Generate" | "Modify" | "Style";
+type Tab = "Generate" | "Style" | "Modify";
 
-const ORANGE = "#ff5200";
+const ORANGE_START = "#ff6a2a";
+const ORANGE_END   = "#ffa37a";
+const BEIGE        = "#e9dcc9";
 
 export default function AIDock() {
   const [tab, setTab] = useState<Tab>("Generate");
@@ -1575,56 +1636,66 @@ export default function AIDock() {
   return (
     <aside
       className="
-        relative h-full
+        relative h-full min-h-0
+        overflow-hidden
         transition-all duration-300
       "
       style={{ width: open ? 360 : 40 }}
     >
       {/* slide handle */}
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(v => !v)}
         className="
-          absolute -left-3 top-1/2 -translate-y-1/2
-          w-7 h-10 rounded-full
+          absolute -left-4 top-1/2 -translate-y-1/2
+          w-8 h-12 rounded-full text-black
+          flex items-center justify-center z-10
           shadow-[0_10px_20px_-10px_rgba(0,0,0,0.5)]
           border border-black/10
-          text-black
-          flex items-center justify-center
-          z-10
         "
-        style={{ background: ORANGE }}
+        style={{ background: ORANGE_START }}
         title={open ? "Collapse" : "Expand"}
       >
         {open ? "›" : "‹"}
       </button>
 
-      {/* dock body */}
+      {/* outer orange gradient frame */}
       <div
         className="
-          h-full rounded-[22px]
+          h-full rounded-[28px] p-3
           shadow-[0_40px_60px_-26px_rgba(0,0,0,0.45)]
           border border-black/10
-          flex flex-col
-          overflow-hidden
+          flex flex-col overflow-hidden
         "
-        style={{ background: ORANGE }}
+        style={{ background: `linear-gradient(180deg, ${ORANGE_START}, ${ORANGE_END})` }}
       >
-        {/* inner plate */}
-        <div className="m-3 rounded-[18px] bg-white/92 border border-black/10 flex-1 flex flex-col overflow-hidden">
-          {/* tabs */}
-          <div className="px-3 pt-3 pb-2 flex items-center gap-2">
-            {(["Generate", "Style", "Modify"] as Tab[]).map((t) => {
+        {/* inner beige plate */}
+        <div
+          className="
+            flex-1 m-2 rounded-[18px] p-0 overflow-hidden
+            border border-black/10
+            flex flex-col
+          "
+          style={{ background: BEIGE }}
+        >
+          {/* top tabs — white with orange separators and active underline */}
+          <div className="flex">
+            {(["Generate", "Style", "Modify"] as Tab[]).map((t, i, arr) => {
               const active = tab === t;
               return (
                 <button
                   key={t}
                   onClick={() => setTab(t)}
-                  className={
-                    "px-3 py-1 rounded-full text-sm border " +
-                    (active
-                      ? "bg-white text-black border-black/20 shadow"
-                      : "bg-transparent text-black/80 hover:bg-white/70 border-black/10")
-                  }
+                  className={`
+                    flex-1 py-3 text-[15px] font-semibold
+                    ${active ? "text-[#121633]" : "text-black/80"}
+                    bg-white
+                    relative
+                  `}
+                  style={{
+                    borderRight:
+                      i < arr.length - 1 ? "4px solid " + ORANGE_START : "none",
+                    boxShadow: active ? "inset 0 -4px 0 " + ORANGE_START : "none",
+                  }}
                 >
                   {t}
                 </button>
@@ -1632,16 +1703,30 @@ export default function AIDock() {
             })}
           </div>
 
-          {/* header */}
-          <div className="px-4 pb-2 text-center text-[18px] font-semibold">
-            AI Generate
-          </div>
+          {/* padded content surface (beige inset with subtle inner glow) */}
+          <div
+            className="flex-1 px-5 pb-5 pt-4 overflow-auto"
+            style={{
+              background:
+                "radial-gradient(70% 90% at 50% 0%, rgba(255,255,255,0.55), rgba(255,255,255,0) 60%)",
+            }}
+          >
+            <div
+              className="
+                rounded-[18px] p-4 border border-black/10
+                bg-white/90 shadow-[0_24px_40px_-20px_rgba(0,0,0,0.30)]
+              "
+            >
+              <div className="text-center text-[22px] font-bold text-[#121633] mb-3">
+                AI {tab}
+              </div>
 
-          {/* content area */}
-          <div className="px-3 pb-3 flex-1 overflow-auto">
-            {tab === "Generate" && <AIGenerate />}
-            {tab === "Modify" && <AIModify />}
-            {tab === "Style" && <AIStyleTransfer />}
+              <div className="px-3 pb-3 flex-1 overflow-auto overflow-x-hidden text-sm">
+                {tab === "Generate" && <AIGenerate />}
+                {tab === "Modify" && <AIModify />}
+                {tab === "Style" && <AIStyleTransfer />}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1655,55 +1740,178 @@ File End
 --------------------------------------------------
 
 
-src\components\workspace\AIModify.tsx
+src\components\workspace\AIGenerate.tsx
 File type: .tsx
 import React, { useState } from "react";
-import { postAIGenerate } from "../../services/aiService";
+import { analyzePromptToJSON } from "../../services/hfService";
+import { generateMelodies, GeneratedClip } from "../../utils/magenta";
+import { publish } from "./midi-editor/core/editorBus";
 
-export default function AIModify() {
+export default function AIGenerate() {
   const [prompt, setPrompt] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [output, setOutput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [analysis, setAnalysis] = useState<null | {
+    genre: string; mood: string; bpm: number; bars: number; temperature: number; key: string;
+  }>(null);
+  const [clips, setClips] = useState<GeneratedClip[]>([]);
 
-  const handleSuggestions = async () => {
-    setLoading(true);
+  const run = async () => {
+    setBusy(true);
     try {
-      const resp = await postAIGenerate({ prompt, mode: "modify-suggest" });
-      setOutput((resp.suggestions || []).join("\n"));
+      const a = await analyzePromptToJSON(prompt || "chill lofi, 8 bars");
+      setAnalysis(a);
+      const outs = await generateMelodies({
+        bars: a.bars,
+        bpm: a.bpm,
+        temperature: a.temperature,
+        count: 3
+      });
+      setClips(outs);
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   };
 
-  const handleModify = async () => {
-    setLoading(true);
-    try {
-      const resp = await postAIGenerate({ prompt, mode: "modify" });
-      // For now, backend returns {data} shaped like project
-      setOutput(resp.data ? "Modified data generated" : "No data");
-    } finally {
-      setLoading(false);
-    }
+  const addClipToTrack = (clip: GeneratedClip) => {
+    publish({ type: "APPLY_AI_TO_TRACK", notes: clip.notes, bpm: analysis?.bpm });
   };
 
   return (
-    <div className="space-y-2">
-      <h4 className="text-lg font-semibold">AI Modify</h4>
-      <input
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Make this jazzier…"
-        className="w-full px-3 py-2 border rounded"
-      />
-      <div className="flex space-x-2">
-        <button onClick={handleSuggestions} disabled={loading} className="flex-1 px-3 py-1 bg-orange-400 text-white rounded">
+    <div className="space-y-3">
+      {/* pill input */}
+      <div className="rounded-full bg-white px-4 py-2 border border-black/10 shadow-inner">
+        <input
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Generate Chord Progression..."
+          className="w-full outline-none text-[14px] placeholder-black/40"
+        />
+      </div>
+
+      {/* buttons row */}
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => {/* (optional) add real suggestions later */}}
+          disabled={busy}
+          className="px-2 py-1.5 bg-[#ff6a2a] text-black font-semibold rounded shadow
+                     hover:brightness-105 active:translate-y-[1px] disabled:opacity-60"
+          style={{ border: "1px solid rgba(0,0,0,.12)" }}
+        >
           Suggestions
         </button>
-        <button onClick={handleModify} disabled={loading} className="flex-1 px-3 py-1 bg-orange-400 text-white rounded">
+        <button
+          onClick={run}
+          disabled={busy}
+          className="px-2 py-1.5 bg-[#ff6a2a] text.black font-semibold rounded shadow
+                     hover:brightness-105 active:translate-y-[1px] disabled:opacity-60"
+          style={{ border: "1px solid rgba(0,0,0,.12)" }}
+        >
+          {busy ? "Generating…" : "Generate"}
+        </button>
+      </div>
+
+      {/* results card area */}
+      <div
+        className="rounded-[16px] border border-black/10 bg-white/95"
+        style={{ minHeight: 220 }}
+      >
+        <div className="p-3 space-y-3">
+          {analysis && (
+            <div className="text-xs text-black/70">
+              <strong>Analysis:</strong> {analysis.genre} / {analysis.mood} — {analysis.bpm} BPM, {analysis.bars} bars, temp {analysis.temperature.toFixed(2)}, key {analysis.key}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 gap-3">
+            {clips.map((c, i) => (
+              <div key={c.id} className="p-3 border rounded bg-white shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm font-medium">Idea {i + 1}</div>
+                  <div className="text-xs text-black/60">
+                    {c.totalBeats.toFixed(1)} beats
+                  </div>
+                </div>
+                <div className="text-xs text-black/70 mb-2">
+                  {c.notes.slice(0, 10).map(n => n.pitch).join(", ")}{c.notes.length > 10 ? "…" : ""}
+                </div>
+                <button
+                  onClick={() => addClipToTrack(c)}
+                  className="px-3 py-1 rounded bg-black text-white text-sm"
+                >
+                  Add to Track
+                </button>
+              </div>
+            ))}
+
+            {!clips.length && (
+              <div className="text-center text-black/50 py-6 text-sm">
+                Your ideas will appear here after you generate.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\workspace\AIModify.tsx
+File type: .tsx
+import React, { useState } from "react";
+
+export default function AIModify() {
+  const [prompt, setPrompt] = useState("");
+  const [busy] = useState(false);
+
+  return (
+    <div className="space-y-3">
+      {/* pill input */}
+      <div className="rounded-full bg-white px-4 py-2 border border-black/10 shadow-inner">
+        <input
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Make this jazzier…"
+          className="w-full outline-none text-[14px] placeholder-black/40"
+        />
+      </div>
+
+      {/* buttons row (visual only) */}
+      <div className="flex items-center gap-4">
+        <button
+          disabled={busy}
+          className="px-2 py-1.5 bg-[#ff6a2a] text-black font-semibold rounded shadow
+                     hover:brightness-105 active:translate-y-[1px] disabled:opacity-60"
+          style={{ border: "1px solid rgba(0,0,0,.12)" }}
+        >
+          Suggestions
+        </button>
+        <button
+          disabled={busy}
+          className="px-2 py-1.5 bg-[#ff6a2a] text-black font-semibold rounded shadow
+                     hover:brightness-105 active:translate-y-[1px] disabled:opacity-60"
+          style={{ border: "1px solid rgba(0,0,0,.12)" }}
+        >
           Modify
         </button>
       </div>
-      <textarea readOnly value={output} className="w-full h-24 p-2 border rounded resize-none" />
+
+      {/* results card area */}
+      <div
+        className="rounded-[16px] border border-black/10 bg-white/95"
+        style={{ minHeight: 220 }}
+      >
+        <div className="p-3 space-y-3">
+          <div className="text-center text-black/50 py-6 text-sm">
+            Your modified ideas will appear here (UI only for now).
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1717,51 +1925,54 @@ File End
 src\components\workspace\AIStyleTransfer.tsx
 File type: .tsx
 import React, { useState } from "react";
-import { postAIGenerate } from "../../services/aiService";
 
 export default function AIStyleTransfer() {
   const [prompt, setPrompt] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [output, setOutput] = useState("");
-
-  const handleSuggestions = async () => {
-    setLoading(true);
-    try {
-      const resp = await postAIGenerate({ prompt, mode: "style-suggest" });
-      setOutput((resp.suggestions || []).join("\n"));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleStyle = async () => {
-    setLoading(true);
-    try {
-      const resp = await postAIGenerate({ prompt, mode: "style" });
-      setOutput(resp.data ? "Styled data generated" : "No data");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [busy] = useState(false);
 
   return (
-    <div className="space-y-2">
-      <h4 className="text-lg font-semibold">AI Style</h4>
-      <input
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Change style to Lo-Fi…"
-        className="w-full px-3 py-2 border rounded"
-      />
-      <div className="flex space-x-2">
-        <button onClick={handleSuggestions} disabled={loading} className="flex-1 px-3 py-1 bg-orange-400 text-white rounded">
+    <div className="space-y-3">
+      {/* pill input */}
+      <div className="rounded-full bg-white px-4 py-2 border border-black/10 shadow-inner">
+        <input
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Change style to Lo‑Fi…"
+          className="w-full outline-none text-[14px] placeholder-black/40"
+        />
+      </div>
+
+      {/* buttons row (visual only) */}
+      <div className="flex items-center gap-4">
+        <button
+          disabled={busy}
+          className="px-2 py-1.5 bg-[#ff6a2a] text-black font-semibold rounded shadow
+                     hover:brightness-105 active:translate-y-[1px] disabled:opacity-60"
+          style={{ border: "1px solid rgba(0,0,0,.12)" }}
+        >
           Suggestions
         </button>
-        <button onClick={handleStyle} disabled={loading} className="flex-1 px-3 py-1 bg-orange-400 text-white rounded">
+        <button
+          disabled={busy}
+          className="px-2 py-1.5 bg-[#ff6a2a] text-black font-semibold rounded shadow
+                     hover:brightness-105 active:translate-y-[1px] disabled:opacity-60"
+          style={{ border: "1px solid rgba(0,0,0,.12)" }}
+        >
           Style
         </button>
       </div>
-      <textarea readOnly value={output} className="w-full h-24 p-2 border rounded resize-none" />
+
+      {/* results card area */}
+      <div
+        className="rounded-[16px] border border-black/10 bg-white/95"
+        style={{ minHeight: 220 }}
+      >
+        <div className="p-3 space-y-3">
+          <div className="text-center text-black/50 py-6 text-sm">
+            Your styled ideas will appear here (UI only for now).
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -2147,10 +2358,7 @@ const SoundLibraryMenu: React.FC<SoundLibraryMenuProps> = ({
   onUploadSound,
 }) => {
   const items = [
-    { label: "Upload sound…", action: onUploadSound },
-    // Future:
-    // { label: "Favorites", action: () => {} },
-    // { label: "Manage libraries…", action: () => {} },
+    { label: "Import sound…", action: onUploadSound },
   ] as const;
 
   return (
@@ -2172,6 +2380,87 @@ const SoundLibraryMenu: React.FC<SoundLibraryMenuProps> = ({
 };
 
 export default SoundLibraryMenu;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\workspace\SoundLibraryModal.tsx
+File type: .tsx
+// frontend/src/components/workspace/SoundLibraryModal.tsx
+import React, { useRef } from "react";
+import { publish } from "./midi-editor/core/editorBus";
+
+type Props = {
+  isOpen: boolean;
+  onClose: () => void;
+};
+
+const SoundLibraryModal: React.FC<Props> = ({ isOpen, onClose }) => {
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  if (!isOpen) return null;
+
+  const triggerPick = () => fileRef.current?.click();
+
+  const handlePick: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Hand off to editor via event bus
+    publish({ type: "IMPORT_SAMPLE", file });
+    // reset & close
+    e.target.value = "";
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
+      <div className="w-[720px] max-w-[90vw] rounded-lg bg-white shadow-xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Sound Library</h2>
+          <button
+            className="rounded px-2 py-1 text-gray-600 hover:bg-gray-100"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Simple categories (placeholder UI) */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <button className="h-14 rounded-md border hover:bg-gray-50">Keyboard/Synth</button>
+          <button className="h-14 rounded-md border hover:bg-gray-50">Drums</button>
+          <button className="h-14 rounded-md border hover:bg-gray-50">Bass</button>
+          <button className="h-14 rounded-md border hover:bg-gray-50">Strings</button>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-500">
+            Import a custom audio sample to use as an instrument on the current track.
+          </div>
+          <button
+            onClick={triggerPick}
+            className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium hover:bg-gray-50"
+          >
+            Import sound
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="audio/*"
+            className="hidden"
+            onChange={handlePick}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SoundLibraryModal;
+
 
 --------------------------------------------------
 File End
@@ -2235,7 +2524,13 @@ const WorkspaceNavBar: React.FC<Props> = ({
   };
 
   return (
-    <div ref={ref} className="sticky top-0 z-40 bg-white shadow-sm">
+    <div ref={ref}
+    className="w-full rounded-lg px-4 py-2 flex items-center justify-between shadow-sm"
+  style={{
+    backgroundColor: "#E9DCC9", 
+    borderRadius: "10px",
+    height: "40px"
+  }}>
       {/* Top row */}
       <div className="flex items-center justify-between px-6 h-12">
         <div className="flex items-center gap-4">
@@ -2271,8 +2566,17 @@ const WorkspaceNavBar: React.FC<Props> = ({
                       onOpen={onOpen}
                       onSave={onSave}
                       onSaveAs={onSaveAs}
-                      onImportMidi={onImportMidi}
-                      onExportMidi={onExportMidi}
+                      // Import MIDI -> publish to editor
+                      onImportMidi={(file) => {
+                        publish({ type: "IMPORT_MIDI_FILE", file });
+                        // still bubble if caller cares
+                        onImportMidi?.(file);
+                      }}
+                      // Export MIDI -> publish to editor
+                      onExportMidi={() => {
+                        publish({ type: "EXPORT_MIDI" });
+                        onExportMidi?.();
+                      }}
                       onExportStems={onExportStems}
                       onClose={onClose}
                     />
@@ -2349,362 +2653,16 @@ const WorkspaceNavBar: React.FC<Props> = ({
         </button>
       </div>
 
-      {/* Sound Library Modal (upload flow) */}
+      {/* Sound Library Modal (upload / imported sounds) */}
       <SoundLibraryModal
         isOpen={libraryOpen}
         onClose={() => setLibraryOpen(false)}
-        onImportSample={onImportMidi}
       />
     </div>
   );
 };
 
 export default WorkspaceNavBar;
-
-
---------------------------------------------------
-File End
---------------------------------------------------
-
-
-src\components\workspace\midi-editor\components\TrackEditor\TrackEditor.tsx
-File type: .tsx
-import React, { useContext, useEffect, useRef, useState } from "react";
-import PianoRoll from "../PianoRoll/PianoRoll";
-import * as Tone from "tone";
-import { exportMidi } from "../../core/exportMidi";
-import { importMidiFile } from "../../core/importMidi";
-import { getActiveNotesAtBeat } from "../../core/midiUtils";
-import { TransportContext } from "../../core/TransportContext";
-import { subscribe, EditorCommand } from "../../core/editorBus";
-import { ChevronLeft, Upload, Music4, FileDown } from "lucide-react";
-
-const MAX_BEAT = 63;
-const BUILT_IN_INSTRUMENTS = ["Piano", "Synth", "AMSynth", "MembraneSynth"];
-
-type Track = {
-  id: string;
-  name: string;
-  notes: any[];
-  instrument: string;
-  customSoundUrl?: string;
-};
-
-type Props = {
-  track: Track;
-  updateTrack: (updates: Partial<Track>) => void;
-  goBack: () => void;
-};
-
-const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
-  const { bpm, isPlaying, playheadBeat, setPlayheadBeat } =
-    useContext(TransportContext);
-
-  const [zoomLevel, setZoomLevel] = useState<1 | 2 | 4>(1);
-  const [snapToGrid, setSnapToGrid] = useState(true);
-
-  const playheadRef = useRef<HTMLDivElement>(null);
-  const synthRef = useRef<any>(null);
-  const redLineRef = useRef(playheadBeat);
-  const animationRef = useRef<number>();
-  const activeNotes = useRef<Set<string>>(new Set());
-
-  const gridWidth = 40 * zoomLevel;
-
-  // Audio-timing reference
-  const audioStartTimeRef = useRef<number | null>(null);
-  const beatAtStartRef = useRef<number>(0);
-
-  // ---------- synth init by instrument ----------
-  useEffect(() => {
-    if (synthRef.current) synthRef.current.dispose?.();
-    if (track.instrument.startsWith("Imported:")) {
-      synthRef.current = null;
-    } else {
-      switch (track.instrument) {
-        case "Piano":
-          synthRef.current = new Tone.PolySynth().toDestination();
-          break;
-        case "Synth":
-          synthRef.current = new Tone.Synth().toDestination();
-          break;
-        case "AMSynth":
-          synthRef.current = new Tone.AMSynth().toDestination();
-          break;
-        case "MembraneSynth":
-          synthRef.current = new Tone.MembraneSynth().toDestination();
-          break;
-        default:
-          synthRef.current = new Tone.PolySynth().toDestination();
-      }
-    }
-  }, [track.instrument]);
-
-  // ---------- transport-driven animation ----------
-  useEffect(() => {
-    let lastTime = performance.now();
-
-    const tick = (now: number) => {
-      const delta = Math.max(now - lastTime, 0) / 1000;
-      lastTime = now;
-
-      if (isPlaying) {
-        if (audioStartTimeRef.current === null) {
-          audioStartTimeRef.current = Tone.now();
-          beatAtStartRef.current = redLineRef.current;
-        }
-        const currentAudioTime = Tone.now();
-        const elapsed = currentAudioTime - audioStartTimeRef.current;
-        const beat = beatAtStartRef.current + (bpm / 60) * elapsed;
-
-        redLineRef.current = beat;
-        if (redLineRef.current >= MAX_BEAT) {
-          redLineRef.current = 0;
-          audioStartTimeRef.current = Tone.now();
-          beatAtStartRef.current = 0;
-          activeNotes.current.clear();
-        }
-
-        setPlayheadBeat(redLineRef.current);
-        updatePlayhead(redLineRef.current);
-        triggerNotesAt(redLineRef.current);
-      } else {
-        redLineRef.current = playheadBeat;
-        updatePlayhead(playheadBeat);
-        stopAllNotes();
-        audioStartTimeRef.current = null;
-      }
-
-      animationRef.current = requestAnimationFrame(tick);
-    };
-
-    animationRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animationRef.current!);
-  }, [isPlaying, bpm, playheadBeat, setPlayheadBeat]);
-
-  // ---------- editorBus subscription ----------
-  useEffect(() => {
-    const unsub = subscribe(async (cmd: EditorCommand) => {
-      switch (cmd.type) {
-        case "SET_ZOOM":
-          setZoomLevel(cmd.value);
-          break;
-        case "TOGGLE_SNAP":
-          setSnapToGrid((s) => !s);
-          break;
-        case "EXPORT_MIDI":
-          exportMidi(track.notes, bpm);
-          break;
-        case "IMPORT_MIDI_FILE": {
-          const file = cmd.file;
-          if (file) {
-            const result = await importMidiFile(file);
-            // If your import returns bpm, you can decide whether to update bpm via context elsewhere
-            updateTrack({ notes: result.notes });
-          }
-          break;
-        }
-
-        // Tools — leave as stubs for now, or plug in your actual transforms:
-        case "TRANSPOSE":
-        case "VELOCITY":
-        case "NOTE_LENGTH":
-        case "HUMANIZE":
-        case "ARPEGGIATE":
-        case "STRUM":
-        case "LEGATO":
-        case "OPEN_AUDIO_ENGINE":
-        case "OPEN_MIDI_INPUT":
-        case "OPEN_SHORTCUTS":
-        case "OPEN_GRID_SETTINGS":
-        case "OPEN_LATENCY_SETTINGS":
-        case "UNDO":
-        case "REDO":
-        case "CUT":
-        case "COPY":
-        case "PASTE":
-        case "DELETE":
-        case "SELECT_ALL":
-          console.log("[editorBus] command received:", cmd.type);
-          break;
-      }
-    });
-    return unsub;
-  }, [track.notes, bpm, updateTrack]);
-
-  // ---------- note trigger helpers ----------
-  const triggerNotesAt = (beat: number) => {
-    const nowActive = getActiveNotesAtBeat(track.notes, beat);
-
-    nowActive.forEach((note) => {
-      if (!activeNotes.current.has(note.id)) {
-        const now = Tone.now();
-        if (track.instrument.startsWith("Imported:") && track.customSoundUrl) {
-          const durationSec = (note.duration / bpm) * 60;
-          const player = new Tone.Player({
-            url: track.customSoundUrl,
-            playbackRate: Math.pow(2, (note.pitch - 60) / 12),
-            autostart: true,
-            onstop: () => player.dispose(),
-          }).toDestination();
-          setTimeout(() => player.stop(), durationSec * 1000);
-        } else {
-          const name = Tone.Frequency(note.pitch, "midi").toNote();
-          synthRef.current?.triggerAttack(name, now, note.velocity / 127);
-        }
-        activeNotes.current.add(note.id);
-      }
-    });
-
-    activeNotes.current.forEach((id) => {
-      const stillActive = nowActive.find((n) => n.id === id);
-      if (!stillActive) {
-        const note = track.notes.find((n) => n.id === id);
-        if (note && !track.instrument.startsWith("Imported:")) {
-          const name = Tone.Frequency(note.pitch, "midi").toNote();
-          synthRef.current?.triggerRelease(name, Tone.now());
-        }
-        activeNotes.current.delete(id);
-      }
-    });
-  };
-
-  const stopAllNotes = () => {
-    activeNotes.current.forEach((id) => {
-      const note = track.notes.find((n) => n.id === id);
-      if (note && !track.instrument.startsWith("Imported:")) {
-        const name = Tone.Frequency(note.pitch, "midi").toNote();
-        synthRef.current?.triggerRelease(name, Tone.now());
-      }
-    });
-    activeNotes.current.clear();
-  };
-
-  const updatePlayhead = (beat: number) => {
-    const left = beat * gridWidth;
-    if (playheadRef.current) {
-      playheadRef.current.style.left = `${left}px`;
-    }
-  };
-
-  const scrubToBeat = (beat: number) => {
-    redLineRef.current = beat;
-    setPlayheadBeat(beat);
-    updatePlayhead(beat);
-  };
-
-  // ---------- UI helpers that remain local ----------
-  const handleUploadSound = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      const name = `Imported: ${file.name}`;
-      updateTrack({ instrument: name, customSoundUrl: url });
-    }
-  };
-
-  const testImportedSound = async () => {
-    if (!track.instrument.startsWith("Imported:") || !track.customSoundUrl) return;
-    const player = new Tone.Player(track.customSoundUrl).toDestination();
-    await Tone.start();
-    player.autostart = true;
-  };
-
-  return (
-    <div style={{ padding: 10, overflowY: "auto" }}>
-      <div className="px-4 py-3 space-y-4">
-  {/* Header */}
-  <div className="flex items-center justify-between">
-    <button
-      onClick={goBack}
-      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border hover:bg-gray-50"
-    >
-      <ChevronLeft className="w-4 h-4" />
-      <span>Back to Tracks</span>
-    </button>
-
-    <h2 className="text-xl font-semibold truncate">{track.name}</h2>
-  </div>
-
-  {/* Toolbar */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-    {/* Zoom */}
-    <div className="flex items-center gap-2">
-      <span className="text-sm font-medium">Zoom:</span>
-      <select
-        value={zoomLevel}
-        onChange={(e) => setZoomLevel(Number(e.target.value) as 1 | 2 | 4)}
-        className="px-2 py-1 border rounded-md text-sm"
-      >
-        <option value={1}>1/4</option>
-        <option value={2}>1/8</option>
-        <option value={4}>1/16</option>
-      </select>
-      <label className="ml-3 inline-flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          className="accent-teal-500"
-          checked={snapToGrid}
-          onChange={(e) => setSnapToGrid(e.target.checked)}
-        />
-        Snap to Grid
-      </label>
-    </div>
-
-    {/* Instrument */}
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm font-medium">Instrument:</span>
-      <div className="flex items-center gap-2">
-        <Music4 className="w-4 h-4 text-gray-500" />
-        <select
-          value={track.instrument}
-          onChange={(e) => updateTrack({ instrument: e.target.value })}
-          className="px-2 py-1 border rounded-md text-sm"
-        >
-          {BUILT_IN_INSTRUMENTS.map((inst) => (
-            <option key={inst} value={inst}>
-              {inst}
-            </option>
-          ))}
-          {track.customSoundUrl && (
-            <option value={track.instrument}>{track.instrument}</option>
-          )}
-        </select>
-      </div>
-
-      
-    </div>
-
-    {/* MIDI Import */}
-    
-
-    {/* MIDI Export */}
-    <div className="flex items-center gap-2">
-      <button
-        onClick={() => exportMidi(track.notes, bpm)}
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border hover:bg-gray-50 text-sm"
-      >
-        <FileDown className="w-4 h-4" />
-        Export MIDI
-      </button>
-    </div>
-  </div>
-</div>
-
-      <PianoRoll
-        notes={track.notes}
-        setNotes={(updated) => updateTrack({ notes: updated })}
-        playheadRef={playheadRef}
-        gridWidth={gridWidth}
-        snapToGrid={snapToGrid}
-        isPlaying={isPlaying}
-        onPlayheadScrub={scrubToBeat}
-      />
-    </div>
-  );
-};
-
-export default TrackEditor;
 
 
 --------------------------------------------------
@@ -2742,6 +2700,52 @@ File type: .css
 
 .transport-bar input[type="range"] {
   width: 120px;
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\workspace\midi-editor\core\editorBus.ts
+File type: .ts
+// frontend/src/components/workspace/midi-editor/core/editorBus.ts
+type EditorCommand =
+  | { type: "UNDO" }
+  | { type: "REDO" }
+  | { type: "CUT" }
+  | { type: "COPY" }
+  | { type: "PASTE" }
+  | { type: "DELETE" }
+  | { type: "SELECT_ALL" }
+  | { type: "TRANSPOSE" }
+  | { type: "VELOCITY" }
+  | { type: "NOTE_LENGTH" }
+  | { type: "HUMANIZE" }
+  | { type: "ARPEGGIATE" }
+  | { type: "STRUM" }
+  | { type: "LEGATO" }
+  | { type: "IMPORT_SAMPLE"; file: File }
+  // NEW — already published by your File menu/navbar
+  | { type: "IMPORT_MIDI_FILE"; file: File }
+  | { type: "EXPORT_MIDI" }
+  // NEW — apply one generated clip to current track (append at end or at playhead)
+  | { type: "APPLY_AI_TO_TRACK"; notes: Array<{ pitch:number; time:number; duration:number; velocity:number }>; bpm?: number; };
+
+const bus = new EventTarget();
+
+export function publish(cmd: EditorCommand) {
+  bus.dispatchEvent(new CustomEvent("cmd", { detail: cmd }));
+}
+
+export function subscribe(fn: (cmd: EditorCommand) => void) {
+  const handler = (e: Event) => {
+    const ce = e as CustomEvent<EditorCommand>;
+    fn(ce.detail);
+  };
+  bus.addEventListener("cmd", handler);
+  return () => bus.removeEventListener("cmd", handler);
 }
 
 
@@ -2888,6 +2892,10 @@ import TrackDashboard from "../components/TrackDashboard/TrackDashboard";
 import TrackEditor, { TrackEditorAPI } from "../components/TrackEditor/TrackEditor";
 import { TransportProvider } from "../core/TransportContext";
 
+import { subscribe } from "./editorBus";
+import { importMidiFile } from "./importMidi";
+import { exportTrackToMidi, exportMultiTrackToMidi } from "./exportMidi";
+
 export interface Track {
   id: string;
   name: string;
@@ -2900,14 +2908,12 @@ interface MidiEditorCoreProps {
   projectId: number;
   bpm: number;
   initialTracks: Track[];
-  /** fire when user edits bpm or tracks */
   onChange: (bpm: number, tracks: Track[]) => void;
   onSave?: () => void;
   showTransport?: boolean;
 }
 
 export type MidiEditorAPI = {
-  // Edit
   undo(): void;
   redo(): void;
   cut(): void;
@@ -2915,7 +2921,6 @@ export type MidiEditorAPI = {
   paste(): void;
   deleteSelection(): void;
   selectAll(): void;
-  // MIDI tools
   transpose(semitones: number): void;
   velocityScale(mult: number): void;
   noteLengthScale(mult: number): void;
@@ -2923,6 +2928,8 @@ export type MidiEditorAPI = {
   arpeggiate(pattern?: "up" | "down" | "updown" | "random"): void;
   strum(ms?: number): void;
   legato(): void;
+  // optional helpers
+  exportMidi?(): void;
 };
 
 const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
@@ -2936,6 +2943,7 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
   const [bpm, setBpm] = useState(initialBpm);
   const [tracks, setTracks] = useState<Track[]>(initialTracks);
   const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
+  const editorRef = useRef<TrackEditorAPI | null>(null);
 
   useEffect(() => {
     setBpm(initialBpm);
@@ -2943,9 +2951,6 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
     setActiveTrackId(null);
   }, [projectId]);
 
-  const editorRef = useRef<TrackEditorAPI | null>(null);
-
-  // bubble changes
   const addNewTrack = () => {
     const id = `t-${Date.now()}`;
     const newTrack: Track = {
@@ -2966,10 +2971,10 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
   };
 
   const deleteTrack = (id: string) => {
-  const next = tracks.filter(t => t.id !== id);
-  setTracks(next);
-  onChange(bpm, next);
-};
+    const next = tracks.filter(t => t.id !== id);
+    setTracks(next);
+    onChange(bpm, next);
+  };
 
   const changeBpm = (newBpm: number) => {
     setBpm(newBpm);
@@ -2978,7 +2983,78 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
 
   const activeTrack = tracks.find((t) => t.id === activeTrackId) || null;
 
-  // Expose commands (no-ops when dashboard view is open)
+  // -------- EDITOR BUS: Import/Export + Apply AI to track --------
+  useEffect(() => {
+    return subscribe(async (cmd) => {
+      if (cmd.type === "IMPORT_MIDI_FILE") {
+        const parsed = await importMidiFile(cmd.file);
+        // If in track view, add to that track; otherwise create a new track
+        if (activeTrack) {
+          updateTrack(activeTrack.id, {
+            notes: [...activeTrack.notes, ...parsed.notes],
+          });
+          if (parsed.bpm && parsed.bpm !== bpm) changeBpm(parsed.bpm);
+        } else {
+          const id = `t-${Date.now()}`;
+          const next: Track = {
+            id,
+            name: "Imported",
+            instrument: "Piano",
+            notes: parsed.notes,
+          };
+          const tracksNext = [...tracks, next];
+          setTracks(tracksNext);
+          onChange(parsed.bpm || bpm, tracksNext);
+        }
+      } else if (cmd.type === "EXPORT_MIDI") {
+        if (activeTrack) {
+          exportTrackToMidi({
+            notes: activeTrack.notes.map(n => ({
+              midi: n.pitch, time: n.time, duration: n.duration, velocity: (n.velocity ?? 90) / 127
+            })),
+            bpm,
+            filename: activeTrack.name || "track"
+          });
+        } else {
+          exportMultiTrackToMidi({
+            tracks: tracks.map(t => ({
+              name: t.name,
+              notes: t.notes.map(n => ({
+                midi: n.pitch, time: n.time, duration: n.duration, velocity: (n.velocity ?? 90) / 127
+              }))
+            })),
+            bpm,
+            filename: "project"
+          });
+        }
+      } else if (cmd.type === "APPLY_AI_TO_TRACK") {
+        const dest = activeTrack
+          ? activeTrack
+          : (() => {
+              // create a track if none selected
+              const id = `t-${Date.now()}`;
+              const t: Track = { id, name: "AI Track", instrument: "Piano", notes: [] };
+              const tracksNext = [...tracks, t];
+              setTracks(tracksNext);
+              onChange(bpm, tracksNext);
+              setActiveTrackId(id);
+              return t;
+            })();
+
+        // append at the end of the destination track
+        const endBeat = dest.notes.reduce((m, n) => Math.max(m, n.time + n.duration), 0);
+        const shifted = cmd.notes.map(n => ({
+          ...n,
+          time: endBeat + n.time
+        }));
+
+        updateTrack(dest.id, { notes: [...dest.notes, ...shifted] });
+        if (cmd.bpm && cmd.bpm !== bpm) changeBpm(cmd.bpm);
+      }
+    });
+  }, [tracks, activeTrackId, bpm]); // eslint-disable-line
+
+  // Expose commands
   useImperativeHandle(ref, () => ({
     undo:            () => editorRef.current?.undo?.(),
     redo:            () => editorRef.current?.redo?.(),
@@ -2994,26 +3070,51 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
     arpeggiate:      (p)  => editorRef.current?.arpeggiate?.(p),
     strum:           (ms) => editorRef.current?.strum?.(ms),
     legato:          ()   => editorRef.current?.legato?.(),
-  }), []);
+    exportMidi:      () => {
+      // convenience if someone calls editorRef.current?.exportMidi?.()
+      if (activeTrack) {
+        exportTrackToMidi({
+          notes: activeTrack.notes.map(n => ({
+            midi: n.pitch, time: n.time, duration: n.duration, velocity: (n.velocity ?? 90) / 127
+          })),
+          bpm,
+          filename: activeTrack.name || "track"
+        });
+      } else {
+        exportMultiTrackToMidi({
+          tracks: tracks.map(t => ({
+            name: t.name,
+            notes: t.notes.map(n => ({
+              midi: n.pitch, time: n.time, duration: n.duration, velocity: (n.velocity ?? 90) / 127
+            }))
+          })),
+          bpm,
+          filename: "project"
+        });
+      }
+    }
+  }), [tracks, activeTrackId, bpm]);
 
   return (
     <TransportProvider>
       <div className="flex flex-col h-full bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-hidden">
           {activeTrack ? (
-            <TrackEditor
-              ref={editorRef}
-              track={activeTrack}
-              updateTrack={(u) => updateTrack(activeTrack.id, u)}
-              goBack={() => setActiveTrackId(null)}
-            />
+            <div className="max-h-[420px] overflow-y-auto">
+              <TrackEditor
+                ref={editorRef}
+                track={activeTrack}
+                updateTrack={(u) => updateTrack(activeTrack.id, u)}
+                goBack={() => setActiveTrackId(null)}
+              />
+            </div>
           ) : (
             <TrackDashboard
               tracks={tracks}
               onEditTrack={(id) => setActiveTrackId(id)}
               onAddTrack={addNewTrack}
               updateTrack={updateTrack}
-              deleteTrack={deleteTrack} 
+              deleteTrack={deleteTrack}
             />
           )}
         </div>
@@ -3029,6 +3130,7 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
 
 export default MidiEditorCore;
 
+
 --------------------------------------------------
 File End
 --------------------------------------------------
@@ -3039,94 +3141,6 @@ File type: .ts
 export const getActiveNotesAtBeat = (notes: any[], beat: number): any[] => {
   return notes.filter(note =>
     beat >= note.time && beat < note.time + note.duration
-  );
-};
-
-
---------------------------------------------------
-File End
---------------------------------------------------
-
-
-src\components\workspace\midi-editor\core\TransportContext.tsx
-File type: .tsx
-import React, { createContext, useEffect, useState } from 'react';
-import * as Tone from 'tone';
-
-export const TransportContext = createContext<any>(null);
-
-export const TransportProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [bpm, setBpm] = useState(120);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [playheadBeat, setPlayheadBeat] = useState(0);
-  const [metronome, setMetronome] = useState(false);
-  const [loop, setLoop] = useState(false);
-  const [zoom, setZoom] = useState(1);
-
-  const handlePlay = async () => {
-    await Tone.start();
-    setIsPlaying(true);
-  };
-
-  const handlePause = () => {
-    setIsPlaying(false);
-  };
-
-  const returnToStart = () => {
-    setPlayheadBeat(0);
-  };
-
-  const toggleMetronome = () => {
-    setMetronome((prev) => !prev);
-  };
-
-  useEffect(() => {
-    let metronomeSynth: Tone.Synth | null = null;
-    let intervalId: number | string | undefined;
-
-    if (metronome && isPlaying) {
-      metronomeSynth = new Tone.Synth({
-        oscillator: { type: 'square' },
-        envelope: { attack: 0.001, decay: 0.01, sustain: 0.1, release: 0.1 }
-      }).toDestination();
-
-      intervalId = Tone.Transport.scheduleRepeat((time) => {
-        metronomeSynth?.triggerAttackRelease("C5", "8n", time);
-      }, "4n");
-
-      Tone.Transport.start();
-    }
-
-    return () => {
-      if (intervalId !== undefined) {
-        Tone.Transport.clear(intervalId);
-      }
-      metronomeSynth?.dispose();
-    };
-  }, [metronome, isPlaying]);
-
-  return (
-    <TransportContext.Provider
-      value={{
-        bpm,
-        setBpm,
-        isPlaying,
-        handlePlay,
-        handlePause,
-        returnToStart,
-        playheadBeat,
-        setPlayheadBeat,
-        metronome,
-        toggleMetronome,
-        loop,
-        toggleLoop: () => setLoop((prev) => !prev),
-        zoom,
-        handleZoomIn: () => setZoom((z) => Math.min(z + 1, 4)),
-        handleZoomOut: () => setZoom((z) => Math.max(z - 1, 1)),
-      }}
-    >
-      {children}
-    </TransportContext.Provider>
   );
 };
 
@@ -3269,8 +3283,8 @@ import LoginForm from "../components/auth/LoginForm";
 import SignUpForm from "../components/auth/SignUpForm";
 import AuthToggle from "../components/auth/AuthToggle";
 
-const BEIGE = "#dcc7af";           // same family as your site accents
-const PAGE_BG = "#f8f3ed";         // soft off‑white like the homepage
+const BEIGE = "#dcc7af";          
+const PAGE_BG = "#f8f3ed";         
 
 const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -3323,8 +3337,8 @@ import ProjectList from "../components/dashboard/ProjectList";
 import NewProjectButton from "../components/dashboard/NewProjectButton";
 import { useProjects } from "../hooks/useProjects";
 
-const PAGE_BG = "#fbf5ee";       // off‑white
-const BEIGE   = "#e9dcc9";       // panel fill
+const PAGE_BG = "#fbf5ee";  
+const BEIGE   = "#e9dcc9";  
 
 const DashboardPage: React.FC = () => {
   const { projects = [], loading, error } = useProjects();
@@ -3436,11 +3450,10 @@ import WorkspaceNavBar from "../components/workspace/WorkspaceNavBar";
 import AIDock from "../components/workspace/AIDock";
 import MidiEditorCore, { MidiEditorAPI, Track } from "../components/workspace/midi-editor/core/MidiEditorCore";
 
-const PAGE_BG = "#fbf5ee";   // off‑white page
-const BEIGE   = "#e9dcc9";   // plate
+const PAGE_BG = "#fbf5ee"; 
+const BEIGE   = "#e9dcc9";  
 
 export default function WorkspacePage() {
-  // minimal editor state for demo (wire to your real project data)
   const editorRef = useRef<MidiEditorAPI | null>(null);
   const [projectId] = useState(1);
   const [bpm, setBpm] = useState(120);
@@ -3450,7 +3463,7 @@ export default function WorkspacePage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: PAGE_BG }}>
-      {/* Top nav (unchanged behavior) */}
+      {/* Top nav */}
       <WorkspaceNavBar
         onNew={() => {}}
         onOpen={() => {}}
@@ -3472,7 +3485,10 @@ export default function WorkspacePage() {
             border border-black/10
             p-3 sm:p-4 lg:p-5
           "
-          style={{ background: BEIGE }}
+          style={{ 
+            background: BEIGE,
+            height: "calc(100vh - 100px)", 
+          }}
         >
           {/* Editor plate */}
           <div className="rounded-2xl bg-white overflow-hidden border border-black/10">
@@ -3490,7 +3506,7 @@ export default function WorkspacePage() {
           </div>
 
           {/* AI dock */}
-          <div className="lg:block">
+          <div className="lg:block min-h-0">
             <AIDock />
           </div>
         </div>
@@ -3572,6 +3588,77 @@ export const login = async (username: string, password: string): Promise<TokenRe
   const res = await axios.post<TokenResponse>(`${API_URL}/login`, { username, password });
   return res.data;
 };
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\services\hfService.ts
+File type: .ts
+// src/services/hfService.ts
+import { HfInference } from "@huggingface/inference";
+
+const HF_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"; // small, free, flexible
+const token = import.meta.env.VITE_HF_TOKEN as string | undefined;
+
+// Fallback if no token: we'll still attempt; HF allows limited anon for some models.
+// You can also switch to a tiny text-classifier if desired.
+const hf = new HfInference(token);
+
+export type PromptAnalysis = {
+  genre: string;      // e.g., "lofi", "pop", "house", "jazz"
+  mood: string;       // e.g., "chill", "happy", "dark"
+  bpm: number;        // suggested BPM
+  bars: number;       // length in bars
+  temperature: number;// 0.2..1.5
+  key: string;        // "C", "D#", "F", etc. (used just for display; Magenta is key-agnostic)
+};
+
+const SYSTEM = `You are a music prompt analyzer. 
+Given a short text from a user, return STRICT JSON with keys:
+genre (string), mood (string), bpm (int), bars (int), temperature (float), key (capital letter with optional #/b).
+Keep bpm between 70 and 150, bars between 4 and 64, temperature between 0.2 and 1.5. No extra text.`;
+
+export async function analyzePromptToJSON(userPrompt: string): Promise<PromptAnalysis> {
+  try {
+    const res = await hf.chatCompletion({
+      model: HF_MODEL,
+      messages: [
+        { role: "system", content: SYSTEM },
+        { role: "user", content: userPrompt }
+      ],
+      max_tokens: 200,
+      temperature: 0.5,
+    });
+
+    const content = res.choices?.[0]?.message?.content ?? "{}";
+    // Some models return JSON fenced in code blocks. Strip if needed:
+    const json = content.replace(/^```json|```$/g, "").trim();
+    const parsed = JSON.parse(json);
+
+    // lightweight sanity defaults
+    return {
+      genre: parsed.genre || "pop",
+      mood: parsed.mood || "bright",
+      bpm: Math.min(150, Math.max(70, Number(parsed.bpm) || 120)),
+      bars: Math.min(64, Math.max(4, Number(parsed.bars) || 8)),
+      temperature: Math.min(1.5, Math.max(0.2, Number(parsed.temperature) || 1.0)),
+      key: parsed.key || "C",
+    };
+  } catch {
+    // Offline fallback if HF is unavailable
+    return {
+      genre: "pop",
+      mood: "bright",
+      bpm: 120,
+      bars: 8,
+      temperature: 0.9,
+      key: "C",
+    };
+  }
+}
 
 
 --------------------------------------------------
@@ -3703,6 +3790,16 @@ html, body, #root {
     0 0 18px rgba(255,255,255,.65);
 }
 
+:root{
+  --orange-prim:#FF6A2A;
+  --orange-dark:#E55513;
+  --orange-grad-hi:#FF6A2A;
+  --orange-grad-lo:#FFA37A;
+
+  --beige-plate:#E9DCC9;
+  --beige-card:#F7F2EA; 
+  --text-deep:#121633;  
+}
 
 --------------------------------------------------
 File End
@@ -3923,6 +4020,189 @@ export const getInstrument = (type: string) => {
       return new Tone.Synth().toDestination();
   }
 };
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\utils\magenta.ts
+File type: .ts
+// src/utils/magenta.ts
+import * as mm from "@magenta/music";
+
+let rnn: mm.MusicRNN | null = null;
+
+// Basic_rnn is fast and decent for short melodic ideas.
+// Other checkpoints: look at @magenta/music docs if you want different flavors.
+const RNN_URL = "https://storage.googleapis.com/magentadata/js/checkpoints/music_rnn/basic_rnn";
+
+export async function ensureRNN() {
+  if (!rnn) {
+    rnn = new mm.MusicRNN(RNN_URL);
+    await rnn.initialize();
+  }
+  return rnn!;
+}
+
+export type GeneratedClip = {
+  id: string;
+  notes: Array<{ id: string; pitch: number; time: number; duration: number; velocity: number }>;
+  totalBeats: number;
+};
+
+// Convert a Magenta NoteSequence into your note shape (beats as time)
+function toEditorNotes(ns: mm.INoteSequence): GeneratedClip {
+  // Tone grid in your editor uses beats; Magenta NoteSequence uses totalTime in seconds with tempo metadata.
+  const bpm = ns.tempos?.[0]?.qpm ?? 120;
+  const secPerBeat = 60 / bpm;
+
+  const out = (ns.notes || []).map((n, i) => {
+    const startBeat = (n.startTime ?? 0) / secPerBeat;
+    const endBeat = (n.endTime ?? 0) / secPerBeat;
+    return {
+      id: `g-${i}-${n.pitch}-${startBeat.toFixed(3)}`,
+      pitch: n.pitch,
+      time: startBeat,
+      duration: Math.max(0.125, endBeat - startBeat),
+      velocity: Math.round((n.velocity ?? 80)),
+    };
+  });
+
+  const totalBeats = ((ns.totalTime ?? 0) / secPerBeat) || (out.reduce((m, n) => Math.max(m, n.time + n.duration), 0));
+  return { id: `clip-${Date.now()}-${Math.random().toString(36).slice(2)}`, notes: out, totalBeats };
+}
+
+/**
+ * Generate N melodic ideas using Magenta MusicRNN.
+ * @param bars   How many bars to expand to (assuming 4/4)
+ * @param bpm    QPM for the sequence (Magenta uses qpm)
+ * @param temperature  randomness 0.2..1.5
+ * @param count  number of ideas
+ */
+export async function generateMelodies({ bars, bpm, temperature, count = 3 }: {
+  bars: number; bpm: number; temperature: number; count?: number;
+}): Promise<GeneratedClip[]> {
+  const model = await ensureRNN();
+
+  // Start seed: a simple single C note; RNN will expand.
+  const seed: mm.INoteSequence = mm.sequences.quantizeNoteSequence({
+    notes: [{ pitch: 60, startTime: 0, endTime: 0.4, velocity: 90 }],
+    tempos: [{ qpm: bpm }],
+    totalTime: 0.5
+  }, 4);
+
+  // total quantized steps: bars * 4 beats * 4 steps/beat (16th notes)
+  const steps = bars * 16;
+
+  const outputs: mm.INoteSequence[] = [];
+  for (let i = 0; i < count; i++) {
+    const sample = await model.continueSequence(seed, steps, temperature, undefined);
+    // de-quantize back to seconds with tempo
+    sample.tempos = [{ qpm: bpm }];
+    outputs.push(sample);
+  }
+
+  return outputs.map(toEditorNotes);
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\utils\previewPlayer.ts
+File type: .ts
+// src/utils/previewPlayer.ts
+import * as Tone from "tone";
+
+export type PlainNote = {
+  pitch: number;      // MIDI (0-127)
+  time: number;       // beats
+  duration: number;   // beats
+  velocity?: number;  // 0..127
+};
+
+export type PreviewHandle = {
+  stop: () => void;
+  isStopped: () => boolean;
+};
+
+const activeById = new Map<string, PreviewHandle>();
+
+/**
+ * Plays a small set of notes using a private PolySynth.
+ * - Uses Tone.now() + setTimeout scheduling (doesn't start Tone.Transport)
+ * - Stops any previous preview for the same clip id
+ */
+export function playPreview(
+  clipId: string,
+  notes: PlainNote[],
+  bpm: number,
+  onEnded?: () => void
+): PreviewHandle {
+  // stop any existing preview for this clip
+  activeById.get(clipId)?.stop();
+
+  const synth = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: "triangle" },
+    volume: -6,
+    envelope: { attack: 0.005, decay: 0.1, sustain: 0.2, release: 0.2 },
+  }).toDestination();
+
+  const msPerBeat = 60000 / bpm;
+  const timeouts: number[] = [];
+  let stopped = false;
+
+  // schedule notes against the wall clock
+  notes.forEach((n) => {
+    const whenMs = n.time * msPerBeat;
+    const durSec = (n.duration * msPerBeat) / 1000;
+    const vel = Math.min(1, Math.max(0, (n.velocity ?? 90) / 127));
+
+    const id = window.setTimeout(() => {
+      if (stopped) return;
+      const freq = Tone.Frequency(n.pitch, "midi");
+      synth.triggerAttackRelease(freq, durSec, undefined, vel);
+    }, Math.max(0, whenMs));
+    timeouts.push(id);
+  });
+
+  // auto-stop after clip length
+  const endBeat = notes.reduce((m, n) => Math.max(m, n.time + n.duration), 0);
+  const endId = window.setTimeout(() => {
+    if (stopped) return;
+    stopped = true;
+    synth.dispose();
+    onEnded?.();
+    activeById.delete(clipId);
+  }, Math.max(0, endBeat * msPerBeat + 50));
+  timeouts.push(endId);
+
+  const handle: PreviewHandle = {
+    stop: () => {
+      if (stopped) return;
+      stopped = true;
+      timeouts.forEach(clearTimeout);
+      synth.releaseAll();
+      synth.dispose();
+      onEnded?.();
+      activeById.delete(clipId);
+    },
+    isStopped: () => stopped,
+  };
+
+  activeById.set(clipId, handle);
+  return handle;
+}
+
+/** Stop ALL running previews (e.g., when leaving the page) */
+export function stopAllPreviews() {
+  activeById.forEach((h) => h.stop());
+  activeById.clear();
+}
+
 
 --------------------------------------------------
 File End
