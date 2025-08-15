@@ -156,9 +156,11 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
 
         // append at the end of the destination track
         const endBeat = dest.notes.reduce((m, n) => Math.max(m, n.time + n.duration), 0);
-        const shifted = cmd.notes.map(n => ({
+        const shifted = cmd.notes.map((n, i) => ({
+          // ensure every note has a stable id
+          id: n.id ?? `ai-${Date.now()}-${i}`,
           ...n,
-          time: endBeat + n.time
+          time: endBeat + n.time,
         }));
 
         updateTrack(dest.id, { notes: [...dest.notes, ...shifted] });

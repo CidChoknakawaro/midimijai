@@ -1,55 +1,56 @@
-// src/services/hfService.ts
-import { HfInference } from "@huggingface/inference";
-
-const HF_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"; // small, free, flexible
-const token = import.meta.env.VITE_HF_TOKEN as string | undefined;
-
-// Fallback if no token: we'll still attempt; HF allows limited anon for some models.
-// You can also switch to a tiny text-classifier if desired.
-const hf = new HfInference(token);
-
 export type PromptAnalysis = {
-  genre: string;      // e.g., "lofi", "pop", "house", "jazz"
-  mood: string;       // e.g., "chill", "happy", "dark"
-  bpm: number;        // suggested BPM
-  bars: number;       // length in bars
-  temperature: number;// 0.2..1.5
-  key: string;        // "C", "D#", "F", etc. (used just for display; Magenta is key-agnostic)
+  genre: string;
+  mood: string;
+  bpm: number;
+  bars: number;
+  temperature: number;
+  key: string;
+  meta?: { source: "huggingface" | "fallback" };
 };
 
-const SYSTEM = `You are a music prompt analyzer. 
-Given a short text from a user, return STRICT JSON with keys:
-genre (string), mood (string), bpm (int), bars (int), temperature (float), key (capital letter with optional #/b).
-Keep bpm between 70 and 150, bars between 4 and 64, temperature between 0.2 and 1.5. No extra text.`;
+const HF_URL = "https://api-inference.huggingface.co/models/google/flan-t5-small";
+const TOKEN = import.meta.env.VITE_HF_TOKEN;
+
+const promptTemplate = (user: string) => `
+You are a music assistant. Convert the user's idea into strict JSON with keys:
+genre, mood, bpm, bars, temperature, key.
+bpm: int 70..160, bars: int 4..64, temperature: float 0.2..1.5
+User: "${user}"
+JSON ONLY:
+`;
 
 export async function analyzePromptToJSON(userPrompt: string): Promise<PromptAnalysis> {
   try {
-    const res = await hf.chatCompletion({
-      model: HF_MODEL,
-      messages: [
-        { role: "system", content: SYSTEM },
-        { role: "user", content: userPrompt }
-      ],
-      max_tokens: 200,
-      temperature: 0.5,
+    if (!TOKEN) throw new Error("no-token");
+    const res = await fetch(HF_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ inputs: promptTemplate(userPrompt) }),
     });
+    const data = await res.json();
 
-    const content = res.choices?.[0]?.message?.content ?? "{}";
-    // Some models return JSON fenced in code blocks. Strip if needed:
-    const json = content.replace(/^```json|```$/g, "").trim();
-    const parsed = JSON.parse(json);
+    const text =
+      Array.isArray(data) && data[0]?.generated_text
+        ? data[0].generated_text
+        : typeof data === "string"
+        ? data
+        : JSON.stringify(data);
 
-    // lightweight sanity defaults
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    const parsed = JSON.parse(text.slice(start, end + 1));
+
     return {
       genre: parsed.genre || "pop",
       mood: parsed.mood || "bright",
-      bpm: Math.min(150, Math.max(70, Number(parsed.bpm) || 120)),
+      bpm: Math.min(160, Math.max(70, Number(parsed.bpm) || 120)),
       bars: Math.min(64, Math.max(4, Number(parsed.bars) || 8)),
-      temperature: Math.min(1.5, Math.max(0.2, Number(parsed.temperature) || 1.0)),
+      temperature: Math.min(1.5, Math.max(0.2, Number(parsed.temperature) || 0.9)),
       key: parsed.key || "C",
+      meta: { source: "huggingface" },
     };
   } catch {
-    // Offline fallback if HF is unavailable
+    // safe local defaults (used when no token or API fails)
     return {
       genre: "pop",
       mood: "bright",
@@ -57,6 +58,7 @@ export async function analyzePromptToJSON(userPrompt: string): Promise<PromptAna
       bars: 8,
       temperature: 0.9,
       key: "C",
+      meta: { source: "fallback" },
     };
   }
 }

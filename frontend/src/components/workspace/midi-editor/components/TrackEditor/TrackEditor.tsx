@@ -11,6 +11,9 @@ import { ChevronLeft, Music4, FileDown } from "lucide-react";
 const MAX_BEAT = 63;
 const BUILT_IN_INSTRUMENTS = ["Piano", "Synth", "AMSynth", "MembraneSynth"];
 
+const PIANO_SAMPLE_URL = "/piano.mp3";
+const PIANO_ROOT_MIDI = 67;
+
 type Track = {
   id: string;
   name: string;
@@ -60,7 +63,8 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
     } else {
       switch (track.instrument) {
         case "Piano":
-          synthRef.current = new Tone.PolySynth().toDestination();
+          // Use sample for Piano; no synth
+          synthRef.current = null;
           break;
         case "Synth":
           synthRef.current = new Tone.Synth().toDestination();
@@ -159,14 +163,29 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
           const durationSec = (note.duration / bpm) * 60;
           const player = new Tone.Player({
             url: track.customSoundUrl,
-            playbackRate: Math.pow(2, (note.pitch - 60) / 12),
+            playbackRate: Math.pow(2, (note.pitch - 60) / 12), // 60=C4 reference for imported
             autostart: true,
             onstop: () => player.dispose(),
           }).toDestination();
           setTimeout(() => player.stop(), durationSec * 1000);
+        } else if (track.instrument === "Piano") {
+          // Play built-in piano sample, pitch-shifted from its root (G)
+          const durationSec = (note.duration / bpm) * 60;
+          const rate = Math.pow(2, (note.pitch - PIANO_ROOT_MIDI) / 12);
+
+          const player = new Tone.Player({
+            url: PIANO_SAMPLE_URL,
+            playbackRate: rate,
+            autostart: true,
+            onstop: () => player.dispose(),
+          }).toDestination();
+
+          setTimeout(() => player.stop(), durationSec * 1000);
+
         } else {
           const name = Tone.Frequency(note.pitch, "midi").toNote();
-          synthRef.current?.triggerAttack(name, now, note.velocity / 127);
+          const vel = (note.velocity ?? 90) / 127; 
+          synthRef.current?.triggerAttack(name, now, (note.velocity ?? 90) / 127);
         }
         activeNotes.current.add(note.id);
       }
