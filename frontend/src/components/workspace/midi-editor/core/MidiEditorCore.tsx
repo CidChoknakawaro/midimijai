@@ -1,18 +1,14 @@
-// frontend/src/components/workspace/midi-editor/core/MidiEditorCore.tsx
 import GlobalTransportBar from "../components/TransportBar/GlobalTransportBar";
 import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from "react";
 import TrackDashboard from "../components/TrackDashboard/TrackDashboard";
 import TrackEditor, { TrackEditorAPI } from "../components/TrackEditor/TrackEditor";
 import { TransportProvider } from "../core/TransportContext";
 
-import { subscribe } from "./editorBus";
-import { importMidiFile } from "./importMidi";
-import { exportTrackToMidi, exportMultiTrackToMidi } from "./exportMidi";
-
 export interface Track {
   id: string;
   name: string;
-  notes: any[];
+  // IMPORTANT: editor expects notes shaped like { id, pitch, time, duration, velocity(0..127) }
+  notes: Array<{ id?: string; pitch?: number; time?: number; duration?: number; velocity?: number }>;
   instrument: string;
   customSoundUrl?: string;
 }
@@ -41,9 +37,33 @@ export type MidiEditorAPI = {
   arpeggiate(pattern?: "up" | "down" | "updown" | "random"): void;
   strum(ms?: number): void;
   legato(): void;
-  // optional helpers
-  exportMidi?(): void;
 };
+
+const isFiniteNum = (v: any): v is number => Number.isFinite(Number(v));
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+/** Convert AI notes ({midi,time,duration,velocity 0..1}) to editor notes ({id,pitch,time,duration,velocity 0..127}) */
+function toEditorNotes(raw: any[], cap = 128) {
+  if (!Array.isArray(raw)) return [];
+  let counter = 0;
+  return raw
+    .map((n) => {
+      const midi = clamp(Math.trunc(Number(n?.midi ?? n?.pitch ?? 60)), 0, 127);
+      const time = isFiniteNum(n?.time) && n.time >= 0 ? Number(n.time) : 0;
+      const duration = isFiniteNum(n?.duration) && n.duration > 0 ? Number(n.duration) : 0.5;
+      const v = Number(n?.velocity);
+      const vel127 = isFiniteNum(v) ? (v <= 1 ? Math.round(clamp(v, 0.05, 1) * 127) : clamp(Math.round(v), 1, 127)) : 108;
+
+      // gently quantize duration to avoid micro-slices
+      const q = [0.25, 0.5, 1.0];
+      const qdur = q.reduce((best, val) => (Math.abs(val - duration) < Math.abs(best - duration) ? val : best), q[0]);
+
+      const id = String(n?.id ?? `ai-${midi}@${time.toFixed(4)}#${counter++}`);
+      return { id, pitch: midi, time, duration: qdur, velocity: vel127 };
+    })
+    .filter((n) => n.duration > 0 && n.time >= 0)
+    .slice(0, cap);
+}
 
 const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
   projectId,
@@ -56,159 +76,110 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
   const [bpm, setBpm] = useState(initialBpm);
   const [tracks, setTracks] = useState<Track[]>(initialTracks);
   const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
-  const editorRef = useRef<TrackEditorAPI | null>(null);
 
+  // Only reset when projectId changes (don’t bounce out of editor on every prop change)
   useEffect(() => {
     setBpm(initialBpm);
     setTracks(initialTracks);
     setActiveTrackId(null);
-  }, [projectId]);
+  }, [projectId]); // <-- not depending on initialTracks/initialBpm avoids the editor jump
+
+  const editorRef = useRef<TrackEditorAPI | null>(null);
 
   const addNewTrack = () => {
     const id = `t-${Date.now()}`;
-    const newTrack: Track = {
-      id,
-      name: `Track ${tracks.length + 1}`,
-      instrument: "Piano",
-      notes: [],
-    };
+    const newTrack: Track = { id, name: `Track ${tracks.length + 1}`, instrument: "Piano", notes: [] };
     const next = [...tracks, newTrack];
     setTracks(next);
     onChange(bpm, next);
   };
 
   const updateTrack = (id: string, updates: Partial<Track>) => {
-    const next = tracks.map(t => (t.id === id ? { ...t, ...updates } : t));
+    const next = tracks.map((t) => (t.id === id ? { ...t, ...updates } : t));
     setTracks(next);
     onChange(bpm, next);
   };
 
   const deleteTrack = (id: string) => {
-    const next = tracks.filter(t => t.id !== id);
+    const next = tracks.filter((t) => t.id !== id);
     setTracks(next);
     onChange(bpm, next);
   };
 
   const changeBpm = (newBpm: number) => {
-    setBpm(newBpm);
-    onChange(newBpm, tracks);
+    const safe = isFiniteNum(newBpm) ? clamp(Math.round(Number(newBpm)), 40, 400) : bpm;
+    setBpm(safe);
+    onChange(safe, tracks);
   };
 
   const activeTrack = tracks.find((t) => t.id === activeTrackId) || null;
 
-  // -------- EDITOR BUS: Import/Export + Apply AI to track --------
-  useEffect(() => {
-    return subscribe(async (cmd) => {
-      if (cmd.type === "IMPORT_MIDI_FILE") {
-        const parsed = await importMidiFile(cmd.file);
-        // If in track view, add to that track; otherwise create a new track
-        if (activeTrack) {
-          updateTrack(activeTrack.id, {
-            notes: [...activeTrack.notes, ...parsed.notes],
-          });
-          if (parsed.bpm && parsed.bpm !== bpm) changeBpm(parsed.bpm);
-        } else {
-          const id = `t-${Date.now()}`;
-          const next: Track = {
-            id,
-            name: "Imported",
-            instrument: "Piano",
-            notes: parsed.notes,
-          };
-          const tracksNext = [...tracks, next];
-          setTracks(tracksNext);
-          onChange(parsed.bpm || bpm, tracksNext);
-        }
-      } else if (cmd.type === "EXPORT_MIDI") {
-        if (activeTrack) {
-          exportTrackToMidi({
-            notes: activeTrack.notes.map(n => ({
-              midi: n.pitch, time: n.time, duration: n.duration, velocity: (n.velocity ?? 90) / 127
-            })),
-            bpm,
-            filename: activeTrack.name || "track"
-          });
-        } else {
-          exportMultiTrackToMidi({
-            tracks: tracks.map(t => ({
-              name: t.name,
-              notes: t.notes.map(n => ({
-                midi: n.pitch, time: n.time, duration: n.duration, velocity: (n.velocity ?? 90) / 127
-              }))
-            })),
-            bpm,
-            filename: "project"
-          });
-        }
-      } else if (cmd.type === "APPLY_AI_TO_TRACK") {
-        const dest = activeTrack
-          ? activeTrack
-          : (() => {
-              // create a track if none selected
-              const id = `t-${Date.now()}`;
-              const t: Track = { id, name: "AI Track", instrument: "Piano", notes: [] };
-              const tracksNext = [...tracks, t];
-              setTracks(tracksNext);
-              onChange(bpm, tracksNext);
-              setActiveTrackId(id);
-              return t;
-            })();
-
-        // append at the end of the destination track
-        const endBeat = dest.notes.reduce((m, n) => Math.max(m, n.time + n.duration), 0);
-        const shifted = cmd.notes.map((n, i) => ({
-          // ensure every note has a stable id
-          id: n.id ?? `ai-${Date.now()}-${i}`,
-          ...n,
-          time: endBeat + n.time,
-        }));
-
-        updateTrack(dest.id, { notes: [...dest.notes, ...shifted] });
-        if (cmd.bpm && cmd.bpm !== bpm) changeBpm(cmd.bpm);
-      }
-    });
-  }, [tracks, activeTrackId, bpm]); // eslint-disable-line
-
-  // Expose commands
   useImperativeHandle(ref, () => ({
-    undo:            () => editorRef.current?.undo?.(),
-    redo:            () => editorRef.current?.redo?.(),
-    cut:             () => editorRef.current?.cut?.(),
-    copy:            () => editorRef.current?.copy?.(),
-    paste:           () => editorRef.current?.paste?.(),
+    undo: () => editorRef.current?.undo?.(),
+    redo: () => editorRef.current?.redo?.(),
+    cut: () => editorRef.current?.cut?.(),
+    copy: () => editorRef.current?.copy?.(),
+    paste: () => editorRef.current?.paste?.(),
     deleteSelection: () => editorRef.current?.deleteSelection?.(),
-    selectAll:       () => editorRef.current?.selectAll?.(),
-    transpose:       (n)  => editorRef.current?.transpose?.(n),
-    velocityScale:   (m)  => editorRef.current?.velocityScale?.(m),
-    noteLengthScale: (m)  => editorRef.current?.noteLengthScale?.(m),
-    humanize:        (a, v) => editorRef.current?.humanize?.(a, v),
-    arpeggiate:      (p)  => editorRef.current?.arpeggiate?.(p),
-    strum:           (ms) => editorRef.current?.strum?.(ms),
-    legato:          ()   => editorRef.current?.legato?.(),
-    exportMidi:      () => {
-      // convenience if someone calls editorRef.current?.exportMidi?.()
+    selectAll: () => editorRef.current?.selectAll?.(),
+    transpose: (n) => editorRef.current?.transpose?.(n),
+    velocityScale: (m) => editorRef.current?.velocityScale?.(m),
+    noteLengthScale: (m) => editorRef.current?.noteLengthScale?.(m),
+    humanize: (a, v) => editorRef.current?.humanize?.(a, v),
+    arpeggiate: (p) => editorRef.current?.arpeggiate?.(p),
+    strum: (ms) => editorRef.current?.strum?.(ms),
+    legato: () => editorRef.current?.legato?.(),
+  }), []);
+
+  /**
+   * AI result ingress (from AIGenerate): sanitize + either replace active track or append a new track.
+   * - If a track is selected -> REPLACE that track’s name/instrument/notes (keeps you in the editor)
+   * - Otherwise -> APPEND as a new track (previous behavior)
+   */
+  useEffect(() => {
+    const onAIGenerated = (e: Event) => {
+      const ce = e as CustomEvent<any>;
+      const payload = ce.detail as {
+        bpm?: number;
+        tracks?: Array<{ name?: string; instrument?: string; notes?: any[] }>;
+      };
+      if (!payload?.tracks?.length) return;
+
+      // safe BPM
+      const candBpm = Number(payload.bpm);
+      const safeBpm =
+        isFiniteNum(candBpm) && candBpm > 0 && candBpm < 400 ? Math.round(candBpm) : bpm || 120;
+
+      // convert AI notes to editor format; cap to e.g. 96 so the editor stays snappy
+      const editorNotes = toEditorNotes(payload.tracks[0].notes ?? [], 96);
+
+      const name = (payload.tracks[0].name || "AI Track").toString().slice(0, 48);
+      const instrument = (payload.tracks[0].instrument || "Piano").toString().slice(0, 24);
+
       if (activeTrack) {
-        exportTrackToMidi({
-          notes: activeTrack.notes.map(n => ({
-            midi: n.pitch, time: n.time, duration: n.duration, velocity: (n.velocity ?? 90) / 127
-          })),
-          bpm,
-          filename: activeTrack.name || "track"
-        });
+        // REPLACE current/selected track
+        const nextTracks = tracks.map((t) =>
+          t.id === activeTrack.id ? { ...t, name, instrument, notes: editorNotes } : t
+        );
+        setTracks(nextTracks);
+        setBpm(safeBpm);
+        onChange(safeBpm, nextTracks);
+        // keep editor open on this track
       } else {
-        exportMultiTrackToMidi({
-          tracks: tracks.map(t => ({
-            name: t.name,
-            notes: t.notes.map(n => ({
-              midi: n.pitch, time: n.time, duration: n.duration, velocity: (n.velocity ?? 90) / 127
-            }))
-          })),
-          bpm,
-          filename: "project"
-        });
+        // APPEND as a new track
+        const id = `ai-${Date.now()}`;
+        const nextTrack: Track = { id, name, instrument, notes: editorNotes };
+        const nextTracks = [...tracks, nextTrack];
+        setTracks(nextTracks);
+        setBpm(safeBpm);
+        setActiveTrackId(id); // jump into it right away (optional; remove if you prefer staying on dashboard)
+        onChange(safeBpm, nextTracks);
       }
-    }
-  }), [tracks, activeTrackId, bpm]);
+    };
+
+    window.addEventListener("ai-generated", onAIGenerated as EventListener);
+    return () => window.removeEventListener("ai-generated", onAIGenerated as EventListener);
+  }, [tracks, bpm, onChange, activeTrack]);
 
   return (
     <TransportProvider>

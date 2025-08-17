@@ -1,11 +1,5 @@
+// src/components/workspace/midi-editor/audio/sampleVoice.ts
 import * as Tone from "tone";
-
-/**
- * Simple per-track sample voice.
- * - Uses Tone.Player for /public/piano.mp3 (root G4 = 67).
- * - Pitch shift via playbackRate = 2^((midi - root)/12).
- * - One Player per track id, reused across triggers.
- */
 
 type Voice = {
   trigger: (midi: number, durationBeats: number, velocity?: number) => void;
@@ -14,7 +8,14 @@ type Voice = {
 
 const voices = new Map<string, Voice>();
 
-export function getSampleVoice(trackId: string, sampleUrl: string, sampleRootMidi = 67): Voice {
+const isFiniteNum = (v: any): v is number => Number.isFinite(Number(v));
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+export function getSampleVoice(
+  trackId: string,
+  sampleUrl: string,
+  sampleRootMidi = 67
+): Voice {
   const existing = voices.get(trackId);
   if (existing) return existing;
 
@@ -26,17 +27,30 @@ export function getSampleVoice(trackId: string, sampleUrl: string, sampleRootMid
   }).toDestination();
 
   const voice: Voice = {
-    trigger: (midi, durationBeats, velocity = 96) => {
-      // Ensure audio unlocked
-      // (Tone.start() should already be called from your container)
+    trigger: (midiIn, durationBeatsIn, velocityIn = 96) => {
+      // Make sure AudioContext is started
+      // (Your app should call Tone.start() on first user gesture.)
+      const bpm = isFiniteNum(Tone.Transport.bpm?.value)
+        ? Number(Tone.Transport.bpm.value)
+        : 120;
+
+      const midi = isFiniteNum(midiIn) ? clamp(Math.trunc(midiIn), 0, 127) : 60;
+      const durationBeats = isFiniteNum(durationBeatsIn) && durationBeatsIn > 0
+        ? durationBeatsIn
+        : 0.5;
+      const velNorm = clamp((isFiniteNum(velocityIn) ? velocityIn : 96) / 127, 0.05, 1);
+
       const playbackRate = Math.pow(2, (midi - sampleRootMidi) / 12);
-      const durSec = (durationBeats * Tone.Transport.bpm.value) / Tone.Transport.bpm.value; // caller passes beats; we'll just let player stop itself
-      player.playbackRate = playbackRate;
-      player.volume.value = Tone.gainToDb(Math.min(1, Math.max(0.05, velocity / 127)));
-      // We retrigger by restarting a fresh buffer each time.
+      player.playbackRate = isFiniteNum(playbackRate) ? playbackRate : 1;
+
+      // Use gainToDb safely
+      const db = Tone.gainToDb(velNorm);
+      if (isFiniteNum(db)) player.volume.value = db;
+
       player.start();
-      // optional: schedule a stop to avoid tails stacking
-      const stopAt = Tone.now() + Math.max(0.05, (durationBeats * 60) / (Tone.Transport.bpm.value || 120));
+
+      // schedule a stop so overlaps don’t pile up
+      const stopAt = Tone.now() + Math.max(0.05, (durationBeats * 60) / bpm);
       player.stop(stopAt);
     },
     dispose: () => {
@@ -49,7 +63,6 @@ export function getSampleVoice(trackId: string, sampleUrl: string, sampleRootMid
   return voice;
 }
 
-/** Dispose all sample voices (e.g., on unmount) */
 export function disposeAllSampleVoices() {
   voices.forEach((v) => v.dispose());
   voices.clear();
