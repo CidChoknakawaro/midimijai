@@ -6,7 +6,7 @@ import { importMidiFile } from "../../core/importMidi";
 import { getActiveNotesAtBeat } from "../../core/midiUtils";
 import { TransportContext } from "../../core/TransportContext";
 import { subscribe, EditorCommand } from "../../core/editorBus";
-import { ChevronLeft, Music4, FileDown } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 
 const MAX_BEAT = 63;
 const BUILT_IN_INSTRUMENTS = ["Piano", "Synth", "AMSynth", "MembraneSynth"];
@@ -27,6 +27,24 @@ type Props = {
   updateTrack: (updates: Partial<Track>) => void;
   goBack: () => void;
 };
+
+// Normalize incoming AI notes to the editor's raw note shape
+function normalizeIncomingEditorNotes(notes: any[]) {
+  if (!Array.isArray(notes)) return [];
+  return notes.map((n, idx) => {
+    const pitch = Number.isFinite(n?.pitch) ? Math.trunc(n.pitch) : 60;
+    const time = Number.isFinite(n?.time) ? Math.max(0, Number(n.time)) : 0;
+    const dur  = Number.isFinite(n?.duration) ? Math.max(0.05, Number(n.duration)) : 0.5;
+    const velocity = n?.velocity ?? n?.velocity127 ?? 96;
+    return {
+      id: String(n?.id ?? `ai-${pitch}@${time.toFixed(4)}#${idx}`),
+      pitch,
+      time,
+      duration: dur,
+      velocity,
+    };
+  });
+}
 
 const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
   const {
@@ -123,7 +141,7 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
     return () => cancelAnimationFrame(animationRef.current!);
   }, [isPlaying, bpm, playheadBeat, setPlayheadBeat]);
 
-  // ---------- editorBus subscription ----------
+  // ---------- editorBus subscription + global cmd ----------
   useEffect(() => {
     const unsub = subscribe(async (cmd: EditorCommand) => {
       switch (cmd.type) {
@@ -144,12 +162,39 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
           }
           break;
         }
+        case "APPLY_AI_TO_TRACK": {
+          const incoming = normalizeIncomingEditorNotes((cmd as any).notes || []);
+          if (!incoming.length) break;
+
+          // append to this open track
+          const merged = [...(track.notes || []), ...incoming];
+          updateTrack({ notes: merged });
+          break;
+        }
         default:
           // other editor commands…
           break;
       }
     });
-    return unsub;
+
+    // also listen to global 'cmd' in case AIGenerate fires it directly
+    function onCmd(ev: Event) {
+      const e = ev as CustomEvent;
+      const detail = e.detail || {};
+      if (detail.type !== "APPLY_AI_TO_TRACK") return;
+
+      const incoming = normalizeIncomingEditorNotes(detail.notes || []);
+      if (!incoming.length) return;
+
+      const merged = [...(track.notes || []), ...incoming];
+      updateTrack({ notes: merged });
+    }
+    window.addEventListener("cmd", onCmd as any);
+
+    return () => {
+      unsub();
+      window.removeEventListener("cmd", onCmd as any);
+    };
   }, [bpm, setZoomLevel, toggleSnap, track.notes, updateTrack]);
 
   // ---------- note trigger helpers ----------
@@ -163,7 +208,7 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
           const durationSec = (note.duration / bpm) * 60;
           const player = new Tone.Player({
             url: track.customSoundUrl,
-            playbackRate: Math.pow(2, (note.pitch - 60) / 12), // 60=C4 reference for imported
+            playbackRate: Math.pow(2, (note.pitch - 60) / 12), // 60=C4
             autostart: true,
             onstop: () => player.dispose(),
           }).toDestination();
@@ -185,7 +230,7 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
         } else {
           const name = Tone.Frequency(note.pitch, "midi").toNote();
           const vel = (note.velocity ?? 90) / 127; 
-          synthRef.current?.triggerAttack(name, now, (note.velocity ?? 90) / 127);
+          synthRef.current?.triggerAttack(name, now, vel);
         }
         activeNotes.current.add(note.id);
       }

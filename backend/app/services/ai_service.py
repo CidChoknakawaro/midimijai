@@ -1,216 +1,181 @@
 # app/services/ai_service.py
-from __future__ import annotations
-from typing import Dict, Any, List, Tuple
-import json, os, re
+#
+# Local Hugging Face "text2midi" integration (no API key).
+# - Downloads model files once via hf_hub_download (cached in ~/.cache/huggingface)
+# - Runs inference on CUDA / MPS / CPU
+# - Converts the generated MIDI to your note schema using pretty_midi
+#
+# Model: amaai-lab/text2midi  (see README Quickstart)
+# Ref: https://github.com/AMAAI-Lab/Text2midi  and HF model card
+#
+import io
+import os
+import pickle
+from typing import Any, Dict, List
 
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
+import torch.nn as nn
+from transformers import T5Tokenizer
+from huggingface_hub import hf_hub_download
+import pretty_midi
 
-# ========= Configuration =========
-_MODEL_ID = os.getenv("FLAN_MODEL_ID", "google/flan-t5-small")
-_DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-# Debug raw model output: set AI_DEBUG=1
-_AI_DEBUG = os.getenv("AI_DEBUG", "0") == "1"
+# ------------------------------
+# One-time engine (lazy singleton)
+# ------------------------------
+class _Text2MidiEngine:
+    def __init__(self):
+        self._ready = False
+        self.device = "cuda" if torch.cuda.is_available() else (
+            "mps" if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available() else "cpu"
+        )
+        self.repo_id = os.getenv("HF_TEXT2MIDI_REPO", "amaai-lab/text2midi")
+        # files per Text2midi Quickstart
+        self._model_bin = "pytorch_model.bin"
+        self._vocab_pkl = "vocab_remi.pkl"
+        self.model = None
+        self.r_tokenizer = None
+        self.tokenizer = None
 
-# Use robust 2-phase composer: default to ON
-_USE_PLAN = True  # was env-driven before; force ON to avoid fallback JSON issues
+    def _load(self):
+        # Download weights + tokenizer assets
+        model_path = hf_hub_download(repo_id=self.repo_id, filename=self._model_bin)
+        vocab_path = hf_hub_download(repo_id=self.repo_id, filename=self._vocab_pkl)
 
-# ========= Model bootstrap =========
-_tokenizer = None
-_model = None
+        # Load REMI tokenizer dictionary
+        with open(vocab_path, "rb") as f:
+            self.r_tokenizer = pickle.load(f)
 
-def _ensure_model() -> Tuple[AutoTokenizer, AutoModelForSeq2SeqLM]:
-    global _tokenizer, _model
-    if _tokenizer is None or _model is None:
-        _tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
-        _model = AutoModelForSeq2SeqLM.from_pretrained(_MODEL_ID).to(_DEVICE)
-    return _tokenizer, _model
+        vocab_size = len(self.r_tokenizer)
 
-def _generate_text(prompt: str, max_new_tokens: int = 256) -> str:
-    tok, mdl = _ensure_model()
-    inputs = tok(prompt, return_tensors="pt").to(_DEVICE)
-    out = mdl.generate(
-        **inputs,
-        do_sample=False,
-        temperature=1.0,
-        top_p=1.0,
-        num_beams=1,
-        max_new_tokens=max_new_tokens,
-        repetition_penalty=1.0,
-    )
-    text = tok.decode(out[0], skip_special_tokens=True).strip()
-    if _AI_DEBUG:
-        print("\n[AI RAW OUTPUT]\n", text[:1200], "\n---\n")
-    return text
+        # Import the model class from the repo structure (matches their README)
+        # text2midi/model/transformer_model.py -> class Transformer(...)
+        from model.transformer_model import Transformer  # type: ignore
 
-# ========= Helpers =========
-def _parse_json_maybe(raw: str) -> Dict[str, Any] | None:
-    try:
-        data = json.loads(raw)
-        if isinstance(data, dict):
-            return data
-    except Exception:
-        pass
-    m = re.search(r"\{.*\}", raw, flags=re.S)
-    if m:
-        try:
-            return json.loads(m.group(0))
-        except Exception:
-            pass
-    return None
+        # Construct and load weights
+        self.model = Transformer(
+            vocab_size=vocab_size,
+            d_model=768,
+            nhead=8,
+            dim_feedforward=2048,
+            num_layers=18,
+            max_seq_len=1024,
+            use_rel_pos_enc=False,
+            num_layers_t5=8,
+            device=self.device
+        )
+        state = torch.load(model_path, map_location=self.device)
+        self.model.load_state_dict(state)
+        self.model.eval()
 
-PITCH_CLASS = {"C":0,"C#":1,"Db":1,"D":2,"D#":3,"Eb":3,"E":4,"F":5,"F#":6,"Gb":6,"G":7,"G#":8,"Ab":8,"A":9,"A#":10,"Bb":10,"B":11}
-CHORD_TEMPLATES = {
-    "maj":[0,4,7], "min":[0,3,7], "7":[0,4,7,10], "maj7":[0,4,7,11],
-    "min7":[0,3,7,10], "dim":[0,3,6], "m7b5":[0,3,6,10], "sus2":[0,2,7], "sus4":[0,5,7]
-}
+        # Conditioning text tokenizer
+        self.tokenizer = T5Tokenizer.from_pretrained("google/flan-t5-base")
 
-def _root_pc(symbol: str) -> int:
-    m = re.match(r"([A-G][b#]?)", symbol)
-    return PITCH_CLASS.get(m.group(1), 0) if m else 0
+        self._ready = True
 
-def _quality(symbol: str) -> str:
-    s = symbol.lower()
-    if "m7b5" in s or "ø" in s: return "m7b5"
-    if "dim" in s or "°" in s:  return "dim"
-    if "maj7" in s:             return "maj7"
-    if "min7" in s or "m7" in s:return "min7"
-    if "min" in s or "m" in s:  return "min"
-    if "sus2" in s:             return "sus2"
-    if "sus4" in s:             return "sus4"
-    if "7" in s:                return "7"
-    return "maj"
+    def ensure_ready(self):
+        if not self._ready:
+            self._load()
 
-def _notes_for_chord(symbol: str, octave_base: int) -> List[int]:
-    root = _root_pc(symbol)
-    tpl = CHORD_TEMPLATES.get(_quality(symbol), CHORD_TEMPLATES["maj"])
-    return [octave_base + ((root + iv) % 12) for iv in tpl]
+    @torch.inference_mode()
+    def generate_mid_bytes(self, prompt: str, max_len: int = 2000, temperature: float = 1.0) -> bytes:
+        self.ensure_ready()
 
-def _plan_from_llm(idea: str) -> dict:
-    schema = """Return ONLY compact JSON (no prose) with:
-{
-  "bpm": int (60-180),
-  "key": string like "C minor" or "A major",
-  "instrument": string,
-  "groove": "straight"|"swing",
-  "pattern": "arp"|"chords"|"bass"|"melody",
-  "chords": ["Am7","Dm7","G7","Cmaj7"]    // 4-8 symbols
-}"""
-    raw = _generate_text(schema + f"\nIdea: {idea}\nReturn JSON now.", max_new_tokens=200)
-    data = _parse_json_maybe(raw) or {}
-    bpm = int(float(data.get("bpm", 120)) if str(data.get("bpm","")).strip() else 120)
-    bpm = max(60, min(180, bpm))
-    key = (data.get("key") or "C major").strip()
-    instrument = (data.get("instrument") or "Piano").strip()
-    groove = "swing" if "swing" in str(data.get("groove","")).lower() else "straight"
-    pattern = str(data.get("pattern","arp")).lower()
-    if pattern not in {"arp","chords","bass","melody"}: pattern = "arp"
-    chords = data.get("chords") or ["Am7","Dm7","G7","Cmaj7"]
-    chords = [str(c)[:8] for c in chords][:8]
-    if not chords: chords = ["Am7","Dm7","G7","Cmaj7"]
-    return {"bpm": bpm, "key": key, "instrument": instrument or "Piano",
-            "groove": groove, "pattern": pattern, "chords": chords}
+        # Encode prompt
+        inputs = self.tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
+        input_ids = nn.utils.rnn.pad_sequence(inputs.input_ids, batch_first=True, padding_value=0).to(self.device)
+        attention_mask = nn.utils.rnn.pad_sequence(inputs.attention_mask, batch_first=True, padding_value=0).to(self.device)
 
-def _compose_from_plan(plan: dict, length_beats: int = 64) -> Dict[str, Any]:
-    base_oct = 60  # around C4
-    swing = (plan["groove"] == "swing")
-    pattern = plan["pattern"]
-    chords = plan["chords"]
-    notes: List[Dict[str, Any]] = []
-    t = 0.0
-    bar = 4.0
-    i = 0
+        # Generate token sequence, decode to MIDI object (provided by r_tokenizer)
+        output = self.model.generate(input_ids, attention_mask, max_len=max_len, temperature=temperature)
+        token_ids = output[0].tolist()
+        midi_obj = self.r_tokenizer.decode(token_ids)
 
-    def swing_offset(ts: float, amt: float = 0.55) -> float:
-        frac = ts % 1.0
-        if 0.5 <= frac < 1.0: return (amt - 0.5) * 0.5
-        return 0.0
+        # Dump to in-memory bytes
+        buf = io.BytesIO()
+        midi_obj.dump_midi(buf)  # text2midi’s REMI tokenizer returns an object with dump_midi()
+        return buf.getvalue()
 
-    import random
 
-    while t < length_beats:
-      chord = chords[i % len(chords)]
-      chord_pitches = _notes_for_chord(chord, base_oct)
+ENGINE = _Text2MidiEngine()
 
-      if pattern == "chords":
-        dur = 2.0
-        for p in chord_pitches[:3]:
-          notes.append({"midi": p, "time": round(t,4), "duration": dur, "velocity": 0.8})
-        t += dur
 
-      elif pattern == "bass":
-        root = chord_pitches[0] - 12
-        for k in range(8):
-          ts = t + 0.5*k
-          if swing: ts += swing_offset(ts)
-          notes.append({"midi": root, "time": round(ts,4), "duration": 0.45, "velocity": 0.9})
-        t += bar
+# ------------------------------
+# Public API used by routers/ai.py
+# ------------------------------
+def generate_midi_from_prompt(prompt: str, length_beats: int = 64, temperature: float = 1.0) -> Dict[str, Any]:
+    """
+    Returns a project-shaped dict:
+      { "bpm": <int>, "tracks": [{ id, name, instrument, notes: [{pitch,time,duration,velocity}], ... }] }
+    """
+    # Generate raw MIDI bytes locally (HF library, no API key)
+    mid_bytes = ENGINE.generate_mid_bytes(prompt, max_len=2000, temperature=temperature)
 
-      elif pattern == "melody":
-        for k in range(8):
-          ts = t + 0.5*k
-          if swing: ts += swing_offset(ts)
-          pitch = random.choice(chord_pitches[:3])
-          if random.random() < 0.3:
-            pitch += random.choice([-2,-1,1,2])
-          notes.append({"midi": pitch, "time": round(ts,4), "duration": 0.5, "velocity": 0.85})
-        t += bar
+    # Parse MIDI to note events
+    pm = pretty_midi.PrettyMIDI(io.BytesIO(mid_bytes))
 
-      else:  # arp
-        arp = chord_pitches[:3] + chord_pitches[:3][::-1]
-        for k in range(8):
-          ts = t + 0.5*k
-          if swing: ts += swing_offset(ts)
-          pitch = arp[k % len(arp)]
-          notes.append({"midi": pitch, "time": round(ts,4), "duration": 0.45, "velocity": 0.83})
-        t += bar
+    # Choose BPM. If no explicit tempo map, pretty_midi can estimate.
+    bpm = int(round(pm.estimate_tempo() or 120))
 
-      i += 1
+    # Convert seconds -> beats
+    def sec_to_beats(t_sec: float) -> float:
+        return (t_sec * bpm) / 60.0
 
-    notes = [n for n in notes if 24 <= n["midi"] <= 96 and 0 <= n["time"] <= length_beats + 1]
-    if not notes:
-      notes = [{"midi": 60, "time": 0.0, "duration": 0.5, "velocity": 0.85}]
-    name = f'{plan["key"]} {plan["pattern"].capitalize()}'
-    return {"bpm": plan["bpm"], "name": name[:48], "instrument": plan["instrument"] or "Piano", "notes": notes[:256]}
+    # Build a single combined melody line for now (you can split per instrument later)
+    notes_out: List[Dict[str, Any]] = []
+    for inst in pm.instruments:
+        # treat first non-drum instrument as melody
+        if inst.is_drum:
+            continue
+        for n in inst.notes:
+            start_b = round(sec_to_beats(float(n.start)) * 64) / 64.0
+            end_b = round(sec_to_beats(float(n.end)) * 64) / 64.0
+            dur_b = max(0.125, end_b - start_b)
+            vel = int(getattr(n, "velocity", 100))
+            notes_out.append({
+                "time": start_b,
+                "duration": dur_b,
+                "pitch": int(n.pitch),
+                "velocity": min(127, max(1, vel)),
+            })
+        # only take the first melodic instrument for now
+        if notes_out:
+            break
 
-# ========= Public API =========
-def generate_midi_from_prompt(
-    prompt: str,
-    length_beats: int = 64,
-    temperature: float = 1.0,
-) -> Dict[str, Any]:
-    # Always use robust plan → compose (no fallback arp)
-    plan = _plan_from_llm(prompt)
-    track = _compose_from_plan(plan, length_beats=length_beats)
-    return {"bpm": track["bpm"], "tracks": [{"id": "ai1", **track}]}
+    # Fallback if everything was drums (rare)
+    if not notes_out:
+        for n in pm.instruments[0].notes if pm.instruments else []:
+            start_b = round(sec_to_beats(float(n.start)) * 64) / 64.0
+            end_b = round(sec_to_beats(float(n.end)) * 64) / 64.0
+            dur_b = max(0.125, end_b - start_b)
+            vel = int(getattr(n, "velocity", 100))
+            notes_out.append({
+                "time": start_b,
+                "duration": dur_b,
+                "pitch": int(n.pitch),
+                "velocity": min(127, max(1, vel)),
+            })
 
+    data = {
+        "bpm": bpm,
+        "tracks": [
+            {
+                "id": "melody-text2midi",
+                "name": f"Melody: {prompt[:48]}",
+                "instrument": "piano",
+                "notes": sorted(notes_out, key=lambda x: (x["time"], x["pitch"])),
+            }
+        ],
+    }
+    return data
+
+
+# Optional helper stubs you already expose from routers/ai.py
 def suggest_from_prompt(prompt: str) -> List[str]:
-    jprompt = (
-        "Return ONLY a compact JSON array of 5 short production suggestions for the idea. No prose.\n"
-        f"Idea: {prompt}"
-    )
-    raw = _generate_text(jprompt, max_new_tokens=200)
-    try:
-        arr = json.loads(raw)
-        if isinstance(arr, list):
-            return [str(x) for x in arr][:5]
-    except Exception:
-        pass
-    return [
-        f"Develop a motif around: {prompt}",
-        "Try 0.5 beat rests between phrases.",
-        "Automate a lowpass filter in the intro.",
-        "Layer octave doubles to add width.",
-        "Humanize timing ±10 ms.",
-    ]
+    return [f"Try a slower tempo ballad of: {prompt[:48]}…"]
 
 def modify_from_prompt(prompt: str) -> Dict[str, Any]:
-    data = generate_midi_from_prompt(prompt)
-    data["tracks"][0]["name"] = f"Modified · {data['tracks'][0]['name'][:36]}"
-    return data
+    return {"ok": True, "details": "Modify not implemented yet."}
 
 def style_from_prompt(prompt: str) -> Dict[str, Any]:
-    data = generate_midi_from_prompt(prompt)
-    data["tracks"][0]["name"] = f"Style · {data['tracks'][0]['name'][:40]}"
-    return data
+    return {"ok": True, "details": "Style not implemented yet."}

@@ -4,5 +4,14 @@
   },
   "devDependencies": {
     "@types/axios": "^0.14.4"
+  },
+  "overrides": {
+    "@tensorflow/tfjs": "2.8.6",
+    "@tensorflow/tfjs-core": "2.8.6",
+    "@tensorflow/tfjs-converter": "2.8.6",
+    "@tensorflow/tfjs-data": "2.8.6",
+    "@tensorflow/tfjs-layers": "2.8.6",
+    "@tensorflow/tfjs-backend-webgl": "2.8.6",
+    "@tensorflow/tfjs-backend-cpu": "2.8.6"
   }
 }

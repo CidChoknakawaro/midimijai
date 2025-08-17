@@ -1,4 +1,3 @@
-// src/components/workspace/midi-editor/components/TrackDashboard/TrackDashboard.tsx
 import React, { useContext, useEffect, useRef, useState, memo, useMemo } from "react";
 import * as Tone from "tone";
 import { getActiveNotesAtBeat } from "../../core/midiUtils";
@@ -49,12 +48,8 @@ function normalizeNotes(notes: any[]): Array<{
       const duration = isFiniteNum(n?.duration) && n.duration > 0 ? Number(n.duration) : 0.5;
 
       // velocity may be 0..127 or 0..1
-      let v = n?.velocity;
-      let velocity127 = 96;
-      if (isFiniteNum(v)) {
-        const num = Number(v);
-        velocity127 = num <= 1 ? Math.round(clamp(num, 0.05, 1) * 127) : Math.round(clamp(num, 1, 127));
-      }
+      let v = n?.velocity ?? n?.velocity127 ?? 96;
+      const velocity127 = v <= 1 ? Math.round(clamp(v, 0.05, 1) * 127) : Math.round(clamp(v, 1, 127));
 
       const id = String(n?.id ?? `${pitch}@${time.toFixed(4)}#${idx}`);
       return {
@@ -68,7 +63,14 @@ function normalizeNotes(notes: any[]): Array<{
     .filter((n) => n.duration > 0 && n.time >= 0);
 }
 
-const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack, deleteTrack }) => {
+/** Normalize incoming AI notes before merging into raw track.notes */
+function normalizeIncomingNotes(notes: any[]): Array<{
+  id: string; pitch: number; time: number; duration: number; velocity127: number;
+}> {
+  return normalizeNotes(notes);
+}
+
+const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack, updateTrack, deleteTrack }) => {
   const { bpm, isPlaying, playheadBeat, setPlayheadBeat } = useContext(TransportContext);
 
   const [muteMap, setMuteMap] = useState<Record<string, boolean>>({});
@@ -81,6 +83,57 @@ const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack, dele
   const animationRef = useRef<number>();
   const instrumentMap = useRef<Map<string, any>>(new Map());
   const activeNotesMap = useRef<Map<string, Set<string>>>(new Map());
+
+  // NEW: buffer AI notes if an apply arrives before any tracks exist
+  const pendingApplyRef = useRef<null | { notes: ReturnType<typeof normalizeIncomingNotes>; bpm?: number }>(null);
+
+  // Listen for global "apply to track" and auto-create track if needed
+  useEffect(() => {
+    function onCmd(ev: Event) {
+      const e = ev as CustomEvent;
+      const detail = e.detail || {};
+      if (detail.type !== "APPLY_AI_TO_TRACK") return;
+
+      const incoming = normalizeIncomingNotes(detail.notes || []);
+      if (!incoming.length) return;
+
+      // If there are no tracks yet, create one and buffer the apply
+      if (!tracks.length) {
+        pendingApplyRef.current = { notes: incoming, bpm: detail.bpm };
+        onAddTrack();
+        return;
+      }
+
+      // otherwise apply to target (or first track)
+      const targetId: string = detail.targetTrackId || tracks[0].id;
+      const t = tracks.find(x => x.id === targetId) || tracks[0];
+
+      const merged = [...(t.notes || []), ...incoming.map(n => ({
+        id: n.id, pitch: n.pitch, time: n.time, duration: n.duration, velocity: n.velocity127
+      }))];
+
+      updateTrack(t.id, { notes: merged });
+    }
+
+    window.addEventListener("cmd", onCmd as any);
+    return () => window.removeEventListener("cmd", onCmd as any);
+  }, [tracks, onAddTrack, updateTrack]);
+
+  // Flush buffered apply once a track exists
+  useEffect(() => {
+    if (!pendingApplyRef.current) return;
+    if (!tracks.length) return;
+
+    const { notes /*, bpm*/ } = pendingApplyRef.current;
+    pendingApplyRef.current = null;
+
+    const t = tracks[0]; // apply to first created track
+    const merged = [...(t.notes || []), ...notes.map(n => ({
+      id: n.id, pitch: n.pitch, time: n.time, duration: n.duration, velocity: n.velocity127
+    }))];
+
+    updateTrack(t.id, { notes: merged });
+  }, [tracks, updateTrack]);
 
   // Pre-normalize notes for all tracks so everything downstream is safe.
   const normalizedByTrackId = useMemo(() => {
