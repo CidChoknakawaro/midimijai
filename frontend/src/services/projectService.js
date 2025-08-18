@@ -1,19 +1,14 @@
-// frontend/src/services/projectService.ts
 import axios from "axios";
-const RAW = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const BASE = RAW.replace(/\/+$/, '');
+const RAW = import.meta.env.VITE_API_URL || "http://localhost:10000";
+const BASE = RAW.replace(/\/+$/, "");
 const API_URL = `${BASE}/projects`;
 const getAuthHeader = () => {
     const token = localStorage.getItem("token");
-    return {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    };
+    return { headers: token ? { Authorization: `Bearer ${token}` } : {} };
 };
 export const getAllProjects = async () => {
     const res = await axios.get(API_URL + "/", getAuthHeader());
-    return res.data; // array of projects
+    return res.data;
 };
 export const getProjectById = async (id) => {
     const res = await axios.get(`${API_URL}/${id}`, getAuthHeader());

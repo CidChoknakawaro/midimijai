@@ -1,21 +1,20 @@
-// src/services/aiService.ts
 import axios from "axios";
 
-const RAW = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const RAW = import.meta.env.VITE_API_URL || "http://localhost:10000";
 const BASE = RAW.replace(/\/+$/, ""); // trim trailing slash(es)
 
-// If someone set VITE_API_URL to ".../ai" already, don't add it again
+// If someone set VITE_API_URL to ".../ai" already, don't double-append.
 const POST_PATH = /\/ai$/i.test(BASE) ? "/generate" : "/ai/generate";
 const URL = `${BASE}${POST_PATH}`;
 
-// (Once per session) log the resolved URL to make debugging easy
+// (Optional) log once to help debug deployed URL
 if (typeof window !== "undefined" && !(window as any).__AI_URL_LOGGED__) {
   (window as any).__AI_URL_LOGGED__ = true;
   // eslint-disable-next-line no-console
   console.log("[AI post URL]", URL);
 }
 
-export type Mode = "generate" | "suggest" | "modify" | "style";
+export type Mode = "generate" | "suggest" | "modify" | "style"; // ignore in .js
 
 export async function postAIGenerate(params: {
   prompt: string;
@@ -36,5 +35,5 @@ export async function postAIGenerate(params: {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     }
   );
-  return res.data; // {data: project} OR {suggestions: string[]}
+  return res.data;
 }
