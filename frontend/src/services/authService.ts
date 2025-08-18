@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/auth';
+const RAW = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const BASE = RAW.replace(/\/+$/, '');
+const API_URL = `${BASE}/auth`;
 
 export interface TokenResponse {
   access_token: string;

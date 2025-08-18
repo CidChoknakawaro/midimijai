@@ -1,99 +1,171 @@
 Folder Structure
 --------------------------------------------------
 src/
+    App.js
     App.tsx
+    main.js
     main.tsx
+    vite-env.d.ts
     components/
         auth/
+            AuthInputField.js
             AuthInputField.tsx
+            AuthToggle.js
             AuthToggle.tsx
+            GoogleAuthButton.js
             GoogleAuthButton.tsx
+            GuestLogin.js
             GuestLogin.tsx
+            LoginForm.js
             LoginForm.tsx
+            PasswordToggle.js
             PasswordToggle.tsx
+            SignUpForm.js
             SignUpForm.tsx
+            SubmitButton.js
             SubmitButton.tsx
         dashboard/
+            NewProjectButton.js
             NewProjectButton.tsx
+            ProjectList.js
             ProjectList.tsx
+            SearchBar.js
             SearchBar.tsx
+            SortTabs.js
             SortTabs.tsx
+            UserDropdown.js
             UserDropdown.tsx
         home/
+            FeatureCard.js
             FeatureCard.tsx
+            FeatureList.js
             FeatureList.tsx
+            Footer.js
             Footer.tsx
+            HeroSection.js
             HeroSection.tsx
+            NavBar.js
             NavBar.tsx
+            StepGuide.js
             StepGuide.tsx
+            UserTypes.js
             UserTypes.tsx
         shared/
+            Button.js
             Button.tsx
+            Dropdown.js
             Dropdown.tsx
+            InputField.js
             InputField.tsx
+            LoadingSpinner.js
             LoadingSpinner.tsx
+            Modal.js
             Modal.tsx
+            OpenProjectModal.js
             OpenProjectModal.tsx
+            ProtectedRoute.js
             ProtectedRoute.tsx
+            SaveAsModal.js
             SaveAsModal.tsx
+            ToggleSwitch.js
             ToggleSwitch.tsx
+            Tooltip.js
             Tooltip.tsx
         workspace/
+            AIDock.js
             AIDock.tsx
+            AIGenerate.js
             AIGenerate.tsx
+            AIModify.js
             AIModify.tsx
+            AIStyleTransfer.js
             AIStyleTransfer.tsx
+            AIToolsPanel.js
             AIToolsPanel.tsx
+            EditMenu.js
             EditMenu.tsx
+            FileMenu.js
             FileMenu.tsx
+            MIDIToolsMenu.js
             MIDIToolsMenu.tsx
+            SettingsMenu.js
             SettingsMenu.tsx
+            SoundLibraryMenu.js
             SoundLibraryMenu.tsx
+            SoundLibraryModal.js
             SoundLibraryModal.tsx
+            WorkspaceNavBar.js
             WorkspaceNavBar.tsx
             midi-editor/
                 audio/
+                    sampleVoice.js
                     sampleVoice.ts
                 components/
                     PianoRoll/
                         PianoRoll.css
+                        PianoRoll.js
                         PianoRoll.tsx
                     TrackDashboard/
                         TrackDashboard.css
+                        TrackDashboard.js
                         TrackDashboard.tsx
                     TrackEditor/
+                        TrackEditor.js
                         TrackEditor.tsx
                     TransportBar/
                         GlobalTransportBar.css
+                        GlobalTransportBar.js
                         GlobalTransportBar.tsx
                 core/
+                    editorBus.js
                     editorBus.ts
+                    exportMidi.js
                     exportMidi.ts
+                    importMidi.js
                     importMidi.ts
+                    MidiEditorCore.js
                     MidiEditorCore.tsx
+                    midiUtils.js
                     midiUtils.ts
+                    TransportContext.js
                     TransportContext.tsx
     config/
+        apiConfig.js
         apiConfig.ts
+        appConfig.js
         appConfig.ts
     context/
+        authStore.js
         authStore.ts
+        midiStore.js
         midiStore.ts
         projectStore.js
     hooks/
+        useAuth.js
         useAuth.ts
+        useMIDI.js
         useMIDI.ts
+        useProjects.js
         useProjects.ts
     pages/
+        AuthPage.js
         AuthPage.tsx
+        DashboardPage.js
         DashboardPage.tsx
+        HomePage.js
         HomePage.tsx
+        WorkspacePage.js
         WorkspacePage.tsx
     services/
+        aiService.js
         aiService.ts
+        authService.js
         authService.ts
+        midiService.js
         midiService.ts
+        projectService.js
         projectService.ts
+        userService.js
         userService.ts
     styles/
         auth.module.css
@@ -103,20 +175,50 @@ src/
         ToggleSwitch.css
         workspace.module.css
     types/
+        projectTypes.js
         projectTypes.ts
     utils/
+        constants.js
         constants.ts
+        exportProject.js
         exportProject.ts
+        formatDate.js
         formatDate.ts
+        generateMIDI.js
         generateMIDI.ts
+        instruments.js
         instruments.ts
+        loadMagenta.js
         loadMagenta.ts
+        magenta.js
         magenta.ts
+        previewPlayer.js
         previewPlayer.ts
+        validateForm.js
         validateForm.ts
 
 
 File Contents
+--------------------------------------------------
+
+
+src\App.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import AuthPage from "./pages/AuthPage";
+import HomePage from "./pages/HomePage";
+import DashboardPage from "./pages/DashboardPage";
+import WorkspacePage from "./pages/WorkspacePage";
+import ProtectedRoute from "./components/shared/ProtectedRoute"; // make sure path is correct
+function App() {
+    return (_jsx(Router, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/", element: _jsx(HomePage, {}) }), _jsx(Route, { path: "/auth", element: _jsx(AuthPage, {}) }), _jsx(Route, { path: "/dashboard", element: _jsx(ProtectedRoute, { children: _jsx(DashboardPage, {}) }) }), _jsx(Route, { path: "/workspace", element: _jsx(ProtectedRoute, { children: _jsx(WorkspacePage, {}) }) })] }) }));
+}
+export default App;
+
+
+--------------------------------------------------
+File End
 --------------------------------------------------
 
 
@@ -164,6 +266,22 @@ File End
 --------------------------------------------------
 
 
+src\main.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import { Toaster } from 'react-hot-toast';
+import "./styles/globals.css";
+ReactDOM.createRoot(document.getElementById('root')).render(_jsxs(React.StrictMode, { children: [_jsx(App, {}), _jsx(Toaster, { position: "top-center", reverseOrder: false })] }));
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\main.tsx
 File type: .tsx
 import React from 'react';
@@ -178,6 +296,36 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <Toaster position="top-center" reverseOrder={false} />
   </React.StrictMode>,
 );
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\vite-env.d.ts
+File type: .ts
+/// <reference types="vite/client" />
+interface ImportMetaEnv {
+  readonly VITE_API_URL?: string;
+}
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\auth\AuthInputField.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+const AuthInputField = ({ type, placeholder, value, onChange }) => {
+    return (_jsxs("label", { className: "block mb-4", children: [_jsx("span", { className: "block text-xs text-black/60 mb-1", children: placeholder }), _jsx("input", { type: type, value: value, onChange: (e) => onChange(e.target.value), className: "\r\n          w-full bg-white/80 px-3 py-2 rounded-lg\r\n          border border-black/20 focus:outline-none\r\n          focus:border-black/60\r\n          placeholder:text-black/40\r\n        ", placeholder: placeholder })] }));
+};
+export default AuthInputField;
 
 
 --------------------------------------------------
@@ -217,6 +365,26 @@ const AuthInputField: React.FC<Props> = ({ type, placeholder, value, onChange })
 };
 
 export default AuthInputField;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\auth\AuthToggle.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+const AuthToggle = ({ isLogin, setIsLogin }) => {
+    return (_jsx("div", { className: "w-full", children: _jsxs("div", { className: "grid grid-cols-2 rounded-xl overflow-hidden bg-white/60 border border-black/10", children: [_jsx("button", { onClick: () => setIsLogin(false), className: "py-2.5 text-sm sm:text-base transition " +
+                        (!isLogin
+                            ? "bg-[#ff7a00] text-black font-semibold"
+                            : "text-black/70 hover:bg-black/5"), children: "Sign up" }), _jsx("button", { onClick: () => setIsLogin(true), className: "py-2.5 text-sm sm:text-base transition " +
+                        (isLogin
+                            ? "bg-[#ff7a00] text-black font-semibold"
+                            : "text-black/70 hover:bg.black/5"), children: "Log in" })] }) }));
+};
+export default AuthToggle;
 
 
 --------------------------------------------------
@@ -272,6 +440,20 @@ File End
 --------------------------------------------------
 
 
+src\components\auth\GoogleAuthButton.js
+File type: .js
+import { jsx as _jsx } from "react/jsx-runtime";
+const GoogleAuthButton = () => {
+    return (_jsx("button", { className: "\r\n        w-full h-11 mt-3 rounded-md\r\n        bg-white text-black font-medium\r\n        border border.black/20\r\n        hover:bg-black/5 transition\r\n      ", type: "button", children: "Continue with Google" }));
+};
+export default GoogleAuthButton;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\auth\GoogleAuthButton.tsx
 File type: .tsx
 import React from "react";
@@ -300,6 +482,20 @@ File End
 --------------------------------------------------
 
 
+src\components\auth\GuestLogin.js
+File type: .js
+import { jsx as _jsx } from "react/jsx-runtime";
+const GuestLogin = () => {
+    return (_jsx("button", { className: "\r\n        w-full h-11 mt-3 rounded-md\r\n        bg-black/20 text-black font-medium\r\n        hover:bg-black/25 transition\r\n      ", type: "button", children: "Continue as Guest" }));
+};
+export default GuestLogin;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\auth\GuestLogin.tsx
 File type: .tsx
 import React from "react";
@@ -320,6 +516,44 @@ const GuestLogin: React.FC = () => {
 };
 
 export default GuestLogin;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\auth\LoginForm.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState } from "react";
+import AuthInputField from "./AuthInputField";
+import PasswordToggle from "./PasswordToggle";
+import GoogleAuthButton from "./GoogleAuthButton";
+import SubmitButton from "./SubmitButton";
+import GuestLogin from "./GuestLogin";
+import { useAuth } from "../../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+const LoginForm = () => {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const { login } = useAuth();
+    const navigate = useNavigate();
+    const handleLogin = async () => {
+        const loadingToast = toast.loading("Logging in...");
+        try {
+            await login(username, password);
+            toast.success("Logged in successfully!", { id: loadingToast });
+            navigate("/dashboard");
+        }
+        catch (error) {
+            toast.error("Login failed: " + (error.response?.data?.detail || error.message), { id: loadingToast });
+        }
+    };
+    return (_jsxs("div", { children: [_jsx(AuthInputField, { type: "text", placeholder: "Username", value: username, onChange: setUsername }), _jsx(PasswordToggle, { value: password, onChange: setPassword }), _jsxs("div", { className: "flex items-center justify-between mb-1", children: [_jsx("span", { className: "text-xs text-transparent select-none", children: "." }), _jsx("button", { type: "button", className: "text-xs text-black/70 hover:text-black underline underline-offset-2", children: "Forgot password" })] }), _jsx(SubmitButton, { text: "Log in", onClick: handleLogin }), _jsxs("div", { className: "flex items-center gap-3 my-3 text-black/40 text-xs", children: [_jsx("span", { className: "flex-1 h-px bg-black/20" }), _jsx("span", { children: "or" }), _jsx("span", { className: "flex-1 h-px bg-black/20" })] }), _jsx(GoogleAuthButton, {}), _jsx(GuestLogin, {})] }));
+};
+export default LoginForm;
 
 
 --------------------------------------------------
@@ -395,6 +629,22 @@ File End
 --------------------------------------------------
 
 
+src\components\auth\PasswordToggle.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState } from "react";
+const PasswordToggle = ({ value, onChange, placeholder = "Password", }) => {
+    const [show, setShow] = useState(false);
+    return (_jsxs("label", { className: "block mb-2", children: [_jsx("span", { className: "block text-xs text-black/60 mb-1", children: placeholder }), _jsxs("div", { className: "relative", children: [_jsx("input", { type: show ? "text" : "password", value: value, onChange: (e) => onChange(e.target.value), placeholder: placeholder, className: "\r\n            w-full bg-white/80 px-3 py-2 rounded-lg\r\n            border border.black/20 focus:outline-none\r\n            focus:border.black/60 placeholder:text-black/40\r\n          " }), _jsx("button", { type: "button", onClick: () => setShow((s) => !s), className: "absolute right-2 top-1/2 -translate-y-1/2 text-black/60 hover:text-black", "aria-label": show ? "Hide password" : "Show password", children: _jsx("img", { src: show ? "/Close_eye.png" : "/Eye.png", alt: show ? "Hide password" : "Show password", className: "w-5 h-5" }) })] })] }));
+};
+export default PasswordToggle;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\auth\PasswordToggle.tsx
 File type: .tsx
 import React, { useState } from "react";
@@ -444,6 +694,48 @@ const PasswordToggle: React.FC<Props> = ({
 };
 
 export default PasswordToggle;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\auth\SignUpForm.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState } from "react";
+import AuthInputField from "./AuthInputField";
+import PasswordToggle from "./PasswordToggle";
+import GoogleAuthButton from "./GoogleAuthButton";
+import SubmitButton from "./SubmitButton";
+import { useAuth } from "../../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+const SignUpForm = () => {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const { register } = useAuth();
+    const navigate = useNavigate();
+    const handleRegister = async () => {
+        if (password !== confirmPassword) {
+            toast.error("Passwords do not match!");
+            return;
+        }
+        const loadingToast = toast.loading("Creating account...");
+        try {
+            await register(username, password);
+            toast.success("Account created and logged in!", { id: loadingToast });
+            navigate("/dashboard");
+        }
+        catch (error) {
+            toast.error("Signup failed: " + (error.response?.data?.detail || error.message), { id: loadingToast });
+        }
+    };
+    return (_jsxs("div", { children: [_jsx(AuthInputField, { type: "text", placeholder: "Username", value: username, onChange: setUsername }), _jsx(PasswordToggle, { value: password, onChange: setPassword, placeholder: "Password" }), _jsx(PasswordToggle, { value: confirmPassword, onChange: setConfirmPassword, placeholder: "Confirm password" }), _jsx(SubmitButton, { text: "Sign up", onClick: handleRegister }), _jsxs("div", { className: "flex items-center gap-3 my-3 text-black/40 text-xs", children: [_jsx("span", { className: "flex-1 h-px bg-black/20" }), _jsx("span", { children: "or" }), _jsx("span", { className: "flex-1 h-px bg-black/20" })] }), _jsx(GoogleAuthButton, {})] }));
+};
+export default SignUpForm;
 
 
 --------------------------------------------------
@@ -515,6 +807,20 @@ File End
 --------------------------------------------------
 
 
+src\components\auth\SubmitButton.js
+File type: .js
+import { jsx as _jsx } from "react/jsx-runtime";
+const SubmitButton = ({ text, onClick }) => {
+    return (_jsx("button", { onClick: onClick, className: "\r\n        w-full mt-4 h-11 rounded-md\r\n        bg-[#ff5200] text-black font-semibold\r\n        border border-black/20\r\n        shadow-[0_16px_30px_-10px_rgba(255,82,0,0.45)]\r\n        hover:brightness-110 active:translate-y-[1px] transition\r\n      ", children: text }));
+};
+export default SubmitButton;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\auth\SubmitButton.tsx
 File type: .tsx
 import React from "react";
@@ -542,6 +848,112 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({ text, onClick }) => {
 };
 
 export default SubmitButton;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\dashboard\NewProjectButton.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useProjects } from "../../hooks/useProjects";
+const NewProjectButton = () => {
+    const { addProject } = useProjects();
+    const handleClick = async () => {
+        const name = "Untitled Project";
+        const data = { notes: [], bpm: 120 };
+        await addProject(name, data);
+        window.location.reload();
+    };
+    return (_jsxs("button", { onClick: handleClick, className: "\r\n        inline-flex items-center justify-center\r\n        h-14 px-10\r\n        text-black text-lg\r\n        hover:brightness-110 active:translate-y-px transition\r\n      ", style: { background: "#ff4e1a" }, children: [_jsx("span", { className: "text-2xl mr-3", children: "\uFF0B" }), "Create new project"] }));
+};
+export default NewProjectButton;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\dashboard\ProjectList.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Modal from "../shared/Modal";
+import { useProjects } from "../../hooks/useProjects";
+import { exportProject } from "../../utils/exportProject";
+const normalizeDataForDuplicate = (data) => {
+    try {
+        return typeof data === "string" ? JSON.parse(data) : data ?? {};
+    }
+    catch {
+        return {};
+    }
+};
+const normalizeDataForExport = (data) => {
+    try {
+        return typeof data === "string" ? data : JSON.stringify(data ?? {});
+    }
+    catch {
+        return JSON.stringify({});
+    }
+};
+const Row = ({ project, onChanged, }) => {
+    const navigate = useNavigate();
+    const { removeProject, renameProject, addProject } = useProjects();
+    const [showDelete, setShowDelete] = useState(false);
+    const [showRename, setShowRename] = useState(false);
+    const [newName, setNewName] = useState(project.name || "Untitled");
+    const handleOpen = () => {
+        localStorage.setItem("activeProjectId", String(project.id));
+        navigate("/workspace");
+    };
+    const handleDelete = (e) => {
+        e.stopPropagation();
+        setShowDelete(true);
+    };
+    const confirmDelete = async (e) => {
+        e.stopPropagation();
+        await removeProject(project.id);
+        setShowDelete(false);
+        onChanged();
+    };
+    const handleRename = (e) => {
+        e.stopPropagation();
+        setShowRename(true);
+    };
+    const confirmRename = async (e) => {
+        e.stopPropagation();
+        const data = normalizeDataForDuplicate(project.data);
+        await renameProject(project.id, newName, data);
+        setShowRename(false);
+        onChanged();
+    };
+    const handleDuplicate = async (e) => {
+        e.stopPropagation();
+        const data = normalizeDataForDuplicate(project.data);
+        await addProject(`${project.name} (Copy)`, data);
+        onChanged();
+    };
+    const handleExport = (e) => {
+        e.stopPropagation();
+        const json = normalizeDataForExport(project.data);
+        exportProject(json, project.name || "project");
+    };
+    return (_jsxs(_Fragment, { children: [_jsxs("div", { onClick: handleOpen, className: "\r\n          relative flex items-center justify-between\r\n          px-5 h-12 rounded-xl\r\n          bg-[#e9dcc9] shadow-[inset_0_2px_0_rgba(255,255,255,0.7),0_8px_16px_-8px_rgba(0,0,0,0.35)]\r\n          border border-black/10 cursor-pointer\r\n        ", children: [_jsxs("div", { className: "flex items-center gap-3", children: [_jsx("button", { onClick: handleDelete, className: "p-1.5 rounded-full hover:brightness-110", title: "Delete", children: _jsx("img", { src: "delete.png", alt: "Delete", className: "w-5 h-5" }) }), _jsx("span", { className: "truncate font-medium text-[14px]", children: project.name || "Untitled" })] }), _jsxs("div", { className: "flex items-center gap-3", children: [_jsx("button", { onClick: handleRename, title: "Rename", children: _jsx("img", { src: "rename.png", alt: "Rename", className: "w-4 h-4" }) }), _jsx("button", { onClick: handleDuplicate, title: "Duplicate", children: _jsx("img", { src: "duplicate.png", alt: "Duplicate", className: "w-4 h-4" }) }), _jsx("button", { onClick: handleExport, title: "Export", children: _jsx("img", { src: "export.png", alt: "Export", className: "w-4 h-4" }) })] })] }), showDelete && (_jsxs(Modal, { onClose: () => setShowDelete(false), children: [_jsx("h3", { className: "text-lg font-semibold mb-2", children: "Delete Project?" }), _jsxs("p", { className: "mb-4", children: ["Are you sure you want to delete ", _jsx("strong", { children: project.name }), "?"] }), _jsxs("div", { className: "flex justify-end gap-2", children: [_jsx("button", { onClick: () => setShowDelete(false), children: "Cancel" }), _jsx("button", { onClick: confirmDelete, style: { color: "red" }, children: "Delete" })] })] })), showRename && (_jsxs(Modal, { onClose: () => setShowRename(false), children: [_jsx("h3", { className: "text-lg font-semibold mb-2", children: "Rename Project" }), _jsx("input", { type: "text", value: newName, onChange: (e) => setNewName(e.target.value), className: "w-full mt-2 mb-4 p-2 border rounded" }), _jsxs("div", { className: "flex justify-end gap-2", children: [_jsx("button", { onClick: () => setShowRename(false), children: "Cancel" }), _jsx("button", { onClick: confirmRename, children: "Rename" })] })] }))] }));
+};
+const ProjectList = ({ projects }) => {
+    const forceRefresh = () => window.location.reload();
+    return (_jsx("div", { className: "overflow-y-auto px-6 py-3 rounded-[28px]", style: {
+            maxHeight: "calc(100vh - 280px)",
+            scrollbarColor: "#121633 #e9dcc9",
+            scrollbarWidth: "thin",
+        }, children: _jsx("div", { className: "mx-auto w-[95%] max-w-[1200px]", children: _jsxs("div", { className: "space-y-3", children: [projects.length === 0 && (_jsx("div", { className: "text-center text-black/60 py-8", children: "No projects yet" })), projects.map((p) => (_jsx(Row, { project: p, onChanged: forceRefresh }, p.id)))] }) }) }));
+};
+export default ProjectList;
 
 
 --------------------------------------------------
@@ -743,6 +1155,18 @@ File End
 --------------------------------------------------
 
 
+src\components\dashboard\SearchBar.js
+File type: .js
+import { jsx as _jsx } from "react/jsx-runtime";
+const SearchBar = ({ value, onChange }) => (_jsx("div", { className: "w-full", style: { background: "#ff4e1a" }, children: _jsx("input", { type: "text", value: value, onChange: (e) => onChange(e.target.value), placeholder: "Search", className: "w-full bg-transparent placeholder-black/90 text-black\r\n                 px-5 py-3 text-[18px] focus:outline-none" }) }));
+export default SearchBar;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\dashboard\SearchBar.tsx
 File type: .tsx
 import React from "react";
@@ -769,6 +1193,22 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => (
 );
 
 export default SearchBar;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\dashboard\SortTabs.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+const Chip = ({ active, onClick, children }) => (_jsx("button", { onClick: onClick, className: `px-4 h-9 rounded-full text-sm tracking-wide transition
+      ${active ? "bg-[#121633] text-white shadow" : "bg-[#121633] text-white/80 hover:text-white"}`, style: { boxShadow: active ? "0 8px 18px -8px rgba(0,0,0,.45)" : undefined }, children: children }));
+const SortTabs = ({ selected, onSelect }) => {
+    return (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx(Chip, { active: selected === "created", onClick: () => onSelect("created"), children: "Created" }), _jsx(Chip, { active: selected === "name", onClick: () => onSelect("name"), children: "Name" }), _jsx(Chip, { active: selected === "modified", onClick: () => onSelect("modified"), children: "Modified" })] }));
+};
+export default SortTabs;
 
 
 --------------------------------------------------
@@ -813,6 +1253,31 @@ const SortTabs: React.FC<SortTabsProps> = ({ selected, onSelect }) => {
 };
 
 export default SortTabs;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\dashboard\UserDropdown.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState, useRef, useEffect } from "react";
+const UserDropdown = () => {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+    useEffect(() => {
+        const onClick = (e) => {
+            if (ref.current && !ref.current.contains(e.target))
+                setOpen(false);
+        };
+        document.addEventListener("mousedown", onClick);
+        return () => document.removeEventListener("mousedown", onClick);
+    }, []);
+    return (_jsxs("div", { ref: ref, className: "relative", children: [_jsxs("button", { onClick: () => setOpen((v) => !v), className: "min-w-[190px] px-5 py-3 rounded-md text-white flex items-center justify-between", style: { background: "#000" }, children: [_jsx("span", { children: "Username" }), _jsx("span", { className: "ml-3", children: "\u25BE" })] }), open && (_jsxs("div", { className: "absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg overflow-hidden", children: [_jsx("button", { className: "block w-full text-left px-4 py-2 hover:bg-gray-100", children: "Switch account" }), _jsx("button", { className: "block w-full text-left px-4 py-2 hover:bg-gray-100", children: "Sign out" })] }))] }));
+};
+export default UserDropdown;
 
 
 --------------------------------------------------
@@ -869,6 +1334,20 @@ File End
 --------------------------------------------------
 
 
+src\components\home\FeatureCard.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+const FeatureCard = ({ title, description }) => {
+    return (_jsxs("div", { className: "p-4 border rounded shadow", children: [_jsx("h3", { className: "text-xl font-bold", children: title }), _jsx("p", { className: "text-sm", children: description })] }));
+};
+export default FeatureCard;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\home\FeatureCard.tsx
 File type: .tsx
 import React from "react";
@@ -888,6 +1367,57 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description }) => {
 };
 
 export default FeatureCard;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\home\FeatureList.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState } from "react";
+const features = [
+    {
+        title: "AI-powered MIDI generation",
+        description: "Generate unique melodies, chord progressions, and rhythms instantly with AI. Just type a prompt or select a style, and let MIDIMIJAI do the rest.",
+    },
+    {
+        title: "Deep MIDI editing",
+        description: "Manually fine-tune every MIDI note with powerful editing tools. Change timing, note length, velocity, or add advanced musical techniques.",
+    },
+    {
+        title: "Import and edit multiple MIDI files",
+        description: "Load multiple MIDI files into the workspace, edit them side by side, and create a seamless composition.",
+    },
+    {
+        title: "Assign custom sound libraries",
+        description: "Use your own samples and virtual instruments . Assign custom sounds to tracks for more control over your MIDI compositions.",
+    },
+];
+const FeatureList = () => {
+    const [openIndex, setOpenIndex] = useState(0);
+    return (_jsxs("section", { className: "px-4 sm:px-6 lg:px-10 pt-10 sm:pt-14", children: [_jsxs("h2", { className: "mb-10 leading-none", children: [_jsxs("div", { className: "flex items-end gap-4", children: [_jsx("span", { className: "font-extrabold text-[56px] sm:text-[72px] text-black", children: "What" }), _jsx("span", { className: "text-[40px] sm:text-[52px] text-black/80", children: "can" })] }), _jsxs("div", { className: "flex items-center gap-3 mt-1", children: [_jsx("span", { className: "font-extrabold text-[#ff5200] text-[64px] sm:text-[84px] tracking-tight", children: "MIDIMIJAI" }), _jsx("span", { className: "font-extrabold text-black text-[56px] sm:text-[72px]", children: "do" }), _jsx("span", { className: "-rotate-12 inline-block font-extrabold text-black text-[68px] sm:text-[84px] leading-none", children: "?" })] })] }), _jsxs("div", { className: "grid grid-cols-1 lg:grid-cols-2 gap-8 items-start", children: [_jsx("div", { className: "space-y-4", children: features.map((f, i) => {
+                            const open = i === openIndex;
+                            return (_jsxs("div", { className: "bg-white border border-black/10 rounded-xl shadow-sm overflow-hidden", children: [_jsxs("button", { className: "w-full flex items-center justify-between text-left px-5 py-4", onClick: () => setOpenIndex(open ? -1 : i), children: [_jsx("span", { className: "font-semibold text-[17px]", children: f.title }), _jsx("span", { className: "text-xl select-none", children: open ? "▲" : "▼" })] }), open && (_jsx("div", { className: "px-5 pb-5 -mt-1 text-[15px] text-black/70", children: f.description }))] }, f.title));
+                        }) }), _jsx("div", { className: "relative", children: _jsx("div", { className: "\r\n              relative\r\n              w-full\r\n              rounded-[48px]\r\n              bg-[#decab2]\r\n              shadow-[0_30px_60px_rgba(0,0,0,0.18)]\r\n              px-6 sm:px-8\r\n              pt-6 sm:pt-8\r\n              pb-4\r\n            ", children: _jsxs("div", { className: "relative w-full rounded-[36px] bg-white border border-black/10 overflow-hidden", children: [_jsx("div", { className: "pt-[56.25%]" }), _jsx("div", { className: "absolute inset-0 flex items-center justify-center text-sm text-black/50", children: "[Demo clip area]" })] }) }) })] })] }));
+};
+export default FeatureList;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\home\Footer.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+const Footer = () => {
+    return (_jsx("footer", { className: "mt-10 bg-[#efe6dc]", children: _jsxs("div", { className: "max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-8", children: [_jsxs("div", { className: "grid grid-cols-2 md:grid-cols-4 gap-6 text-[13px]", children: [_jsxs("div", { children: [_jsx("h4", { className: "font-semibold mb-2", children: "Company" }), _jsx("p", { children: "About us" }), _jsx("p", { children: "Contact" })] }), _jsxs("div", { children: [_jsx("h4", { className: "font-semibold mb-2", children: "Platform" }), _jsx("p", { children: "Pricing" }), _jsx("p", { children: "FAQs" })] }), _jsxs("div", { children: [_jsx("h4", { className: "font-semibold mb-2", children: "Support" }), _jsx("p", { children: "Terms of Service" })] }), _jsxs("div", { children: [_jsx("h4", { className: "font-semibold mb-2", children: "Legal & Policies" }), _jsx("p", { children: "Privacy Policy" }), _jsx("p", { children: "Cookie Policy" }), _jsx("p", { children: "User Agreements" })] })] }), _jsxs("p", { className: "text-[12px] text-black/60 mt-6", children: ["\u00A9 ", new Date().getFullYear(), " MIDIMIJAI. All rights reserved."] })] }) }));
+};
+export default Footer;
 
 
 --------------------------------------------------
@@ -934,6 +1464,25 @@ const Footer: React.FC = () => {
 };
 
 export default Footer;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\home\HeroSection.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useNavigate } from "react-router-dom";
+const HeroSection = () => {
+    const navigate = useNavigate();
+    // tones shared by band/plate/curve (prevents seams)
+    const BEIGE = "#dcc7af";
+    const PLATE = "#e8dccb";
+    return (_jsx("section", { className: "relative w-full overflow-visible", children: _jsxs("div", { className: "relative w-full", style: { background: BEIGE }, children: [_jsx("div", { className: "absolute right-6 top-6 flex flex-col items-end gap-3 z-10", children: _jsx("button", { onClick: () => navigate("/auth"), className: "px-5 py-2.5 text-sm sm:text-base font-medium bg-[#F44E1A] border border-black hover:brightness-110 active:translate-y-px transition", children: "Log in" }) }), _jsxs("div", { className: "flex flex-col items-center justify-center text-center px-6 sm:px-8 pt-10 sm:pt-12 pb-16", children: [_jsx("img", { src: "/MIDIMIJAI-LOGO.png", alt: "MIDIMIJAI", className: "h-[260px] sm:h-[320px] lg:h-[360px] select-none mb-6 mx-auto", draggable: false }), _jsx("div", { className: "rounded-xl px-10 sm:px-12 py-4 mx-auto plate-glow", style: { background: PLATE }, children: _jsxs("p", { className: "text-[18px] sm:text-[20px] leading-relaxed text-[#3a2a20] font-medium text-glow-white", children: ["Create, edit, and transform MIDI like never before with AI. Deeply customizable", _jsx("br", {}), "and easy to use for producers, musicians, and beginners."] }) }), _jsx("button", { onClick: () => navigate("/auth"), className: "\r\n              mt-8\r\n              inline-flex items-center justify-center\r\n              h-14 px-14\r\n              bg-[#F44E1A] text-black text-[20px]\r\n              hover:brightness-110 active:translate-y-px transition\r\n            ", children: "Start now" })] }), _jsx("div", { className: "relative w-full h-[110px]", style: { background: BEIGE }, children: _jsxs("svg", { viewBox: "0 0 100 20", preserveAspectRatio: "none", className: "absolute inset-0 w-full h-full pointer-events-none", children: [_jsx("rect", { x: "0", y: "0", width: "100", height: "20", fill: BEIGE }), _jsx("path", { d: "M0,0 C25,28 75,28 100,0 L100,20 L0,20 Z", fill: BEIGE })] }) })] }) }));
+};
+export default HeroSection;
 
 
 --------------------------------------------------
@@ -1029,6 +1578,22 @@ File End
 --------------------------------------------------
 
 
+src\components\home\NavBar.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useNavigate } from "react-router-dom";
+const Navbar = () => {
+    const navigate = useNavigate();
+    return (_jsxs("nav", { className: "w-full flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3", children: [_jsx("img", { src: "/MIDIMIJAI-LOGO.png", alt: "MIDIMIJAI", className: "h-5 w-auto" }), _jsxs("div", { className: "flex items-center gap-2 sm:gap-3", children: [_jsx("button", { className: "text-xs sm:text-[12px] border border-[#1b1b1b] rounded-md px-3 py-1 bg-white/60", children: "EN / TH" }), _jsx("button", { onClick: () => navigate("/auth"), className: "text-xs sm:text-[12px] border border-[#1b1b1b] rounded-md px-3 py-1 bg-white/60", children: "Login" })] })] }));
+};
+export default Navbar;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\home\NavBar.tsx
 File type: .tsx
 import React from "react";
@@ -1062,6 +1627,32 @@ const Navbar: React.FC = () => {
 };
 
 export default Navbar;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\home\StepGuide.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState } from "react";
+const steps = [
+    { title: "Step 1: Type a prompt", description: "Describe mood or style; AI drafts your MIDI idea." },
+    { title: "Step 2: Refine in the editor", description: "Edit notes, timing, and dynamics with precise tools." },
+    { title: "Step 3: Assign custom sounds", description: "Swap instruments or upload your own samples." },
+    { title: "Step 4: Export", description: "Download as .mid and use in any DAW." },
+];
+const BEIGE = "#dcc7af";
+const StepGuide = () => {
+    const [openIndex, setOpenIndex] = useState(0);
+    return (_jsx("section", { className: "relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-16", children: _jsxs("div", { className: "grid grid-cols-1 lg:grid-cols-2 gap-10 items-start", children: [_jsx("div", { className: "rounded-[40px] p-3 shadow-[0_50px_80px_-20px_rgba(0,0,0,0.30)] flex-1", style: { background: BEIGE, alignSelf: "stretch" }, children: _jsx("div", { className: "relative rounded-[28px] bg-white border border-black/10 overflow-hidden h-full", children: _jsx("div", { className: "absolute inset-0 flex items-center justify-center text-black/50", children: "[Demo clip area]" }) }) }), _jsxs("div", { className: "flex flex-col h-full", children: [_jsxs("h2", { className: "mb-8 leading-[1.05]", children: [_jsxs("span", { className: "block text-[42px] sm:text-[56px] font-semibold text-black", children: ["Step ", _jsx("span", { className: "font-normal", children: "by step" })] }), _jsx("span", { className: "block -mt-2 text-[56px] sm:text-[72px] font-extrabold text-[#ff5200]", children: "Guide" })] }), _jsx("div", { className: "space-y-5 flex-1", children: steps.map((s, i) => {
+                                const open = i === openIndex;
+                                return (_jsxs("div", { className: "rounded-2xl bg-white shadow-[0_26px_40px_-16px_rgba(0,0,0,0.20)] border border-black/10 overflow-hidden", children: [_jsxs("button", { className: "w-full flex items-center justify-between text-left px-6 py-5", onClick: () => setOpenIndex(open ? -1 : i), children: [_jsx("span", { className: "text-[20px] font-semibold text-black", children: s.title }), _jsx("span", { className: "text-xl text-black/80 select-none", children: open ? "▲" : "▼" })] }), open && (_jsx("div", { className: "px-6 pb-6 -mt-1 text-[15px] text-black/70", children: s.description }))] }, s.title));
+                            }) })] })] }) }));
+};
+export default StepGuide;
 
 
 --------------------------------------------------
@@ -1151,6 +1742,39 @@ File End
 --------------------------------------------------
 
 
+src\components\home\UserTypes.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+const people = [
+    {
+        img: "Producer.png",
+        title: "For Producers",
+        desc: "Quickly generate MIDI ideas",
+    },
+    {
+        img: "Musician.png",
+        title: "For Musicians",
+        desc: "Use AI to build melodies & chords",
+    },
+    {
+        img: "Beginner.png",
+        title: "For Beginners",
+        desc: "Learn MIDI editing in an easy way",
+    },
+];
+const UserTypes = () => {
+    return (_jsxs("section", { className: "text-center py-12", children: [_jsxs("h2", { className: "mb-6 text-[40px] sm:text-[52px] font-semibold", children: ["Who is this for", _jsx("span", { className: "text-[#ff5200]", children: "?" })] }), _jsx("div", { className: "grid grid-cols-1 sm:grid-cols-3 max-w-7xl mx-auto gap-y-8", children: people.map((p) => (_jsxs("div", { className: "flex flex-col items-center", children: [_jsx("img", { src: p.img, alt: p.title, className: "w-120 h-120 object-contain", style: {
+                                filter: "drop-shadow(0 0 40px rgba(255, 82, 0, 0.5))",
+                            } }), _jsx("h3", { className: "text-[20px] font-semibold", children: p.title }), _jsx("p", { className: "text-black/70 text-[15px] max-w-[200px]", children: p.desc })] }, p.title))) })] }));
+};
+export default UserTypes;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\home\UserTypes.tsx
 File type: .tsx
 import React from "react";
@@ -1210,6 +1834,20 @@ File End
 --------------------------------------------------
 
 
+src\components\shared\Button.js
+File type: .js
+import { jsx as _jsx } from "react/jsx-runtime";
+const Button = ({ text, onClick, disabled, className }) => {
+    return (_jsx("button", { onClick: onClick, disabled: disabled, className: `px-4 py-2 rounded ${className}`, children: text }));
+};
+export default Button;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\shared\Button.tsx
 File type: .tsx
 import React from "react";
@@ -1234,6 +1872,48 @@ const Button: React.FC<ButtonProps> = ({ text, onClick, disabled, className }) =
 };
 
 export default Button;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\shared\Dropdown.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState, useEffect, useRef } from 'react';
+const Dropdown = ({ label, options }) => {
+    const [open, setOpen] = useState(false);
+    const dropdownRef = useRef(null);
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+    return (_jsxs("div", { ref: dropdownRef, style: { position: 'relative', display: 'inline-block' }, children: [_jsx("button", { onClick: () => setOpen((prev) => !prev), children: label }), open && (_jsx("div", { style: {
+                    position: 'absolute',
+                    background: 'white',
+                    border: '1px solid #ccc',
+                    marginTop: '0.5rem',
+                    zIndex: 10,
+                    whiteSpace: 'nowrap',
+                }, children: options.map((opt, i) => (_jsx("div", { style: {
+                        padding: '0.5rem 1rem',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                    }, onClick: () => {
+                        console.log(`Selected: ${opt}`);
+                        setOpen(false);
+                    }, children: opt }, i))) }))] }));
+};
+export default Dropdown;
+
 
 --------------------------------------------------
 File End
@@ -1311,6 +1991,20 @@ File End
 --------------------------------------------------
 
 
+src\components\shared\InputField.js
+File type: .js
+import { jsx as _jsx } from "react/jsx-runtime";
+const InputField = ({ type, placeholder, value, onChange, className }) => {
+    return (_jsx("input", { type: type, placeholder: placeholder, value: value, onChange: onChange, className: `px-4 py-2 border rounded ${className}` }));
+};
+export default InputField;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\shared\InputField.tsx
 File type: .tsx
 import React from "react";
@@ -1342,6 +2036,21 @@ File End
 --------------------------------------------------
 
 
+src\components\shared\LoadingSpinner.js
+File type: .js
+import { jsx as _jsx } from "react/jsx-runtime";
+import '../../styles/LoadingSpinner.css';
+const LoadingSpinner = () => {
+    return _jsx("div", { className: "loading-spinner" });
+};
+export default LoadingSpinner;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\shared\LoadingSpinner.tsx
 File type: .tsx
 import React from 'react';
@@ -1358,39 +2067,100 @@ File End
 --------------------------------------------------
 
 
+src\components\shared\Modal.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+const Modal = ({ onClose, children, title }) => {
+    return (_jsx("div", { onClick: onClose, style: {
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+        }, children: _jsxs("div", { onClick: (e) => e.stopPropagation(), style: {
+                background: "#fff",
+                padding: "1.25rem 1.5rem",
+                borderRadius: 12,
+                minWidth: 320,
+                maxWidth: 640,
+                position: "relative",
+                boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
+            }, children: [title && (_jsx("h3", { style: { margin: 0, marginBottom: "0.75rem", fontWeight: 600 }, children: title })), _jsx("button", { onClick: onClose, "aria-label": "Close modal", style: {
+                        position: "absolute",
+                        top: 10,
+                        right: 12,
+                        border: "none",
+                        background: "transparent",
+                        fontSize: 18,
+                        cursor: "pointer",
+                    }, children: "\u00D7" }), children] }) }));
+};
+export default Modal;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\shared\Modal.tsx
 File type: .tsx
-import React from 'react';
+import React from "react";
 
-interface ModalProps {
+export interface ModalProps {
   onClose: () => void;
   children: React.ReactNode;
+  title?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ onClose, children }) => {
+const Modal: React.FC<ModalProps> = ({ onClose, children, title }) => {
   return (
     <div
+      onClick={onClose}
       style={{
-        position: 'fixed',
-        top: 0, left: 0, right: 0, bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.4)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.4)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         zIndex: 1000,
       }}
-      onClick={onClose}
     >
       <div
-        style={{
-          background: 'white',
-          padding: '2rem',
-          borderRadius: '8px',
-          minWidth: '300px',
-        }}
         onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#fff",
+          padding: "1.25rem 1.5rem",
+          borderRadius: 12,
+          minWidth: 320,
+          maxWidth: 640,
+          position: "relative",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
+        }}
       >
-        <button onClick={onClose} style={{ float: 'right' }}>X</button>
+        {title && (
+          <h3 style={{ margin: 0, marginBottom: "0.75rem", fontWeight: 600 }}>
+            {title}
+          </h3>
+        )}
+        <button
+          onClick={onClose}
+          aria-label="Close modal"
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 12,
+            border: "none",
+            background: "transparent",
+            fontSize: 18,
+            cursor: "pointer",
+          }}
+        >
+          ×
+        </button>
         {children}
       </div>
     </div>
@@ -1398,6 +2168,35 @@ const Modal: React.FC<ModalProps> = ({ onClose, children }) => {
 };
 
 export default Modal;
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\shared\OpenProjectModal.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useEffect, useState } from "react";
+import Modal from "./Modal";
+import { getAllProjects } from "../../services/projectService";
+export default function OpenProjectModal({ isOpen, onSelect, onCancel, }) {
+    const [projects, setProjects] = useState([]);
+    const [loading, setLoading] = useState(false);
+    useEffect(() => {
+        if (!isOpen)
+            return;
+        setLoading(true);
+        getAllProjects()
+            .then((list) => setProjects(list.map((p) => ({ id: p.id, name: p.name }))))
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, [isOpen]);
+    if (!isOpen)
+        return null;
+    return (_jsxs(Modal, { title: "Open Project", onClose: onCancel, children: [loading ? (_jsx("p", { children: "Loading\u2026" })) : (_jsx("ul", { className: "max-h-60 overflow-auto space-y-2", children: projects.map((proj) => (_jsx("li", { children: _jsx("button", { onClick: () => onSelect(proj.id), className: "w-full text-left px-3 py-2 rounded hover:bg-gray-100", children: proj.name }) }, proj.id))) })), _jsx("div", { className: "flex justify-end mt-4", children: _jsx("button", { onClick: onCancel, className: "px-4 py-2", children: "Cancel" }) })] }));
+}
+
 
 --------------------------------------------------
 File End
@@ -1470,6 +2269,26 @@ File End
 --------------------------------------------------
 
 
+src\components\shared\ProtectedRoute.js
+File type: .js
+import { jsx as _jsx } from "react/jsx-runtime";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+const ProtectedRoute = ({ children }) => {
+    const { isLoggedIn } = useAuth();
+    if (!isLoggedIn) {
+        return _jsx(Navigate, { to: "/auth", replace: true });
+    }
+    return children;
+};
+export default ProtectedRoute;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\shared\ProtectedRoute.tsx
 File type: .tsx
 import React, { ReactElement } from "react";
@@ -1491,6 +2310,29 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 };
 
 export default ProtectedRoute;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\shared\SaveAsModal.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useEffect, useState } from "react";
+import Modal from "./Modal";
+export default function SaveAsModal({ isOpen, initialName, onSave, onCancel, }) {
+    const [name, setName] = useState(initialName);
+    useEffect(() => {
+        if (isOpen) {
+            setName(initialName);
+        }
+    }, [isOpen, initialName]);
+    if (!isOpen)
+        return null;
+    return (_jsxs(Modal, { title: "Save Project As\u2026", onClose: onCancel, children: [_jsx("input", { type: "text", value: name, onChange: (e) => setName(e.target.value), className: "w-full px-3 py-2 border rounded mb-4" }), _jsxs("div", { className: "flex justify-end space-x-2", children: [_jsx("button", { onClick: onCancel, className: "px-4 py-2", children: "Cancel" }), _jsx("button", { onClick: () => onSave(name), className: "px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600", children: "Save" })] })] }));
+}
 
 
 --------------------------------------------------
@@ -1555,6 +2397,20 @@ File End
 --------------------------------------------------
 
 
+src\components\shared\ToggleSwitch.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+const ToggleSwitch = ({ isOn, handleToggle }) => {
+    return (_jsxs("label", { className: "cursor-pointer flex items-center space-x-2", children: [_jsx("input", { type: "checkbox", checked: isOn, onChange: handleToggle, className: "hidden" }), _jsx("span", { className: "w-6 h-6 border border-black flex items-center justify-center text-lg", children: isOn ? "On" : "Off" })] }));
+};
+export default ToggleSwitch;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\shared\ToggleSwitch.tsx
 File type: .tsx
 import React from "react";
@@ -1589,6 +2445,22 @@ File End
 --------------------------------------------------
 
 
+src\components\shared\Tooltip.js
+File type: .js
+import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from "react/jsx-runtime";
+import { Tooltip as ReactTooltip } from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
+const Tooltip = ({ text, children }) => {
+    return (_jsxs(_Fragment, { children: [_jsx("span", { "data-tooltip-id": "tooltip", "data-tooltip-content": text, children: children }), _jsx(ReactTooltip, { id: "tooltip" })] }));
+};
+export default Tooltip;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\shared\Tooltip.tsx
 File type: .tsx
 import React from "react";
@@ -1612,6 +2484,41 @@ const Tooltip: React.FC<TooltipProps> = ({ text, children }) => {
 };
 
 export default Tooltip;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\workspace\AIDock.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState } from "react";
+import AIGenerate from "./AIGenerate";
+import AIModify from "./AIModify";
+import AIStyleTransfer from "./AIStyleTransfer";
+const ORANGE_START = "#ff6a2a";
+const ORANGE_END = "#ffa37a";
+const BEIGE = "#e9dcc9";
+export default function AIDock() {
+    const [tab, setTab] = useState("Generate");
+    const [open, setOpen] = useState(true);
+    return (_jsxs("aside", { className: "\r\n        relative h-full min-h-0\r\n        overflow-hidden\r\n        transition-all duration-300\r\n      ", style: { width: open ? 360 : 40 }, children: [_jsx("button", { onClick: () => setOpen(v => !v), className: "\r\n          absolute -left-4 top-1/2 -translate-y-1/2\r\n          w-8 h-12 rounded-full text-black\r\n          flex items-center justify-center z-10\r\n          shadow-[0_10px_20px_-10px_rgba(0,0,0,0.5)]\r\n          border border-black/10\r\n        ", style: { background: ORANGE_START }, title: open ? "Collapse" : "Expand", children: open ? "›" : "‹" }), _jsx("div", { className: "\r\n          h-full rounded-[28px] p-3\r\n          shadow-[0_40px_60px_-26px_rgba(0,0,0,0.45)]\r\n          border border-black/10\r\n          flex flex-col overflow-hidden\r\n        ", style: { background: `linear-gradient(180deg, ${ORANGE_START}, ${ORANGE_END})` }, children: _jsxs("div", { className: "\r\n            flex-1 m-2 rounded-[18px] p-0 overflow-hidden\r\n            border border-black/10\r\n            flex flex-col\r\n          ", style: { background: BEIGE }, children: [_jsx("div", { className: "flex", children: ["Generate", "Style", "Modify"].map((t, i, arr) => {
+                                const active = tab === t;
+                                return (_jsx("button", { onClick: () => setTab(t), className: `
+                    flex-1 py-3 text-[15px] font-semibold
+                    ${active ? "text-[#121633]" : "text-black/80"}
+                    bg-white
+                    relative
+                  `, style: {
+                                        borderRight: i < arr.length - 1 ? "4px solid " + ORANGE_START : "none",
+                                        boxShadow: active ? "inset 0 -4px 0 " + ORANGE_START : "none",
+                                    }, children: t }, t));
+                            }) }), _jsx("div", { className: "flex-1 px-5 pb-5 pt-4 overflow-auto", style: {
+                                background: "radial-gradient(70% 90% at 50% 0%, rgba(255,255,255,0.55), rgba(255,255,255,0) 60%)",
+                            }, children: _jsxs("div", { className: "\r\n                rounded-[18px] p-4 border border-black/10\r\n                bg-white/90 shadow-[0_24px_40px_-20px_rgba(0,0,0,0.30)]\r\n              ", children: [_jsxs("div", { className: "text-center text-[22px] font-bold text-[#121633] mb-3", children: ["AI ", tab] }), _jsxs("div", { className: "px-3 pb-3 flex-1 overflow-auto overflow-x-hidden text-sm", children: [tab === "Generate" && _jsx(AIGenerate, {}), tab === "Modify" && _jsx(AIModify, {}), tab === "Style" && _jsx(AIStyleTransfer, {})] })] }) })] }) })] }));
+}
 
 
 --------------------------------------------------
@@ -1743,6 +2650,22 @@ File End
 --------------------------------------------------
 
 
+src\components\workspace\AIModify.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState } from "react";
+export default function AIModify() {
+    const [prompt, setPrompt] = useState("");
+    const [busy] = useState(false);
+    return (_jsxs("div", { className: "space-y-3", children: [_jsx("div", { className: "rounded-full bg-white px-4 py-2 border border-black/10 shadow-inner", children: _jsx("input", { value: prompt, onChange: (e) => setPrompt(e.target.value), placeholder: "Make this jazzier\u2026", className: "w-full outline-none text-[14px] placeholder-black/40" }) }), _jsxs("div", { className: "flex items-center gap-4", children: [_jsx("button", { disabled: busy, className: "px-2 py-1.5 bg-[#ff6a2a] text-black font-semibold rounded shadow\r\n                     hover:brightness-105 active:translate-y-[1px] disabled:opacity-60", style: { border: "1px solid rgba(0,0,0,.12)" }, children: "Suggestions" }), _jsx("button", { disabled: busy, className: "px-2 py-1.5 bg-[#ff6a2a] text-black font-semibold rounded shadow\r\n                     hover:brightness-105 active:translate-y-[1px] disabled:opacity-60", style: { border: "1px solid rgba(0,0,0,.12)" }, children: "Modify" })] }), _jsx("div", { className: "rounded-[16px] border border-black/10 bg-white/95", style: { minHeight: 220 }, children: _jsx("div", { className: "p-3 space-y-3", children: _jsx("div", { className: "text-center text-black/50 py-6 text-sm", children: "Your modified ideas will appear here (UI only for now)." }) }) })] }));
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\workspace\AIModify.tsx
 File type: .tsx
 import React, { useState } from "react";
@@ -1796,6 +2719,22 @@ export default function AIModify() {
       </div>
     </div>
   );
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\workspace\AIStyleTransfer.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState } from "react";
+export default function AIStyleTransfer() {
+    const [prompt, setPrompt] = useState("");
+    const [busy] = useState(false);
+    return (_jsxs("div", { className: "space-y-3", children: [_jsx("div", { className: "rounded-full bg-white px-4 py-2 border border-black/10 shadow-inner", children: _jsx("input", { value: prompt, onChange: (e) => setPrompt(e.target.value), placeholder: "Change style to Lo\u2011Fi\u2026", className: "w-full outline-none text-[14px] placeholder-black/40" }) }), _jsxs("div", { className: "flex items-center gap-4", children: [_jsx("button", { disabled: busy, className: "px-2 py-1.5 bg-[#ff6a2a] text-black font-semibold rounded shadow\r\n                     hover:brightness-105 active:translate-y-[1px] disabled:opacity-60", style: { border: "1px solid rgba(0,0,0,.12)" }, children: "Suggestions" }), _jsx("button", { disabled: busy, className: "px-2 py-1.5 bg-[#ff6a2a] text-black font-semibold rounded shadow\r\n                     hover:brightness-105 active:translate-y-[1px] disabled:opacity-60", style: { border: "1px solid rgba(0,0,0,.12)" }, children: "Style" })] }), _jsx("div", { className: "rounded-[16px] border border-black/10 bg-white/95", style: { minHeight: 220 }, children: _jsx("div", { className: "p-3 space-y-3", children: _jsx("div", { className: "text-center text-black/50 py-6 text-sm", children: "Your styled ideas will appear here (UI only for now)." }) }) })] }));
 }
 
 
@@ -1865,6 +2804,25 @@ File End
 --------------------------------------------------
 
 
+src\components\workspace\AIToolsPanel.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState } from "react";
+import AIGenerate from "./AIGenerate";
+import AIModify from "./AIModify";
+import AIStyleTransfer from "./AIStyleTransfer";
+const TABS = ["Generate", "Modify", "Style"];
+export default function AIToolsPanel() {
+    const [tab, setTab] = useState("Generate");
+    return (_jsxs("div", { className: "w-full", children: [_jsx("div", { className: "flex gap-2 mb-3", children: TABS.map((t) => (_jsx("button", { onClick: () => setTab(t), className: `px-3 py-1 rounded ${tab === t ? "bg-teal-500 text-white" : "bg-gray-100"}`, children: t }, t))) }), _jsxs("div", { className: "space-y-4", children: [tab === "Generate" && _jsx(AIGenerate, {}), tab === "Modify" && _jsx(AIModify, {}), tab === "Style" && _jsx(AIStyleTransfer, {})] })] }));
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\workspace\AIToolsPanel.tsx
 File type: .tsx
 import React, { useState } from "react";
@@ -1907,13 +2865,40 @@ File End
 --------------------------------------------------
 
 
+src\components\workspace\EditMenu.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+const EditMenu = ({ onUndo, onRedo, onCut, onCopy, onPaste, onDelete, onSelectAll, }) => {
+    const items = [
+        { label: "Undo", action: onUndo, shortcut: "Ctrl+Z" },
+        { label: "Redo", action: onRedo, shortcut: "Ctrl+Y" },
+        { separator: true },
+        { label: "Cut", action: onCut, shortcut: "Ctrl+X" },
+        { label: "Copy", action: onCopy, shortcut: "Ctrl+C" },
+        { label: "Paste", action: onPaste, shortcut: "Ctrl+V" },
+        { label: "Delete", action: onDelete },
+        { separator: true },
+        { label: "Select All", action: onSelectAll, shortcut: "Ctrl+A" },
+    ];
+    return (_jsx("div", { className: "rounded-md border border-gray-200 bg-white shadow", children: items.map((item, i) => "separator" in item ? (_jsx("div", { className: "my-1 border-t" }, `sep-${i}`)) : (_jsxs("button", { onClick: item.action, className: "flex w-full items-center justify-between px-3 py-1.5 text-left hover:bg-gray-50", children: [_jsx("span", { children: item.label }), item.shortcut && (_jsx("span", { className: "text-xs text-gray-400", children: item.shortcut }))] }, item.label))) }));
+};
+export default EditMenu;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\workspace\EditMenu.tsx
 File type: .tsx
-// frontend/src/components/workspace/EditMenu.tsx
 import React from "react";
 
-interface EditMenuProps {
-  onSelect: () => void;   // close dropdown
+type Item =
+  | { separator: true }
+  | { label: string; action: () => void; shortcut?: string };
+
+type Props = {
   onUndo: () => void;
   onRedo: () => void;
   onCut: () => void;
@@ -1921,10 +2906,9 @@ interface EditMenuProps {
   onPaste: () => void;
   onDelete: () => void;
   onSelectAll: () => void;
-}
+};
 
-const EditMenu: React.FC<EditMenuProps> = ({
-  onSelect,
+const EditMenu: React.FC<Props> = ({
   onUndo,
   onRedo,
   onCut,
@@ -1933,31 +2917,28 @@ const EditMenu: React.FC<EditMenuProps> = ({
   onDelete,
   onSelectAll,
 }) => {
-  const items = [
-    { label: "Undo",        shortcut: "Ctrl+Z",  action: onUndo },
-    { label: "Redo",        shortcut: "Ctrl+Y",  action: onRedo },
+  const items: Item[] = [
+    { label: "Undo", action: onUndo, shortcut: "Ctrl+Z" },
+    { label: "Redo", action: onRedo, shortcut: "Ctrl+Y" },
     { separator: true },
-    { label: "Cut",         shortcut: "Ctrl+X",  action: onCut },
-    { label: "Copy",        shortcut: "Ctrl+C",  action: onCopy },
-    { label: "Paste",       shortcut: "Ctrl+V",  action: onPaste },
-    { label: "Delete",                       action: onDelete },
+    { label: "Cut", action: onCut, shortcut: "Ctrl+X" },
+    { label: "Copy", action: onCopy, shortcut: "Ctrl+C" },
+    { label: "Paste", action: onPaste, shortcut: "Ctrl+V" },
+    { label: "Delete", action: onDelete },
     { separator: true },
-    { label: "Select All",  shortcut: "Ctrl+A",  action: onSelectAll },
-  ] as const;
+    { label: "Select All", action: onSelectAll, shortcut: "Ctrl+A" },
+  ];
 
   return (
-    <div className="mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg">
+    <div className="rounded-md border border-gray-200 bg-white shadow">
       {items.map((item, i) =>
         "separator" in item ? (
-          <div key={i} className="border-t border-gray-200 my-1" />
+          <div key={`sep-${i}`} className="my-1 border-t" />
         ) : (
           <button
             key={item.label}
-            onClick={() => {
-              item.action();
-              onSelect();
-            }}
-            className="flex justify-between w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={item.action}
+            className="flex w-full items-center justify-between px-3 py-1.5 text-left hover:bg-gray-50"
           >
             <span>{item.label}</span>
             {item.shortcut && (
@@ -1971,6 +2952,65 @@ const EditMenu: React.FC<EditMenuProps> = ({
 };
 
 export default EditMenu;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\workspace\FileMenu.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+export default function FileMenu({ onSelect, onNew, onOpen, onSave, onSaveAs, onImportMidi, onExportMidi, onExportStems, onClose, canUseTrackActions, }) {
+    // default to true if not provided
+    const canUse = canUseTrackActions !== false;
+    const items = [
+        { label: "New Project", shortcut: "Ctrl+N", action: onNew },
+        { label: "Open Project…", shortcut: "Ctrl+O", action: onOpen },
+        { separator: true },
+        { label: "Save", shortcut: "Ctrl+S", action: onSave },
+        { label: "Save As…", shortcut: "Ctrl+Shift+S", action: onSaveAs },
+        { separator: true },
+        {
+            label: "Import MIDI",
+            disabled: !canUse,
+            action: () => {
+                if (!canUse)
+                    return;
+                const inp = document.createElement("input");
+                inp.type = "file";
+                inp.accept = ".mid";
+                inp.onchange = () => {
+                    if (inp.files?.[0])
+                        onImportMidi(inp.files[0]);
+                };
+                inp.click();
+            },
+        },
+        {
+            label: "Export MIDI",
+            disabled: !canUse,
+            action: () => {
+                if (!canUse)
+                    return;
+                onExportMidi();
+            },
+        },
+        { label: "Export Stems", action: onExportStems },
+        { separator: true },
+        { label: "Close Project", action: onClose },
+    ];
+    return (_jsx("div", { className: "absolute left-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50", children: items.map((item, i) => "separator" in item ? (_jsx("div", { className: "border-t border-gray-200 my-1" }, `sep-${i}`)) : (_jsxs("button", { onClick: () => {
+                if (item.disabled)
+                    return;
+                item.action();
+                onSelect();
+            }, disabled: item.disabled, className: "flex justify-between w-full px-4 py-2 text-sm focus:outline-none " +
+                (item.disabled
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "text-gray-700 hover:bg-gray-100"), children: [_jsx("span", { children: item.label }), item.shortcut && (_jsx("span", { className: "text-xs text-gray-400", children: item.shortcut }))] }, item.label))) }));
+}
 
 
 --------------------------------------------------
@@ -2094,6 +3134,33 @@ File End
 --------------------------------------------------
 
 
+src\components\workspace\MIDIToolsMenu.js
+File type: .js
+import { jsx as _jsx } from "react/jsx-runtime";
+const MIDIToolsMenu = ({ onSelect, onTranspose, onVelocity, onNoteLength, onHumanize, onArpeggiate, onStrum, onLegato, }) => {
+    const items = [
+        { label: "Transpose", action: onTranspose },
+        { label: "Velocity Control", action: onVelocity },
+        { label: "Note Length Adjust", action: onNoteLength },
+        { separator: true },
+        { label: "Humanization", action: onHumanize },
+        { label: "Arpeggiator", action: onArpeggiate },
+        { label: "Strumming Effect", action: onStrum },
+        { label: "Legato/Portamento", action: onLegato },
+    ];
+    return (_jsx("div", { className: "mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg", children: items.map((item, i) => "separator" in item ? (_jsx("div", { className: "border-t border-gray-200 my-1" }, i)) : (_jsx("button", { onClick: () => {
+                item.action();
+                onSelect();
+            }, className: "w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100", children: item.label }, item.label))) }));
+};
+export default MIDIToolsMenu;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\workspace\MIDIToolsMenu.tsx
 File type: .tsx
 // frontend/src/components/workspace/MIDIToolsMenu.tsx
@@ -2154,6 +3221,32 @@ const MIDIToolsMenu: React.FC<MIDIToolsMenuProps> = ({
 };
 
 export default MIDIToolsMenu;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\workspace\SettingsMenu.js
+File type: .js
+import { jsx as _jsx } from "react/jsx-runtime";
+const SettingsMenu = ({ onSelect, onKeyScaleLock, onAudioEngine, onMidiInput, onShortcuts, onGridSettings, onLatency, }) => {
+    const items = [
+        { label: "Key / Scale Lock…", action: onKeyScaleLock },
+        { label: "Audio Engine…", action: onAudioEngine },
+        { label: "MIDI Input…", action: onMidiInput },
+        { separator: true },
+        { label: "Editor Shortcuts", action: onShortcuts },
+        { label: "Grid / Snap", action: onGridSettings },
+        { label: "Latency / Buffer", action: onLatency },
+    ];
+    return (_jsx("div", { className: "mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg", children: items.map((item, i) => "separator" in item ? (_jsx("div", { className: "border-t border-gray-200 my-1" }, i)) : (_jsx("button", { onClick: () => {
+                item.action();
+                onSelect();
+            }, className: "w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100", children: item.label }, item.label))) }));
+};
+export default SettingsMenu;
 
 
 --------------------------------------------------
@@ -2225,6 +3318,26 @@ File End
 --------------------------------------------------
 
 
+src\components\workspace\SoundLibraryMenu.js
+File type: .js
+import { jsx as _jsx } from "react/jsx-runtime";
+const SoundLibraryMenu = ({ onSelect, onUploadSound, }) => {
+    const items = [
+        { label: "Import sound…", action: onUploadSound },
+    ];
+    return (_jsx("div", { className: "mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg", children: items.map((item) => (_jsx("button", { onClick: () => {
+                item.action();
+                onSelect();
+            }, className: "w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100", children: item.label }, item.label))) }));
+};
+export default SoundLibraryMenu;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\workspace\SoundLibraryMenu.tsx
 File type: .tsx
 // frontend/src/components/workspace/SoundLibraryMenu.tsx
@@ -2262,6 +3375,37 @@ const SoundLibraryMenu: React.FC<SoundLibraryMenuProps> = ({
 };
 
 export default SoundLibraryMenu;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\workspace\SoundLibraryModal.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+// frontend/src/components/workspace/SoundLibraryModal.tsx
+import { useRef } from "react";
+import { publish } from "./midi-editor/core/editorBus";
+const SoundLibraryModal = ({ isOpen, onClose }) => {
+    const fileRef = useRef(null);
+    if (!isOpen)
+        return null;
+    const triggerPick = () => fileRef.current?.click();
+    const handlePick = (e) => {
+        const file = e.target.files?.[0];
+        if (!file)
+            return;
+        // Hand off to editor via event bus
+        publish({ type: "IMPORT_SAMPLE", file });
+        // reset & close
+        e.target.value = "";
+        onClose();
+    };
+    return (_jsx("div", { className: "fixed inset-0 z-50 flex items-center justify-center bg-black/20", children: _jsxs("div", { className: "w-[720px] max-w-[90vw] rounded-lg bg-white shadow-xl p-6", children: [_jsxs("div", { className: "flex items-center justify-between mb-4", children: [_jsx("h2", { className: "text-xl font-semibold", children: "Sound Library" }), _jsx("button", { className: "rounded px-2 py-1 text-gray-600 hover:bg-gray-100", onClick: onClose, children: "\u00D7" })] }), _jsxs("div", { className: "grid grid-cols-3 gap-3 mb-6", children: [_jsx("button", { className: "h-14 rounded-md border hover:bg-gray-50", children: "Keyboard/Synth" }), _jsx("button", { className: "h-14 rounded-md border hover:bg-gray-50", children: "Drums" }), _jsx("button", { className: "h-14 rounded-md border hover:bg-gray-50", children: "Bass" }), _jsx("button", { className: "h-14 rounded-md border hover:bg-gray-50", children: "Strings" })] }), _jsxs("div", { className: "flex items-center justify-between", children: [_jsx("div", { className: "text-sm text-gray-500", children: "Import a custom audio sample to use as an instrument on the current track." }), _jsx("button", { onClick: triggerPick, className: "inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium hover:bg-gray-50", children: "Import sound" }), _jsx("input", { ref: fileRef, type: "file", accept: "audio/*", className: "hidden", onChange: handlePick })] })] }) }));
+};
+export default SoundLibraryModal;
 
 
 --------------------------------------------------
@@ -2342,6 +3486,66 @@ const SoundLibraryModal: React.FC<Props> = ({ isOpen, onClose }) => {
 };
 
 export default SoundLibraryModal;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\workspace\WorkspaceNavBar.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState, useRef, useEffect } from "react";
+import { ChevronLeft, ChevronRight, HelpCircle } from "lucide-react";
+import FileMenu from "./FileMenu";
+import EditMenu from "./EditMenu";
+import SoundLibraryMenu from "./SoundLibraryMenu";
+import SettingsMenu from "./SettingsMenu";
+import MIDIToolsMenu from "./MIDIToolsMenu";
+import SoundLibraryModal from "./SoundLibraryModal";
+import { publish } from "./midi-editor/core/editorBus";
+const TABS = ["File", "Edit", "Sound Library", "Settings", "MIDI Tools"];
+const WorkspaceNavBar = ({ onNew, onOpen, onSave, onSaveAs, onImportMidi, onExportMidi, onExportStems, onClose, }) => {
+    const [openDropdown, setOpenDropdown] = useState(null);
+    const [libraryOpen, setLibraryOpen] = useState(false);
+    const ref = useRef(null);
+    // Close dropdowns on outside click
+    useEffect(() => {
+        const onClickOutside = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) {
+                setOpenDropdown(null);
+            }
+        };
+        document.addEventListener("mousedown", onClickOutside);
+        return () => document.removeEventListener("mousedown", onClickOutside);
+    }, []);
+    const toggle = (tab) => {
+        setOpenDropdown((prev) => (prev === tab ? null : tab));
+    };
+    return (_jsxs("div", { ref: ref, className: "w-full rounded-lg px-4 py-2 flex items-center justify-between shadow-sm", style: {
+            backgroundColor: "#E9DCC9",
+            borderRadius: "10px",
+            height: "40px"
+        }, children: [_jsxs("div", { className: "flex items-center justify-between px-6 h-12", children: [_jsxs("div", { className: "flex items-center gap-4", children: [_jsx("button", { className: "p-1 hover:bg-gray-100 rounded", onClick: () => window.history.back(), children: _jsx(ChevronLeft, { size: 20 }) }), _jsx("button", { className: "p-1 hover:bg-gray-100 rounded", onClick: () => window.history.forward(), children: _jsx(ChevronRight, { size: 20 }) }), _jsx("nav", { className: "flex gap-6 ml-4", children: TABS.map((tab) => (_jsxs("div", { className: "relative", children: [_jsx("button", { onClick: () => toggle(tab), className: `pb-[10px] text-sm ${openDropdown === tab
+                                                ? "border-b-2 border-teal-500 font-medium"
+                                                : "text-gray-600 hover:text-black"}`, children: tab }), openDropdown === "File" && tab === "File" && (_jsx("div", { className: "absolute left-0 top-full z-30", children: _jsx(FileMenu, { onSelect: () => setOpenDropdown(null), onNew: onNew, onOpen: onOpen, onSave: onSave, onSaveAs: onSaveAs, 
+                                                // Import MIDI -> publish to editor
+                                                onImportMidi: (file) => {
+                                                    publish({ type: "IMPORT_MIDI_FILE", file });
+                                                    // still bubble if caller cares
+                                                    onImportMidi?.(file);
+                                                }, 
+                                                // Export MIDI -> publish to editor
+                                                onExportMidi: () => {
+                                                    publish({ type: "EXPORT_MIDI" });
+                                                    onExportMidi?.();
+                                                }, onExportStems: onExportStems, onClose: onClose }) })), openDropdown === "Edit" && tab === "Edit" && (_jsx("div", { className: "absolute left-0 top-full z-30", children: _jsx(EditMenu, { onUndo: () => publish({ type: "UNDO" }), onRedo: () => publish({ type: "REDO" }), onCut: () => publish({ type: "CUT" }), onCopy: () => publish({ type: "COPY" }), onPaste: () => publish({ type: "PASTE" }), onDelete: () => publish({ type: "DELETE" }), onSelectAll: () => publish({ type: "SELECT_ALL" }) }) })), openDropdown === "Sound Library" && tab === "Sound Library" && (_jsx("div", { className: "absolute left-0 top-full z-30", children: _jsx(SoundLibraryMenu, { onSelect: () => setOpenDropdown(null), onUploadSound: () => {
+                                                    setOpenDropdown(null);
+                                                    setLibraryOpen(true);
+                                                } }) })), openDropdown === "Settings" && tab === "Settings" && (_jsx("div", { className: "absolute left-0 top-full z-30", children: _jsx(SettingsMenu, { onSelect: () => setOpenDropdown(null), onKeyScaleLock: () => publish({ type: "OPEN_GRID_SETTINGS" }), onAudioEngine: () => publish({ type: "OPEN_AUDIO_ENGINE" }), onMidiInput: () => publish({ type: "OPEN_MIDI_INPUT" }), onShortcuts: () => publish({ type: "OPEN_SHORTCUTS" }), onGridSettings: () => publish({ type: "TOGGLE_SNAP" }), onLatency: () => publish({ type: "OPEN_LATENCY_SETTINGS" }) }) })), openDropdown === "MIDI Tools" && tab === "MIDI Tools" && (_jsx("div", { className: "absolute left-0 top-full z-30", children: _jsx(MIDIToolsMenu, { onSelect: () => setOpenDropdown(null), onTranspose: () => publish({ type: "TRANSPOSE" }), onVelocity: () => publish({ type: "VELOCITY" }), onNoteLength: () => publish({ type: "NOTE_LENGTH" }), onHumanize: () => publish({ type: "HUMANIZE" }), onArpeggiate: () => publish({ type: "ARPEGGIATE" }), onStrum: () => publish({ type: "STRUM" }), onLegato: () => publish({ type: "LEGATO" }) }) }))] }, tab))) })] }), _jsx("button", { className: "p-2 hover:bg-gray-100 rounded-full", onClick: () => setLibraryOpen(true), children: _jsx(HelpCircle, { size: 20 }) })] }), _jsx(SoundLibraryModal, { isOpen: libraryOpen, onClose: () => setLibraryOpen(false) })] }));
+};
+export default WorkspaceNavBar;
 
 
 --------------------------------------------------
@@ -2469,7 +3673,6 @@ const WorkspaceNavBar: React.FC<Props> = ({
                 {openDropdown === "Edit" && tab === "Edit" && (
                   <div className="absolute left-0 top-full z-30">
                     <EditMenu
-                      onSelect={() => setOpenDropdown(null)}
                       onUndo={() => publish({ type: "UNDO" })}
                       onRedo={() => publish({ type: "REDO" })}
                       onCut={() => publish({ type: "CUT" })}
@@ -2552,6 +3755,160 @@ File End
 --------------------------------------------------
 
 
+src\components\workspace\midi-editor\components\PianoRoll\PianoRoll.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useRef, useState, useEffect } from 'react';
+import './PianoRoll.css';
+import { Rnd } from 'react-rnd';
+const ROW_HEIGHT = 20;
+const BEATS = 64;
+const labelWidth = 40;
+const START_PITCH = 84;
+const END_PITCH = 36;
+const PITCHES = Array.from({ length: START_PITCH - END_PITCH + 1 }, (_, i) => START_PITCH - i);
+const midiToNoteName = (midi) => {
+    const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const note = notes[midi % 12];
+    const octave = Math.floor(midi / 12) - 1;
+    return `${note}${octave}`;
+};
+const PianoRoll = ({ notes, setNotes, playheadRef, gridWidth, snapToGrid, onPlayheadScrub, isPlaying }) => {
+    const snap = (value) => (snapToGrid ? Math.round(value) : value);
+    const scrollContainerRef = useRef(null);
+    const [visibleRange, setVisibleRange] = useState([0, PITCHES.length]);
+    const [velocityEditorId, setVelocityEditorId] = useState(null);
+    // Virtualized rows
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollTop = scrollContainerRef.current?.scrollTop || 0;
+            const visibleRows = Math.ceil(window.innerHeight / ROW_HEIGHT);
+            const startRow = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - 2);
+            const endRow = Math.min(startRow + visibleRows + 6, PITCHES.length);
+            setVisibleRange([startRow, endRow]);
+        };
+        handleScroll();
+        const el = scrollContainerRef.current;
+        el?.addEventListener('scroll', handleScroll);
+        return () => el?.removeEventListener('scroll', handleScroll);
+    }, []);
+    const handleRulerClick = (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - rect.left - labelWidth;
+        const clampedX = Math.max(0, x);
+        const beat = clampedX / gridWidth;
+        onPlayheadScrub(beat);
+        if (playheadRef.current) {
+            playheadRef.current.style.left = `${clampedX}px`;
+        }
+    };
+    const handleDoubleClick = (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - rect.left - labelWidth;
+        const y = e.clientY - rect.top;
+        const beat = snap(x / gridWidth);
+        const rowIndex = Math.floor(y / ROW_HEIGHT);
+        const pitch = PITCHES[rowIndex];
+        if (pitch === undefined || beat < 0)
+            return;
+        const isOverlapping = notes.some(n => n.pitch === pitch && beat >= n.time && beat < n.time + n.duration);
+        if (isOverlapping)
+            return;
+        const newNote = {
+            id: Date.now().toString(),
+            pitch,
+            time: beat,
+            duration: 1,
+            velocity: 100
+        };
+        setNotes([...notes, newNote]);
+    };
+    const updateNote = (id, pitch, time, duration) => {
+        setNotes(notes.map(n => n.id === id ? { ...n, pitch, time, duration } : n));
+    };
+    const updateVelocity = (id, velocity) => {
+        setNotes(notes.map(n => n.id === id ? { ...n, velocity } : n));
+    };
+    return (_jsxs("div", { className: "piano-roll-viewport", children: [_jsxs("div", { className: "top-ruler", onMouseDown: handleRulerClick, children: [_jsx("div", { className: "ruler-corner", style: { width: labelWidth }, children: _jsx("strong", { children: "Notes" }) }), Array.from({ length: BEATS }).map((_, i) => (_jsx("div", { className: "ruler-beat", style: { width: `${gridWidth}px` }, children: i }, i)))] }), _jsx("div", { className: "piano-roll-scroll-container", ref: scrollContainerRef, children: _jsxs("div", { className: "piano-roll-inner", style: { width: `${BEATS * gridWidth + labelWidth}px` }, children: [_jsx("div", { className: "piano-roll-rows", children: PITCHES.map((pitch) => (_jsx("div", { className: "roll-row", children: _jsx("div", { className: "roll-label", children: midiToNoteName(pitch) }) }, pitch))) }), _jsxs("div", { className: "piano-roll-content", onDoubleClick: handleDoubleClick, children: [_jsxs("div", { className: "grid-overlay", children: [PITCHES.map((_, i) => (_jsx("div", { className: "grid-line horizontal", style: { top: i * ROW_HEIGHT } }, `h-${i}`))), Array.from({ length: BEATS }).map((_, i) => (_jsx("div", { className: `grid-line vertical ${i % 4 === 0 ? 'bar-line' : ''}`, style: { left: i * gridWidth } }, `v-${i}`)))] }), _jsx("div", { ref: playheadRef, style: {
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '2px',
+                                        height: '100%',
+                                        backgroundColor: 'red',
+                                        zIndex: 100
+                                    } }), notes
+                                    .filter(note => {
+                                    const row = START_PITCH - note.pitch;
+                                    return row >= visibleRange[0] && row <= visibleRange[1];
+                                })
+                                    .map(note => {
+                                    const top = (START_PITCH - note.pitch) * ROW_HEIGHT;
+                                    const left = note.time * gridWidth;
+                                    const width = note.duration * gridWidth;
+                                    if (isPlaying) {
+                                        return (_jsx("div", { style: {
+                                                position: 'absolute',
+                                                top,
+                                                left,
+                                                width,
+                                                height: ROW_HEIGHT,
+                                                backgroundColor: '#4c79ff',
+                                                borderRadius: 2,
+                                                color: 'white',
+                                                fontSize: '10px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                pointerEvents: 'none',
+                                            }, children: note.pitch }, note.id));
+                                    }
+                                    return (_jsxs(Rnd, { size: { width, height: ROW_HEIGHT }, position: { x: left, y: top }, bounds: "parent", enableResizing: { left: true, right: true }, onDoubleClick: (e) => {
+                                            e.preventDefault();
+                                            setNotes(notes.filter(n => n.id !== note.id));
+                                        }, onContextMenu: (e) => {
+                                            e.preventDefault();
+                                            setVelocityEditorId(note.id);
+                                        }, onDragStop: (_, d) => {
+                                            const newTime = snap(d.x / gridWidth);
+                                            const newPitch = PITCHES[Math.round(d.y / ROW_HEIGHT)];
+                                            updateNote(note.id, newPitch, newTime, note.duration);
+                                        }, onResizeStop: (_, direction, ref, delta, pos) => {
+                                            const newDuration = snap(ref.offsetWidth / gridWidth);
+                                            const newTime = snap(pos.x / gridWidth);
+                                            const newPitch = PITCHES[Math.round(pos.y / ROW_HEIGHT)];
+                                            updateNote(note.id, newPitch, newTime, newDuration);
+                                        }, style: {
+                                            position: 'absolute',
+                                            background: '#4c79ff',
+                                            borderRadius: 2,
+                                            cursor: 'pointer',
+                                            color: 'white',
+                                            fontSize: '10px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            pointerEvents: 'auto',
+                                            zIndex: 50,
+                                        }, children: [_jsxs("div", { style: { pointerEvents: 'none' }, children: [note.pitch, " \u2022 ", note.duration.toFixed(2)] }), velocityEditorId === note.id && (_jsxs("div", { style: {
+                                                    position: 'absolute',
+                                                    top: -40,
+                                                    left: 0,
+                                                    background: '#fff',
+                                                    padding: '4px',
+                                                    border: '1px solid #ccc',
+                                                    zIndex: 999,
+                                                }, onClick: (e) => e.stopPropagation(), children: [_jsx("label", { children: "Velocity:" }), _jsx("input", { type: "range", min: 1, max: 127, value: note.velocity, onChange: (e) => updateVelocity(note.id, parseInt(e.target.value)) }), _jsx("button", { onClick: () => setVelocityEditorId(null), children: "\u274C" })] }))] }, note.id));
+                                })] })] }) })] }));
+};
+export default PianoRoll;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\workspace\midi-editor\components\TransportBar\GlobalTransportBar.css
 File type: .css
 .transport-bar {
@@ -2590,10 +3947,46 @@ File End
 --------------------------------------------------
 
 
+src\components\workspace\midi-editor\components\TransportBar\GlobalTransportBar.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useContext } from "react";
+import { TransportContext } from "../../core/TransportContext";
+import "./GlobalTransportBar.css";
+export default function GlobalTransportBar() {
+    const { bpm, setBpm, isPlaying, handlePlay, handlePause, returnToStart, zoom, setZoomLevel, handleZoomIn, handleZoomOut, snapToGrid, toggleSnap, } = useContext(TransportContext);
+    return (_jsxs("div", { className: "transport-bar", children: [_jsx("button", { onClick: returnToStart, "aria-label": "Return to start", title: "Return to start", children: _jsx("img", { src: "/Return.png", alt: "Return", width: 20, height: 20 }) }), isPlaying ? (_jsx("button", { onClick: handlePause, "aria-label": "Pause", title: "Pause", children: _jsx("img", { src: "/Pause.png", alt: "Pause", width: 20, height: 20 }) })) : (_jsx("button", { onClick: handlePlay, "aria-label": "Play", title: "Play", children: _jsx("img", { src: "/Play.png", alt: "Play", width: 20, height: 20 }) })), _jsx("span", { style: { marginLeft: 12 }, children: "BPM" }), _jsx("input", { type: "range", min: 40, max: 220, value: bpm, onChange: (e) => setBpm(parseInt(e.target.value)) }), _jsx("span", { children: bpm }), _jsx("button", { onClick: handleZoomOut, "aria-label": "Zoom out", title: "Zoom out", children: "\u2212" }), _jsx("span", { children: "Zoom" }), _jsxs("select", { value: zoom, onChange: (e) => setZoomLevel(Number(e.target.value)), className: "px-2 py-1 border rounded-md text-sm", children: [_jsx("option", { value: 1, children: "1/4" }), _jsx("option", { value: 2, children: "1/8" }), _jsx("option", { value: 4, children: "1/16" })] }), _jsx("button", { onClick: handleZoomIn, "aria-label": "Zoom in", title: "Zoom in", children: "\uFF0B" }), _jsxs("label", { style: { display: "inline-flex", alignItems: "center", gap: 6, marginLeft: 12 }, children: [_jsx("input", { type: "checkbox", checked: snapToGrid, onChange: toggleSnap }), "Snap"] })] }));
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\workspace\midi-editor\core\editorBus.js
+File type: .js
+let subscribers = [];
+export function subscribe(fn) {
+    subscribers.push(fn);
+    return () => {
+        subscribers = subscribers.filter((s) => s !== fn);
+    };
+}
+export function publish(cmd) {
+    subscribers.forEach((s) => s(cmd));
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\workspace\midi-editor\core\editorBus.ts
 File type: .ts
 // frontend/src/components/workspace/midi-editor/core/editorBus.ts
-type EditorCommand =
+export type EditorCommand =
   | { type: "UNDO" }
   | { type: "REDO" }
   | { type: "CUT" }
@@ -2608,27 +4001,105 @@ type EditorCommand =
   | { type: "ARPEGGIATE" }
   | { type: "STRUM" }
   | { type: "LEGATO" }
+  // carry File payloads:
   | { type: "IMPORT_SAMPLE"; file: File }
-  // NEW — already published by your File menu/navbar
   | { type: "IMPORT_MIDI_FILE"; file: File }
+  // export
   | { type: "EXPORT_MIDI" }
-  // NEW — apply one generated clip to current track (append at end or at playhead)
-  | { type: "APPLY_AI_TO_TRACK"; notes: Array<{ pitch:number; time:number; duration:number; velocity:number }>; bpm?: number; };
+  // AI apply payload (example shape)
+  | { type: "APPLY_AI_TO_TRACK"; notes: Array<{ pitch:number; time:number; duration:number; velocity:number }>; bpm?: number }
+  // UI / settings
+  | { type: "OPEN_GRID_SETTINGS" }
+  | { type: "OPEN_AUDIO_ENGINE" }
+  | { type: "OPEN_MIDI_INPUT" }
+  | { type: "OPEN_SHORTCUTS" }
+  | { type: "TOGGLE_SNAP" }
+  | { type: "OPEN_LATENCY_SETTINGS" }
+  // zoom with value
+  | { type: "SET_ZOOM"; value: 1 | 2 | 4 };
 
-const bus = new EventTarget();
-
-export function publish(cmd: EditorCommand) {
-  bus.dispatchEvent(new CustomEvent("cmd", { detail: cmd }));
-}
+let subscribers: ((cmd: EditorCommand) => void)[] = [];
 
 export function subscribe(fn: (cmd: EditorCommand) => void) {
-  const handler = (e: Event) => {
-    const ce = e as CustomEvent<EditorCommand>;
-    fn(ce.detail);
+  subscribers.push(fn);
+  return () => {
+    subscribers = subscribers.filter((s) => s !== fn);
   };
-  bus.addEventListener("cmd", handler);
-  return () => bus.removeEventListener("cmd", handler);
 }
+
+export function publish(cmd: EditorCommand) {
+  subscribers.forEach((s) => s(cmd));
+}
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\workspace\midi-editor\core\exportMidi.js
+File type: .js
+// src/components/workspace/midi-editor/core/exportMidi.ts
+import { Midi } from "@tonejs/midi";
+/**
+ * Export a single track's notes to a downloadable .mid file.
+ */
+export function exportTrackToMidi(opts) {
+    const { notes, bpm = 120, filename = "track" } = opts;
+    const midi = new Midi();
+    midi.header.setTempo(bpm);
+    const track = midi.addTrack();
+    notes.forEach(n => {
+        track.addNote({
+            midi: n.midi,
+            time: n.time,
+            duration: n.duration,
+            velocity: n.velocity ?? 0.8,
+        });
+    });
+    const bytes = midi.toArray();
+    const blob = new Blob([bytes], { type: "audio/midi" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${filename}.mid`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+/**
+ * Export multiple tracks to a single multi‑track .mid file.
+ */
+export function exportMultiTrackToMidi(opts) {
+    const { tracks, bpm = 120, filename = "project" } = opts;
+    const midi = new Midi();
+    midi.header.setTempo(bpm);
+    tracks.forEach(t => {
+        const tr = midi.addTrack();
+        if (t.name)
+            tr.name = t.name;
+        t.notes.forEach(n => {
+            tr.addNote({
+                midi: n.midi,
+                time: n.time,
+                duration: n.duration,
+                velocity: n.velocity ?? 0.8,
+            });
+        });
+    });
+    const bytes = midi.toArray();
+    const blob = new Blob([bytes], { type: "audio/midi" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${filename}.mid`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+// Optional: maintain backward compatibility if other code imported `exportMidi`
+export const exportMidi = exportTrackToMidi;
 
 
 --------------------------------------------------
@@ -2654,7 +4125,6 @@ export function exportTrackToMidi(
   const { notes, bpm = 120, filename = "track" } = opts;
 
   const midi = new Midi();
-  midi.header.ppq = 480;
   midi.header.setTempo(bpm);
 
   const track = midi.addTrack();
@@ -2695,7 +4165,6 @@ export function exportMultiTrackToMidi(
   const { tracks, bpm = 120, filename = "project" } = opts;
 
   const midi = new Midi();
-  midi.header.ppq = 480;
   midi.header.setTempo(bpm);
 
   tracks.forEach(t => {
@@ -2725,6 +4194,36 @@ export function exportMultiTrackToMidi(
 
 // Optional: maintain backward compatibility if other code imported `exportMidi`
 export const exportMidi = exportTrackToMidi;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\workspace\midi-editor\core\importMidi.js
+File type: .js
+import { Midi } from '@tonejs/midi';
+export async function importMidiFile(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const midi = new Midi(arrayBuffer);
+    const notes = [];
+    midi.tracks.forEach(track => {
+        track.notes.forEach(note => {
+            notes.push({
+                id: `${note.midi}-${note.time}`, // unique-ish ID
+                pitch: note.midi,
+                time: note.time,
+                duration: note.duration,
+                velocity: Math.round(note.velocity * 127)
+            });
+        });
+    });
+    return {
+        bpm: midi.header.tempos?.[0]?.bpm || 120,
+        notes
+    };
+}
 
 
 --------------------------------------------------
@@ -2765,6 +4264,18 @@ File End
 --------------------------------------------------
 
 
+src\components\workspace\midi-editor\core\midiUtils.js
+File type: .js
+export const getActiveNotesAtBeat = (notes, beat) => {
+    return notes.filter(note => beat >= note.time && beat < note.time + note.duration);
+};
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\components\workspace\midi-editor\core\midiUtils.ts
 File type: .ts
 export const getActiveNotesAtBeat = (notes: any[], beat: number): any[] => {
@@ -2772,6 +4283,79 @@ export const getActiveNotesAtBeat = (notes: any[], beat: number): any[] => {
     beat >= note.time && beat < note.time + note.duration
   );
 };
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\components\workspace\midi-editor\core\TransportContext.js
+File type: .js
+import { jsx as _jsx } from "react/jsx-runtime";
+import { createContext, useEffect, useState } from 'react';
+import * as Tone from 'tone';
+export const TransportContext = createContext(null);
+export const TransportProvider = ({ children }) => {
+    const [bpm, setBpm] = useState(120);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [playheadBeat, setPlayheadBeat] = useState(0);
+    const [metronome, setMetronome] = useState(false);
+    const [loop, setLoop] = useState(false);
+    // ---- centralized zoom & snap ----
+    const [zoom, setZoom] = useState(1);
+    const [snapToGrid, setSnapToGrid] = useState(true);
+    const setZoomLevel = (z) => setZoom(z);
+    const handleZoomIn = () => setZoom((z) => (z === 1 ? 2 : z === 2 ? 4 : 4));
+    const handleZoomOut = () => setZoom((z) => (z === 4 ? 2 : z === 2 ? 1 : 1));
+    const handlePlay = async () => {
+        await Tone.start();
+        setIsPlaying(true);
+    };
+    const handlePause = () => setIsPlaying(false);
+    const returnToStart = () => setPlayheadBeat(0);
+    const toggleMetronome = () => setMetronome((prev) => !prev);
+    const toggleSnap = () => setSnapToGrid((s) => !s);
+    const toggleLoop = () => setLoop((prev) => !prev);
+    useEffect(() => {
+        let metronomeSynth = null;
+        let intervalId;
+        if (metronome && isPlaying) {
+            metronomeSynth = new Tone.Synth({
+                oscillator: { type: 'square' },
+                envelope: { attack: 0.001, decay: 0.01, sustain: 0.1, release: 0.1 }
+            }).toDestination();
+            intervalId = Tone.Transport.scheduleRepeat((time) => {
+                metronomeSynth?.triggerAttackRelease("C5", "8n", time);
+            }, "4n");
+            Tone.Transport.start();
+        }
+        return () => {
+            if (intervalId !== undefined)
+                Tone.Transport.clear(intervalId);
+            metronomeSynth?.dispose();
+        };
+    }, [metronome, isPlaying]);
+    return (_jsx(TransportContext.Provider, { value: {
+            bpm, setBpm,
+            isPlaying, handlePlay, handlePause, returnToStart,
+            playheadBeat, setPlayheadBeat,
+            metronome, toggleMetronome,
+            loop, toggleLoop,
+            zoom, setZoomLevel, handleZoomIn, handleZoomOut,
+            snapToGrid, setSnapToGrid, toggleSnap,
+        }, children: children }));
+};
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\config\apiConfig.js
+File type: .js
+"use strict";
 
 
 --------------------------------------------------
@@ -2788,6 +4372,16 @@ File End
 --------------------------------------------------
 
 
+src\config\appConfig.js
+File type: .js
+"use strict";
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\config\appConfig.ts
 File type: .ts
 
@@ -2797,8 +4391,38 @@ File End
 --------------------------------------------------
 
 
+src\context\authStore.js
+File type: .js
+"use strict";
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\context\authStore.ts
 File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\context\midiStore.js
+File type: .js
+import { create } from 'zustand';
+export const useMIDIStore = create((set) => ({
+    notes: [],
+    addNote: (note) => set((state) => ({
+        notes: [...state.notes, note],
+    })),
+    removeNote: (track, time) => set((state) => ({
+        notes: state.notes.filter((n) => !(n.track === track && n.time === time)),
+    })),
+    clearNotes: () => set({ notes: [] }),
+}));
 
 
 --------------------------------------------------
@@ -2928,6 +4552,47 @@ File End
 --------------------------------------------------
 
 
+src\hooks\useAuth.js
+File type: .js
+import { useState, useEffect } from 'react';
+import * as authService from '../services/authService';
+export const useAuth = () => {
+    const [token, setToken] = useState(() => localStorage.getItem('token'));
+    const [user, setUser] = useState(null); // later replace with User type if needed
+    useEffect(() => {
+        const storedToken = localStorage.getItem('token');
+        if (storedToken && !token) {
+            setToken(storedToken);
+            // optionally: fetch user info here
+        }
+    }, []);
+    const saveToken = (token) => {
+        localStorage.setItem('token', token);
+        setToken(token);
+    };
+    const register = async (username, password) => {
+        const data = await authService.register(username, password);
+        saveToken(data.access_token);
+    };
+    const login = async (username, password) => {
+        const data = await authService.login(username, password);
+        saveToken(data.access_token);
+    };
+    const logout = () => {
+        localStorage.removeItem('token');
+        setToken(null);
+        setUser(null);
+    };
+    const isLoggedIn = !!token;
+    return { token, user, isLoggedIn, login, register, logout };
+};
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\hooks\useAuth.ts
 File type: .ts
 import { useState, useEffect } from 'react';
@@ -2982,8 +4647,39 @@ File End
 --------------------------------------------------
 
 
+src\hooks\useMIDI.js
+File type: .js
+"use strict";
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\hooks\useMIDI.ts
 File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\pages\AuthPage.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState } from "react";
+import LoginForm from "../components/auth/LoginForm";
+import SignUpForm from "../components/auth/SignUpForm";
+import AuthToggle from "../components/auth/AuthToggle";
+const BEIGE = "#dcc7af";
+const PAGE_BG = "#f8f3ed";
+const AuthPage = () => {
+    const [isLogin, setIsLogin] = useState(true);
+    return (_jsx("div", { className: "min-h-screen flex items-center justify-center px-4", style: { background: PAGE_BG }, children: _jsxs("div", { className: "w-full max-w-md", children: [_jsx("img", { src: "/MIDIMIJAI-LOGO.png", alt: "MIDIMIJAI", className: "mx-auto mb-6 h-14 select-none", draggable: false }), _jsxs("div", { className: "rounded-[28px] shadow-[0_30px_60px_-18px_rgba(0,0,0,0.25)] p-6 sm:p-8", style: { background: BEIGE }, children: [_jsx(AuthToggle, { isLogin: isLogin, setIsLogin: setIsLogin }), _jsx("div", { className: "mt-5", children: isLogin ? _jsx(LoginForm, {}) : _jsx(SignUpForm, {}) })] })] }) }));
+};
+export default AuthPage;
 
 
 --------------------------------------------------
@@ -3035,6 +4731,50 @@ const AuthPage: React.FC = () => {
 };
 
 export default AuthPage;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\pages\DashboardPage.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useMemo, useState } from "react";
+import SortTabs from "../components/dashboard/SortTabs";
+import SearchBar from "../components/dashboard/SearchBar";
+import UserDropdown from "../components/dashboard/UserDropdown";
+import ProjectList from "../components/dashboard/ProjectList";
+import NewProjectButton from "../components/dashboard/NewProjectButton";
+import { useProjects } from "../hooks/useProjects";
+const PAGE_BG = "#fbf5ee";
+const BEIGE = "#e9dcc9";
+const DashboardPage = () => {
+    const { projects = [], loading, error } = useProjects();
+    const [sortOption, setSortOption] = useState("created");
+    const [searchTerm, setSearchTerm] = useState("");
+    const sortedProjects = useMemo(() => {
+        let copy = projects.slice();
+        if (searchTerm) {
+            const q = searchTerm.toLowerCase();
+            copy = copy.filter((p) => p.name?.toLowerCase().includes(q));
+        }
+        switch (sortOption) {
+            case "created":
+                return copy.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+            case "name":
+                return copy.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+            case "modified":
+                return copy.sort((a, b) => new Date(b.updated_at || b.modified_at || b.created_at).getTime() -
+                    new Date(a.updated_at || a.modified_at || a.created_at).getTime());
+            default:
+                return copy;
+        }
+    }, [projects, sortOption, searchTerm]);
+    return (_jsxs("div", { className: "min-h-screen flex flex-col", style: { background: PAGE_BG }, children: [_jsxs("div", { className: "w-full flex items-center gap-4 px-5 sm:px-6 pt-4", children: [_jsx(SortTabs, { selected: sortOption, onSelect: setSortOption }), _jsx("div", { className: "flex-1", children: _jsx(SearchBar, { value: searchTerm, onChange: setSearchTerm }) }), _jsx(UserDropdown, {})] }), _jsx("div", { className: "px-5 sm:px-6 py-5", children: _jsxs("div", { className: "mx-auto w-full max-w-[1000px] rounded-[28px]", style: { background: BEIGE }, children: [loading && _jsx("p", { className: "text-center text-black/60", children: "Loading projects\u2026" }), error && _jsx("p", { className: "text-center text-red-500", children: String(error) }), !loading && !error && (_jsx(ProjectList, { projects: sortedProjects }))] }) }), _jsx("div", { className: "pb-8 flex items-center justify-center", children: _jsx(NewProjectButton, {}) })] }));
+};
+export default DashboardPage;
 
 
 --------------------------------------------------
@@ -3129,6 +4869,25 @@ File End
 --------------------------------------------------
 
 
+src\pages\HomePage.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import FeatureList from "../components/home/FeatureList";
+import StepGuide from "../components/home/StepGuide";
+import UserTypes from "../components/home/UserTypes";
+import Footer from "../components/home/Footer";
+import HeroSection from "../components/home/HeroSection";
+const HomePage = () => {
+    return (_jsxs("div", { className: "min-h-screen bg-[#fbf5ee]", children: [_jsx(HeroSection, {}), _jsx(FeatureList, {}), _jsx(StepGuide, {}), _jsx(UserTypes, {}), _jsx(Footer, {})] }));
+};
+export default HomePage;
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\pages\HomePage.tsx
 File type: .tsx
 import React from "react";
@@ -3158,12 +4917,45 @@ File End
 --------------------------------------------------
 
 
+src\pages\WorkspacePage.js
+File type: .js
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useRef, useState } from "react";
+import WorkspaceNavBar from "../components/workspace/WorkspaceNavBar";
+import AIDock from "../components/workspace/AIDock";
+import MidiEditorCore from "../components/workspace/midi-editor/core/MidiEditorCore";
+import { publish } from "../components/workspace/midi-editor/core/editorBus";
+const PAGE_BG = "#fbf5ee";
+const BEIGE = "#e9dcc9";
+export default function WorkspacePage() {
+    const editorRef = useRef(null);
+    const [projectId] = useState(1);
+    const [bpm, setBpm] = useState(120);
+    const [tracks, setTracks] = useState([
+        { id: "t1", name: "Track 1", instrument: "Piano", notes: [] },
+    ]);
+    return (_jsxs("div", { className: "min-h-screen flex flex-col", style: { background: PAGE_BG }, children: [_jsx(WorkspaceNavBar, { onNew: () => { }, onOpen: () => { }, onSave: () => { }, onSaveAs: () => { }, onImportMidi: () => { }, onExportMidi: () => publish({ type: "EXPORT_MIDI" }), onExportStems: () => { }, onClose: () => { } }), _jsx("div", { className: "flex-1 px-4 sm:px-6 py-4", children: _jsxs("div", { className: "\r\n            relative grid grid-cols-1 lg:grid-cols-[1fr_360px]\r\n            gap-4 lg:gap-6 rounded-[28px]\r\n            shadow-[0_40px_80px_-28px_rgba(0,0,0,0.35)]\r\n            border border-black/10\r\n            p-3 sm:p-4 lg:p-5\r\n          ", style: {
+                        background: BEIGE,
+                        height: "calc(100vh - 100px)",
+                    }, children: [_jsx("div", { className: "rounded-2xl bg-white overflow-hidden border border-black/10", children: _jsx(MidiEditorCore, { ref: editorRef, projectId: projectId, bpm: bpm, initialTracks: tracks, onChange: (nextBpm, nextTracks) => {
+                                    setBpm(nextBpm);
+                                    setTracks(nextTracks);
+                                }, showTransport: true }) }), _jsx("div", { className: "lg:block min-h-0", children: _jsx(AIDock, {}) })] }) })] }));
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\pages\WorkspacePage.tsx
 File type: .tsx
 import React, { useRef, useState } from "react";
 import WorkspaceNavBar from "../components/workspace/WorkspaceNavBar";
 import AIDock from "../components/workspace/AIDock";
 import MidiEditorCore, { MidiEditorAPI, Track } from "../components/workspace/midi-editor/core/MidiEditorCore";
+import { publish } from "../components/workspace/midi-editor/core/editorBus";
 
 const PAGE_BG = "#fbf5ee"; 
 const BEIGE   = "#e9dcc9";  
@@ -3185,7 +4977,7 @@ export default function WorkspacePage() {
         onSave={() => {}}
         onSaveAs={() => {}}
         onImportMidi={() => {}}
-        onExportMidi={() => editorRef.current?.exportMidi?.()}
+        onExportMidi={() => publish({ type: "EXPORT_MIDI" })}
         onExportStems={() => {}}
         onClose={() => {}}
       />
@@ -3228,6 +5020,40 @@ export default function WorkspacePage() {
       </div>
     </div>
   );
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\services\aiService.js
+File type: .js
+// src/services/aiService.ts
+import axios from "axios";
+const RAW = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const BASE = RAW.replace(/\/+$/, ""); // trim trailing slash(es)
+// If someone set VITE_API_URL to ".../ai" already, don't add it again
+const POST_PATH = /\/ai$/i.test(BASE) ? "/generate" : "/ai/generate";
+const URL = `${BASE}${POST_PATH}`;
+// (Once per session) log the resolved URL to make debugging easy
+if (typeof window !== "undefined" && !window.__AI_URL_LOGGED__) {
+    window.__AI_URL_LOGGED__ = true;
+    // eslint-disable-next-line no-console
+    console.log("[AI post URL]", URL);
+}
+export async function postAIGenerate(params) {
+    const token = localStorage.getItem("token") || "";
+    const res = await axios.post(URL, {
+        prompt: params.prompt,
+        mode: params.mode ?? "generate",
+        length_beats: params.length_beats ?? 64,
+        temperature: params.temperature ?? 1.0,
+    }, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+    return res.data; // {data: project} OR {suggestions: string[]}
 }
 
 
@@ -3285,6 +5111,25 @@ File End
 --------------------------------------------------
 
 
+src\services\authService.js
+File type: .js
+import axios from 'axios';
+const API_URL = 'http://localhost:8000/auth';
+export const register = async (username, password) => {
+    const res = await axios.post(`${API_URL}/register`, { username, password });
+    return res.data;
+};
+export const login = async (username, password) => {
+    const res = await axios.post(`${API_URL}/login`, { username, password });
+    return res.data;
+};
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\services\authService.ts
 File type: .ts
 import axios from 'axios';
@@ -3312,8 +5157,58 @@ File End
 --------------------------------------------------
 
 
+src\services\midiService.js
+File type: .js
+"use strict";
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\services\midiService.ts
 File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\services\projectService.js
+File type: .js
+// frontend/src/services/projectService.ts
+import axios from "axios";
+const API_URL = "http://localhost:8000/projects";
+const getAuthHeader = () => {
+    const token = localStorage.getItem("token");
+    return {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+};
+export const getAllProjects = async () => {
+    const res = await axios.get(API_URL + "/", getAuthHeader());
+    return res.data; // array of projects
+};
+export const getProjectById = async (id) => {
+    const res = await axios.get(`${API_URL}/${id}`, getAuthHeader());
+    return res.data;
+};
+export const createProject = async (name, data) => {
+    const res = await axios.post(`${API_URL}/`, { name, data }, getAuthHeader());
+    return res.data;
+};
+export const updateProject = async (id, name, data) => {
+    const res = await axios.put(`${API_URL}/${id}`, { name, data }, getAuthHeader());
+    return res.data;
+};
+export const deleteProject = async (id) => {
+    const res = await axios.delete(`${API_URL}/${id}`, getAuthHeader());
+    return res.data;
+};
 
 
 --------------------------------------------------
@@ -3373,6 +5268,16 @@ export const deleteProject = async (id: number) => {
   const res = await axios.delete(`${API_URL}/${id}`, getAuthHeader());
   return res.data;
 };
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\services\userService.js
+File type: .js
+"use strict";
 
 
 --------------------------------------------------
@@ -3517,6 +5422,16 @@ File End
 --------------------------------------------------
 
 
+src\types\projectTypes.js
+File type: .js
+export {};
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\types\projectTypes.ts
 File type: .ts
 export type Note = {
@@ -3549,8 +5464,57 @@ File End
 --------------------------------------------------
 
 
+src\utils\constants.js
+File type: .js
+"use strict";
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\utils\constants.ts
 File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\utils\exportProject.js
+File type: .js
+import { Midi } from "@tonejs/midi";
+/**
+ * @param jsonData  A JSON string like `{"notes":[…],"bpm":120}`
+ * @param filename  The base name (no extension) for the download
+ */
+export function exportProject(jsonData, filename) {
+    // parse your stored data
+    const { notes, bpm } = JSON.parse(jsonData);
+    // build a ToneJS Midi object
+    const midi = new Midi();
+    midi.header.setTempo(bpm);
+    const track = midi.addTrack();
+    notes.forEach((note) => track.addNote({
+        midi: note.midi,
+        time: note.time,
+        duration: note.duration,
+        velocity: note.velocity,
+    }));
+    // serialize to ArrayBuffer and download
+    const bytes = midi.toArray();
+    const blob = new Blob([bytes], { type: "audio/midi" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${filename}.mid`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
 
 
 --------------------------------------------------
@@ -3580,7 +5544,6 @@ export function exportProject(jsonData: string, filename: string) {
 
   // build a ToneJS Midi object
   const midi = new Midi();
-  midi.header.ppq = 480;
   midi.header.setTempo(bpm);
 
   const track = midi.addTrack();
@@ -3613,8 +5576,43 @@ File End
 --------------------------------------------------
 
 
+src\utils\formatDate.js
+File type: .js
+"use strict";
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\utils\formatDate.ts
 File type: .ts
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\utils\generateMIDI.js
+File type: .js
+import { Midi } from '@tonejs/midi';
+import * as Tone from 'tone';
+export const generateMIDI = (notes) => {
+    const midi = new Midi();
+    const track = midi.addTrack();
+    notes.forEach((note) => {
+        track.addNote({
+            midi: Tone.Frequency(note.pitch).toMidi(),
+            time: note.time * Tone.Time('16n').toSeconds(),
+            duration: Tone.Time('16n').toSeconds(),
+        });
+    });
+    const blob = new Blob([midi.toArray()], { type: 'audio/midi' });
+    const url = URL.createObjectURL(blob);
+    return url;
+};
 
 
 --------------------------------------------------
@@ -3650,6 +5648,28 @@ File End
 --------------------------------------------------
 
 
+src\utils\instruments.js
+File type: .js
+import * as Tone from 'tone';
+export const getInstrument = (type) => {
+    switch (type) {
+        case 'keyboard':
+            return new Tone.Synth().toDestination();
+        case 'drums':
+            return new Tone.MembraneSynth().toDestination();
+        case 'bass':
+            return new Tone.MonoSynth().toDestination();
+        default:
+            return new Tone.Synth().toDestination();
+    }
+};
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\utils\instruments.ts
 File type: .ts
 import * as Tone from 'tone';
@@ -3666,6 +5686,34 @@ export const getInstrument = (type: string) => {
       return new Tone.Synth().toDestination();
   }
 };
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\utils\loadMagenta.js
+File type: .js
+// src/utils/loadMagenta.ts
+import * as tf from "@tensorflow/tfjs";
+import "@tensorflow/tfjs-backend-webgl"; // keep available
+import "@tensorflow/tfjs-backend-cpu"; // we'll force CPU for stability on Windows
+import * as mm from "@magenta/music";
+let pending = null;
+export async function ensureMagentaLoaded() {
+    if (window.mm)
+        return;
+    if (pending)
+        return pending;
+    pending = (async () => {
+        // Force CPU to avoid WebGL split bug on some GPUs
+        await tf.setBackend("cpu");
+        await tf.ready();
+        window.mm = mm;
+    })();
+    await pending;
+}
+
 
 --------------------------------------------------
 File End
@@ -3696,6 +5744,92 @@ export async function ensureMagentaLoaded() {
   })();
 
   await pending;
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\utils\magenta.js
+File type: .js
+import { ensureMagentaLoaded } from "./loadMagenta";
+const clampBeat = (v) => Math.max(0, Math.round(v * 64) / 64); // 1/64 beat grid
+const secsToBeats = (s, bpm) => (s * bpm) / 60;
+/**
+ * Robustly convert a Magenta NoteSequence to our {pitch,time,duration,velocity} in BEATS.
+ * Handles BOTH:
+ *  - quantized notes: quantizedStartStep / quantizedEndStep (common when seed is quantized)
+ *  - time-based notes: startTime / endTime (seconds)
+ */
+function fromMagentaSequence(seq, bpm) {
+    const notes = Array.isArray(seq?.notes) ? seq.notes : [];
+    const spq = Number(seq?.quantizationInfo?.stepsPerQuarter) || 4;
+    const out = notes.map((n) => {
+        const hasSteps = Number.isFinite(n?.quantizedStartStep) && Number.isFinite(n?.quantizedEndStep);
+        let t0Beats;
+        let t1Beats;
+        if (hasSteps) {
+            // Convert steps -> beats (quarter note = 1 beat)
+            const s0 = Number(n.quantizedStartStep);
+            const s1 = Number(n.quantizedEndStep);
+            t0Beats = clampBeat(s0 / spq);
+            t1Beats = clampBeat(s1 / spq);
+        }
+        else {
+            // Fallback to seconds -> beats
+            const st = Number.isFinite(n?.startTime) ? Number(n.startTime)
+                : Number.isFinite(n?.start_time) ? Number(n.start_time)
+                    : 0;
+            const et = Number.isFinite(n?.endTime) ? Number(n.endTime)
+                : Number.isFinite(n?.end_time) ? Number(n.end_time)
+                    : 0;
+            t0Beats = clampBeat(secsToBeats(st, bpm));
+            t1Beats = clampBeat(secsToBeats(et, bpm));
+        }
+        const durBeats = Math.max(0.125, t1Beats - t0Beats); // at least a 1/8 beat so you can see/hear it
+        return {
+            pitch: Number.isFinite(n?.pitch) ? Number(n.pitch)
+                : Number.isFinite(n?.midi) ? Number(n.midi)
+                    : 60,
+            time: t0Beats,
+            duration: durBeats,
+            velocity: Math.round(((Number.isFinite(n?.velocity) ? Number(n.velocity) : 0.8)) * 127),
+        };
+    });
+    return out
+        .filter((n) => n.duration > 0)
+        .sort((a, b) => a.time - b.time);
+}
+export async function generateMelodies(opts = {}) {
+    const { bars = 8, bpm = 120, temperature = 1.0, count = 1 } = opts;
+    await ensureMagentaLoaded();
+    const mm = window.mm;
+    if (!mm)
+        throw new Error("@magenta/music failed to load");
+    // Melody RNN, no chords arg
+    const model = new mm.MusicRNN("https://storage.googleapis.com/magentadata/js/checkpoints/music_rnn/melody_rnn");
+    await model.initialize();
+    const spq = 4; // steps per quarter (16th note grid)
+    const steps = bars * 4 * spq; // bars * beatsPerBar * spq
+    // Non-empty seed improves stability across TFJS backends
+    const seedUnquantized = {
+        notes: [{ pitch: 60, startTime: 0, endTime: 0.5 }],
+        totalTime: 0.5,
+        tempos: [{ qpm: bpm }],
+    };
+    const seed = mm.sequences.quantizeNoteSequence(seedUnquantized, spq);
+    const out = [];
+    for (let i = 0; i < count; i++) {
+        const seq = await model.continueSequence(seed, steps, temperature);
+        // Provide tempo for time-based fallback paths
+        seq.tempos = [{ qpm: bpm }];
+        const notes = fromMagentaSequence(seq, bpm);
+        const totalBeats = notes.reduce((m, n) => Math.max(m, n.time + n.duration), 0);
+        out.push({ id: `magenta-${Date.now()}-${i}`, notes, totalBeats });
+    }
+    return out;
 }
 
 
@@ -3814,6 +5948,79 @@ File End
 --------------------------------------------------
 
 
+src\utils\previewPlayer.js
+File type: .js
+// src/utils/previewPlayer.ts
+import * as Tone from "tone";
+const activeById = new Map();
+/**
+ * Plays a small set of notes using a private PolySynth.
+ * - Uses Tone.now() + setTimeout scheduling (doesn't start Tone.Transport)
+ * - Stops any previous preview for the same clip id
+ */
+export function playPreview(clipId, notes, bpm, onEnded) {
+    // stop any existing preview for this clip
+    activeById.get(clipId)?.stop();
+    const synth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: "triangle" },
+        volume: -6,
+        envelope: { attack: 0.005, decay: 0.1, sustain: 0.2, release: 0.2 },
+    }).toDestination();
+    const msPerBeat = 60000 / bpm;
+    const timeouts = [];
+    let stopped = false;
+    // schedule notes against the wall clock
+    notes.forEach((n) => {
+        const whenMs = n.time * msPerBeat;
+        const durSec = (n.duration * msPerBeat) / 1000;
+        const vel = Math.min(1, Math.max(0, (n.velocity ?? 90) / 127));
+        const id = window.setTimeout(() => {
+            if (stopped)
+                return;
+            const hz = Tone.Frequency(n.pitch, "midi").toFrequency();
+            synth.triggerAttackRelease(hz, durSec, undefined, vel);
+        }, Math.max(0, whenMs));
+        timeouts.push(id);
+    });
+    // auto-stop after clip length
+    const endBeat = notes.reduce((m, n) => Math.max(m, n.time + n.duration), 0);
+    const endId = window.setTimeout(() => {
+        if (stopped)
+            return;
+        stopped = true;
+        synth.dispose();
+        onEnded?.();
+        activeById.delete(clipId);
+    }, Math.max(0, endBeat * msPerBeat + 50));
+    timeouts.push(endId);
+    const handle = {
+        stop: () => {
+            if (stopped)
+                return;
+            stopped = true;
+            timeouts.forEach(clearTimeout);
+            synth.releaseAll();
+            synth.dispose();
+            onEnded?.();
+            activeById.delete(clipId);
+        },
+        isStopped: () => stopped,
+    };
+    activeById.set(clipId, handle);
+    return handle;
+}
+/** Stop ALL running previews (e.g., when leaving the page) */
+export function stopAllPreviews() {
+    activeById.forEach((h) => h.stop());
+    activeById.clear();
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
 src\utils\previewPlayer.ts
 File type: .ts
 // src/utils/previewPlayer.ts
@@ -3865,8 +6072,8 @@ export function playPreview(
 
     const id = window.setTimeout(() => {
       if (stopped) return;
-      const freq = Tone.Frequency(n.pitch, "midi");
-      synth.triggerAttackRelease(freq, durSec, undefined, vel);
+      const hz = Tone.Frequency(n.pitch, "midi").toFrequency();
+      synth.triggerAttackRelease(hz, durSec, undefined, vel);
     }, Math.max(0, whenMs));
     timeouts.push(id);
   });
@@ -3904,6 +6111,16 @@ export function stopAllPreviews() {
   activeById.forEach((h) => h.stop());
   activeById.clear();
 }
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+src\utils\validateForm.js
+File type: .js
+"use strict";
 
 
 --------------------------------------------------

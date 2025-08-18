@@ -1,6 +1,8 @@
 // frontend/src/services/projectService.ts
 import axios from "axios";
-const API_URL = "http://localhost:8000/projects";
+const RAW = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const BASE = RAW.replace(/\/+$/, '');
+const API_URL = `${BASE}/projects`;
 const getAuthHeader = () => {
     const token = localStorage.getItem("token");
     return {
