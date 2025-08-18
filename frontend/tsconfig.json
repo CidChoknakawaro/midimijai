@@ -1,14 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "jsx": "react-jsx",              // for React 17+ automatic runtime
+    "lib": ["ES2021", "DOM"],        // include DOM types
     "module": "ESNext",
-    "jsx": "react-jsx",
-    "strict": true,
-    "moduleResolution": "node",
-    "esModuleInterop": true,
+    "moduleResolution": "Bundler",
+    "target": "ES2021",
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "strict": true,
+    "types": ["vite/client", "react", "react-dom"]
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src"]
 }

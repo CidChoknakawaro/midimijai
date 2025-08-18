@@ -80,7 +80,7 @@ const TrackDashboard: React.FC<Props> = ({ tracks, onEditTrack, onAddTrack, upda
   const [redLineLeft, setRedLineLeft] = useState(0);
 
   const redLineBeatRef = useRef(playheadBeat);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
   const instrumentMap = useRef<Map<string, any>>(new Map());
   const activeNotesMap = useRef<Map<string, Set<string>>>(new Map());
 

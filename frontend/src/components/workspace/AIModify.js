@@ -1,0 +1,7 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState } from "react";
+export default function AIModify() {
+    const [prompt, setPrompt] = useState("");
+    const [busy] = useState(false);
+    return (_jsxs("div", { className: "space-y-3", children: [_jsx("div", { className: "rounded-full bg-white px-4 py-2 border border-black/10 shadow-inner", children: _jsx("input", { value: prompt, onChange: (e) => setPrompt(e.target.value), placeholder: "Make this jazzier\u2026", className: "w-full outline-none text-[14px] placeholder-black/40" }) }), _jsxs("div", { className: "flex items-center gap-4", children: [_jsx("button", { disabled: busy, className: "px-2 py-1.5 bg-[#ff6a2a] text-black font-semibold rounded shadow\r\n                     hover:brightness-105 active:translate-y-[1px] disabled:opacity-60", style: { border: "1px solid rgba(0,0,0,.12)" }, children: "Suggestions" }), _jsx("button", { disabled: busy, className: "px-2 py-1.5 bg-[#ff6a2a] text-black font-semibold rounded shadow\r\n                     hover:brightness-105 active:translate-y-[1px] disabled:opacity-60", style: { border: "1px solid rgba(0,0,0,.12)" }, children: "Modify" })] }), _jsx("div", { className: "rounded-[16px] border border-black/10 bg-white/95", style: { minHeight: 220 }, children: _jsx("div", { className: "p-3 space-y-3", children: _jsx("div", { className: "text-center text-black/50 py-6 text-sm", children: "Your modified ideas will appear here (UI only for now)." }) }) })] }));
+}

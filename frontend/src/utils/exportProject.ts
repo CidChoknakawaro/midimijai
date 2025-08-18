@@ -18,7 +18,6 @@ export function exportProject(jsonData: string, filename: string) {
 
   // build a ToneJS Midi object
   const midi = new Midi();
-  midi.header.ppq = 480;
   midi.header.setTempo(bpm);
 
   const track = midi.addTrack();

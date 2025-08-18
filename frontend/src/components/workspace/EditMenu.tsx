@@ -1,8 +1,10 @@
-// frontend/src/components/workspace/EditMenu.tsx
 import React from "react";
 
-interface EditMenuProps {
-  onSelect: () => void;   // close dropdown
+type Item =
+  | { separator: true }
+  | { label: string; action: () => void; shortcut?: string };
+
+type Props = {
   onUndo: () => void;
   onRedo: () => void;
   onCut: () => void;
@@ -10,10 +12,9 @@ interface EditMenuProps {
   onPaste: () => void;
   onDelete: () => void;
   onSelectAll: () => void;
-}
+};
 
-const EditMenu: React.FC<EditMenuProps> = ({
-  onSelect,
+const EditMenu: React.FC<Props> = ({
   onUndo,
   onRedo,
   onCut,
@@ -22,31 +23,28 @@ const EditMenu: React.FC<EditMenuProps> = ({
   onDelete,
   onSelectAll,
 }) => {
-  const items = [
-    { label: "Undo",        shortcut: "Ctrl+Z",  action: onUndo },
-    { label: "Redo",        shortcut: "Ctrl+Y",  action: onRedo },
+  const items: Item[] = [
+    { label: "Undo", action: onUndo, shortcut: "Ctrl+Z" },
+    { label: "Redo", action: onRedo, shortcut: "Ctrl+Y" },
     { separator: true },
-    { label: "Cut",         shortcut: "Ctrl+X",  action: onCut },
-    { label: "Copy",        shortcut: "Ctrl+C",  action: onCopy },
-    { label: "Paste",       shortcut: "Ctrl+V",  action: onPaste },
-    { label: "Delete",                       action: onDelete },
+    { label: "Cut", action: onCut, shortcut: "Ctrl+X" },
+    { label: "Copy", action: onCopy, shortcut: "Ctrl+C" },
+    { label: "Paste", action: onPaste, shortcut: "Ctrl+V" },
+    { label: "Delete", action: onDelete },
     { separator: true },
-    { label: "Select All",  shortcut: "Ctrl+A",  action: onSelectAll },
-  ] as const;
+    { label: "Select All", action: onSelectAll, shortcut: "Ctrl+A" },
+  ];
 
   return (
-    <div className="mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg">
+    <div className="rounded-md border border-gray-200 bg-white shadow">
       {items.map((item, i) =>
         "separator" in item ? (
-          <div key={i} className="border-t border-gray-200 my-1" />
+          <div key={`sep-${i}`} className="my-1 border-t" />
         ) : (
           <button
             key={item.label}
-            onClick={() => {
-              item.action();
-              onSelect();
-            }}
-            className="flex justify-between w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={item.action}
+            className="flex w-full items-center justify-between px-3 py-1.5 text-left hover:bg-gray-50"
           >
             <span>{item.label}</span>
             {item.shortcut && (

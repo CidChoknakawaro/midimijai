@@ -1,7 +1,7 @@
 import GlobalTransportBar from "../components/TransportBar/GlobalTransportBar";
 import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from "react";
 import TrackDashboard from "../components/TrackDashboard/TrackDashboard";
-import TrackEditor, { TrackEditorAPI } from "../components/TrackEditor/TrackEditor";
+import TrackEditor from "../components/TrackEditor/TrackEditor";
 import { TransportProvider } from "../core/TransportContext";
 
 export interface Track {
@@ -84,8 +84,6 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
     setActiveTrackId(null);
   }, [projectId]); // <-- not depending on initialTracks/initialBpm avoids the editor jump
 
-  const editorRef = useRef<TrackEditorAPI | null>(null);
-
   const addNewTrack = () => {
     const id = `t-${Date.now()}`;
     const newTrack: Track = { id, name: `Track ${tracks.length + 1}`, instrument: "Piano", notes: [] };
@@ -113,23 +111,6 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
   };
 
   const activeTrack = tracks.find((t) => t.id === activeTrackId) || null;
-
-  useImperativeHandle(ref, () => ({
-    undo: () => editorRef.current?.undo?.(),
-    redo: () => editorRef.current?.redo?.(),
-    cut: () => editorRef.current?.cut?.(),
-    copy: () => editorRef.current?.copy?.(),
-    paste: () => editorRef.current?.paste?.(),
-    deleteSelection: () => editorRef.current?.deleteSelection?.(),
-    selectAll: () => editorRef.current?.selectAll?.(),
-    transpose: (n) => editorRef.current?.transpose?.(n),
-    velocityScale: (m) => editorRef.current?.velocityScale?.(m),
-    noteLengthScale: (m) => editorRef.current?.noteLengthScale?.(m),
-    humanize: (a, v) => editorRef.current?.humanize?.(a, v),
-    arpeggiate: (p) => editorRef.current?.arpeggiate?.(p),
-    strum: (ms) => editorRef.current?.strum?.(ms),
-    legato: () => editorRef.current?.legato?.(),
-  }), []);
 
   /**
    * AI result ingress (from AIGenerate): sanitize + either replace active track or append a new track.
@@ -188,7 +169,6 @@ const MidiEditorCore = forwardRef<MidiEditorAPI, MidiEditorCoreProps>(({
           {activeTrack ? (
             <div className="max-h-[420px] overflow-y-auto">
               <TrackEditor
-                ref={editorRef}
                 track={activeTrack}
                 updateTrack={(u) => updateTrack(activeTrack.id, u)}
                 goBack={() => setActiveTrackId(null)}

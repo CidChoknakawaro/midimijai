@@ -14,7 +14,6 @@ export function exportTrackToMidi(
   const { notes, bpm = 120, filename = "track" } = opts;
 
   const midi = new Midi();
-  midi.header.ppq = 480;
   midi.header.setTempo(bpm);
 
   const track = midi.addTrack();
@@ -55,7 +54,6 @@ export function exportMultiTrackToMidi(
   const { tracks, bpm = 120, filename = "project" } = opts;
 
   const midi = new Midi();
-  midi.header.ppq = 480;
   midi.header.setTempo(bpm);
 
   tracks.forEach(t => {

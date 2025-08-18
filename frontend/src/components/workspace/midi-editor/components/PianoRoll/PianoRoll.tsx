@@ -19,7 +19,7 @@ const midiToNoteName = (midi: number): string => {
 type Props = {
   notes: any[];
   setNotes: (notes: any[]) => void;
-  playheadRef: React.RefObject<HTMLDivElement>;
+  playheadRef: React.RefObject<HTMLDivElement | null>;
   gridWidth: number;
   snapToGrid: boolean;
   onPlayheadScrub: (beat: number) => void;
@@ -195,11 +195,11 @@ const PianoRoll: React.FC<Props> = ({
                     position={{ x: left, y: top }}
                     bounds="parent"
                     enableResizing={{ left: true, right: true }}
-                    onDoubleClick={(e) => {
-                      e.stopPropagation();
+                    onDoubleClick={(e: React.MouseEvent<HTMLDivElement>) => {
+                      e.preventDefault();
                       setNotes(notes.filter(n => n.id !== note.id));
                     }}
-                    onContextMenu={(e) => {
+                    onContextMenu={(e: React.MouseEvent<HTMLDivElement>) => {
                       e.preventDefault();
                       setVelocityEditorId(note.id);
                     }}

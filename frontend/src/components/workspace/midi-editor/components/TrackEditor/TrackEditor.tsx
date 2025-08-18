@@ -5,8 +5,9 @@ import { exportMidi } from "../../core/exportMidi";
 import { importMidiFile } from "../../core/importMidi";
 import { getActiveNotesAtBeat } from "../../core/midiUtils";
 import { TransportContext } from "../../core/TransportContext";
-import { subscribe, EditorCommand } from "../../core/editorBus";
+import { subscribe} from "../../core/editorBus";
 import { ChevronLeft } from "lucide-react";
+import type { EditorCommand } from "../../core/editorBus";
 
 const MAX_BEAT = 63;
 const BUILT_IN_INSTRUMENTS = ["Piano", "Synth", "AMSynth", "MembraneSynth"];
@@ -63,7 +64,7 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
   const playheadRef = useRef<HTMLDivElement>(null);
   const synthRef = useRef<any>(null);
   const redLineRef = useRef(playheadBeat);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
   const activeNotes = useRef<Set<string>>(new Set());
 
   // ✅ grid width now follows GLOBAL zoom
@@ -146,13 +147,13 @@ const TrackEditor: React.FC<Props> = ({ track, updateTrack, goBack }) => {
     const unsub = subscribe(async (cmd: EditorCommand) => {
       switch (cmd.type) {
         case "SET_ZOOM":
-          setZoomLevel(cmd.value as 1 | 2 | 4);
+          setZoomLevel(cmd.value);
           break;
         case "TOGGLE_SNAP":
           toggleSnap();
           break;
         case "EXPORT_MIDI":
-          exportMidi(track.notes, bpm);
+          exportMidi({ notes: track.notes, bpm, filename: track.name || "track" });
           break;
         case "IMPORT_MIDI_FILE": {
           const file = cmd.file;

@@ -47,8 +47,8 @@ export function playPreview(
 
     const id = window.setTimeout(() => {
       if (stopped) return;
-      const freq = Tone.Frequency(n.pitch, "midi");
-      synth.triggerAttackRelease(freq, durSec, undefined, vel);
+      const hz = Tone.Frequency(n.pitch, "midi").toFrequency();
+      synth.triggerAttackRelease(hz, durSec, undefined, vel);
     }, Math.max(0, whenMs));
     timeouts.push(id);
   });

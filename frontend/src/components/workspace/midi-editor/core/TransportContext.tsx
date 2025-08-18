@@ -62,7 +62,7 @@ export const TransportProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   useEffect(() => {
     let metronomeSynth: Tone.Synth | null = null;
-    let intervalId: number | string | undefined;
+    let intervalId: number | undefined;
 
     if (metronome && isPlaying) {
       metronomeSynth = new Tone.Synth({

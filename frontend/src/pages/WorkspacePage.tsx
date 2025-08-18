@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import WorkspaceNavBar from "../components/workspace/WorkspaceNavBar";
 import AIDock from "../components/workspace/AIDock";
 import MidiEditorCore, { MidiEditorAPI, Track } from "../components/workspace/midi-editor/core/MidiEditorCore";
+import { publish } from "../components/workspace/midi-editor/core/editorBus";
 
 const PAGE_BG = "#fbf5ee"; 
 const BEIGE   = "#e9dcc9";  
@@ -23,7 +24,7 @@ export default function WorkspacePage() {
         onSave={() => {}}
         onSaveAs={() => {}}
         onImportMidi={() => {}}
-        onExportMidi={() => editorRef.current?.exportMidi?.()}
+        onExportMidi={() => publish({ type: "EXPORT_MIDI" })}
         onExportStems={() => {}}
         onClose={() => {}}
       />

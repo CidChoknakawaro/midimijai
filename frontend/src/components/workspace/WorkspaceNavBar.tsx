@@ -116,7 +116,6 @@ const WorkspaceNavBar: React.FC<Props> = ({
                 {openDropdown === "Edit" && tab === "Edit" && (
                   <div className="absolute left-0 top-full z-30">
                     <EditMenu
-                      onSelect={() => setOpenDropdown(null)}
                       onUndo={() => publish({ type: "UNDO" })}
                       onRedo={() => publish({ type: "REDO" })}
                       onCut={() => publish({ type: "CUT" })}
